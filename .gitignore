@@ -1,0 +1,33 @@
+# Environment
+.env
+*.local
+
+# PHP
+vendor/
+composer.lock
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Docker
+docker/mysql-data/
+
+# Uploads
+public/uploads/
+
+# Cache
+*.cache
+
+# Claude Code
+.claude/

@@ -1,0 +1,21 @@
+{
+    "name": "meweek/data-bridge-crm",
+    "description": "DataBridge CRM — Self-hosted website network management system",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "DataBridge\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "scripts": {
+        "migrate": "php migrations/migrate.php"
+    }
+}
