@@ -1,0 +1,56 @@
+/* Design System: Restrained Loft — CSS Tokens */
+
+:root {
+    /* Radii */
+    --radius-card: 24px;
+    --radius-pill: 12px;
+    --radius-item: 10px;
+
+    /* Shadows */
+    --shadow-premium: 0 10px 30px -10px rgba(0,0,0,0.10);
+    --shadow-hover:   0 20px 40px -12px rgba(0,0,0,0.15);
+
+    /* Status dots */
+    --dot-ok:    #48bb78;
+    --dot-pause: #ed8936;
+    --dot-off:   #f56565;
+
+    /* Animation */
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --duration: 0.2s;
+    --duration-drawer: 0.3s;
+
+    /* Layout */
+    --rail-width: 64px;
+    --topbar-height: 64px;
+    --drawer-width: 440px;
+}
+
+/* Light theme (default) */
+:root,
+[data-theme="light"] {
+    --bg-page:        #ebedf1;
+    --bg-card:        #ffffff;
+    --bg-topbar:      #ffffff;
+    --bg-rail:        #111111;
+    --bg-input:       #f3f4f6;
+    --text-primary:   #1a1a2e;
+    --text-secondary: #4a5568;
+    --text-muted:     #a0aec0;
+    --accent:         #1a1a2e;
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+    --bg-page:        #0f0f10;
+    --bg-card:        #1c1c1e;
+    --bg-topbar:      #141415;
+    --bg-rail:        #080808;
+    --bg-input:       #232325;
+    --text-primary:   #e2e8f0;
+    --text-secondary: #a0aec0;
+    --text-muted:     #718096;
+    --accent:         #e2e8f0;
+    --shadow-premium: 0 10px 30px -10px rgba(0,0,0,0.40);
+    --shadow-hover:   0 20px 40px -12px rgba(0,0,0,0.50);
+}
