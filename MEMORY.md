@@ -9,9 +9,9 @@
 - **Версія:** 0.1.0-alpha (Laravel stack)
 - **Активна фаза:** Phase 0–1 (Foundation — Laravel migration)
 - **Активний спринт:** Sprint 01
-- **Наступна задача:** TASK-L006 — SiteGroups (index + show + CRUD через Drawer)
-- **Активна гілка:** `feature/task-l005-dashboard` (запушено)
-- **Останній коміт:** `4cff26d` feat(dashboard): real-data DashboardController + x-stat-card component
+- **Наступна задача:** TASK-L008 — Users (index + CRUD + role management)
+- **Активна гілка:** `feature/task-l007-sites` (запушено)
+- **Останній коміт:** `1a1799b` feat(sites): Sites CRUD with Drawer UI
 - **Точка повернення:** git tag `v0.1-vanilla-php-foundation` (весь vanilla PHP код збережено)
 
 ---
@@ -40,19 +40,21 @@
 | TASK-L003: 13 Eloquent моделей з відносинами | feature/task-l003-models | ✅ |
 | TASK-L004: Auth (LoginController + Blade layouts + design system CSS/JS) | feature/task-l004-auth | ✅ |
 | TASK-L005: Dashboard (real data + x-stat-card + log list) | feature/task-l005-dashboard | ✅ |
+| TASK-L006: SiteGroups CRUD + Drawer + Form Requests | feature/task-l006-site-groups | ✅ |
+| TASK-L007: Sites CRUD + Drawer + group pill badge | feature/task-l007-sites | ✅ |
 
 ## 🔲 Наступні задачі
 
-1. **TASK-L006** — SiteGroups (index + show + CRUD через Drawer)
-2. **TASK-L007** — Sites (index + show + CRUD через Drawer)
+1. **TASK-L008** — Users (index + CRUD + role management)
+2. **TASK-L009** — Logs viewer (SystemLog + BatchLog paginated list)
 
 ---
 
 ## 🌿 Git стан
 
 - **Remote:** `git@github.com:mzalisko/data-bridge-v2.git` ✅
-- **Активна гілка:** `feature/task-l004-auth` (запушено)
-- **Незлиті Laravel гілки:** task-l001, task-l002, task-l003, task-l004 (всі на GitHub)
+- **Активна гілка:** `feature/task-l007-sites` (запушено)
+- **Незлиті Laravel гілки:** task-l001..task-l007 (всі на GitHub, PR не відкриті)
 
 ---
 
