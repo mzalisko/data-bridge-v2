@@ -6,12 +6,13 @@
 
 ## 📍 Поточний стан
 
-- **Версія:** 0.1.0-alpha (в процесі)
-- **Активна фаза:** Phase 0–1 (Foundation)
-- **Активний спринт:** Sprint 01
-- **Наступна задача:** TASK-009 (Auth — AuthController + AuthGuard + Login view)
-- **Активна гілка:** `feature/task-008-view-engine`
-- **Останній коміт:** `240bc44` style(design): CSS shell/components/drawer + layout.js
+- **Версія:** 0.1.0-alpha (перезапуск на Laravel)
+- **Активна фаза:** Phase 0–1 (Foundation — Laravel migration)
+- **Активний спринт:** Sprint 01 (переосмислено під Laravel)
+- **Наступна задача:** TASK-L001 — ініціалізація Laravel проекту (замінює vanilla PHP foundation)
+- **Активна гілка:** `feature/task-008-view-engine` (буде закрита після переходу)
+- **Останній коміт:** `5050d01` docs(obsidian): mark TASK-008 complete
+- **Точка повернення:** git tag `v0.1-vanilla-php-foundation` (весь vanilla PHP код збережено)
 
 ---
 
@@ -30,10 +31,14 @@
 
 ---
 
-## 🔲 Наступні задачі
+## 🔲 Наступні задачі (Laravel stack)
 
-1. **TASK-009** — Auth (AuthController + AuthGuard + Login view)
-2. **TASK-010** — Dashboard skeleton (DashboardController + view + StatCard)
+1. **TASK-L001** — Laravel install + Docker налаштування (`composer create-project laravel/laravel`)
+2. **TASK-L002** — Database migrations (перенести `001_initial_schema.sql` → Artisan migrations)
+3. **TASK-L003** — Models + Eloquent relationships (Site, SiteGroup, User, ApiKey)
+4. **TASK-L004** — Auth (Laravel Breeze або вручну: LoginController + middleware)
+5. **TASK-L005** — Layout + Design System (перенести CSS/JS з vanilla PHP гілки)
+6. **TASK-L006** — Dashboard (DashboardController + Blade view + StatCard component)
 
 ---
 
@@ -49,16 +54,18 @@
 
 | Рішення | Значення | Дата |
 |---|---|---|
-| View::render() | Буферизує контент, потім включає Layout.php | 2026-04-08 |
-| View::renderBare() | Для login, errors, API responses | 2026-04-08 |
+| **PHP фреймворк** | **Laravel** (замість vanilla PHP) | 2026-04-08 |
+| Причина переходу | Складність CRM (ORM, RBAC, batch, API) виправдовує Laravel | 2026-04-08 |
+| Auth | Laravel вбудований + власні контролери (не Breeze UI) | 2026-04-08 |
+| Views | Blade templates + Blade components (`<x-stat-card>`, тощо) | 2026-04-08 |
+| CSS/JS | Без Tailwind/Bootstrap — наш Restrained Loft design system | 2026-04-08 |
 | CrmRail | Завжди темний (#111), незалежно від теми | 2026-04-08 |
 | Тема | Cookie `theme` = 'dark'/'light', default: dark | 2026-04-08 |
-| Router | Regex match, {id} = digits only → intval() | 2026-04-08 |
-| Logger | Silent — ніколи не кидає Exception | 2026-04-08 |
-| PHP підхід | `final class` + `static` для Core | 2026-04-08 |
 | Drawer | 440px стандарт, 600px batch | 2026-04-08 |
-| API key | `dbapi_` + 32 hex = 38 символів | 2026-04-08 |
-| DB | MySQL 8.0, PDO prepared statements | 2026-04-08 |
+| API key | `dbapi_` + 32 hex = 38 символів; Hash::make() | 2026-04-08 |
+| DB | MySQL 8.0, Eloquent ORM + migrations | 2026-04-08 |
+| Validation | Form Requests (не ручна валідація) | 2026-04-08 |
+| RBAC | Laravel Policies + Gates | 2026-04-08 |
 
 ---
 
