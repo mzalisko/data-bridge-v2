@@ -40,6 +40,12 @@
     line-height: 1;
 }
 
+.stat-card__sub {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-top: var(--space-xs);
+}
+
 /* Status dot */
 .status-dot {
     display: inline-block;

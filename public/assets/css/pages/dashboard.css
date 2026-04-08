@@ -1,0 +1,57 @@
+/* DataBridge CRM — Dashboard page */
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-md);
+}
+
+.section-title {
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.empty-state {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    padding: var(--space-md) 0;
+    text-align: center;
+}
+
+/* Log list */
+.log-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.log-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-item);
+    gap: var(--space-md);
+}
+
+.log-item:hover {
+    background: var(--bg-hover);
+}
+
+.log-item--warning .log-item__event { color: var(--dot-pause); }
+.log-item--error   .log-item__event { color: var(--dot-off); }
+
+.log-item__event {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.log-item__meta {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    white-space: nowrap;
+}
