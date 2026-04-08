@@ -47,6 +47,16 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('users.index') }}"
+                   class="rail-item {{ request()->routeIs('users.*') ? 'is-active' : '' }}"
+                   title="Користувачі">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </a>
+            </li>
+            <li>
                 <a href="#" class="rail-item" title="Логи">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>

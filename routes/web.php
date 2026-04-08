@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SiteController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SiteGroupController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
@@ -24,5 +25,8 @@ Route::middleware('auth')->group(function () {
         ->only(['index', 'store', 'update', 'destroy']);
 
     Route::resource('sites', SiteController::class)
+        ->only(['index', 'store', 'update', 'destroy']);
+
+    Route::resource('users', UserController::class)
         ->only(['index', 'store', 'update', 'destroy']);
 });
