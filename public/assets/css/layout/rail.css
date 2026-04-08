@@ -1,0 +1,81 @@
+/* CrmRail — vertical navigation strip */
+
+.crm-rail {
+    width: var(--rail-width);
+    min-height: 100vh;
+    background: var(--bg-rail);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    position: sticky;
+    top: 0;
+    flex-shrink: 0;
+}
+
+/* Logo */
+.rail-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: var(--topbar-height);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: #ffffff;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+}
+
+/* Nav list */
+.rail-nav {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+    gap: 2px;
+}
+
+.rail-nav li {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+/* Rail items (links + logout button) */
+.rail-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-item);
+    color: rgba(255, 255, 255, 0.45);
+    background: transparent;
+    border: none;
+    transition: color var(--duration) var(--ease),
+                background var(--duration) var(--ease);
+}
+
+.rail-item:hover {
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.rail-item.active {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* Bottom section */
+.rail-bottom {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 12px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}

@@ -1,0 +1,70 @@
+/* Buttons */
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: var(--radius-pill);
+    background: var(--accent);
+    color: var(--bg-page);
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: opacity var(--duration) var(--ease),
+                transform var(--duration) var(--ease);
+}
+
+.btn-primary:hover {
+    opacity: 0.85;
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid rgba(128, 128, 128, 0.2);
+    cursor: pointer;
+    transition: background var(--duration) var(--ease),
+                color var(--duration) var(--ease);
+}
+
+.btn-ghost:hover {
+    background: rgba(128, 128, 128, 0.08);
+    color: var(--text-primary);
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-item);
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    cursor: pointer;
+    transition: background var(--duration) var(--ease),
+                color var(--duration) var(--ease);
+}
+
+.btn-icon:hover {
+    background: rgba(128, 128, 128, 0.1);
+    color: var(--text-primary);
+}

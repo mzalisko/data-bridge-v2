@@ -1,0 +1,51 @@
+/* Shell layout — main grid structure */
+
+.shell {
+    display: grid;
+    grid-template-columns: var(--rail-width) 1fr;
+    min-height: 100vh;
+}
+
+.shell-body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* Topbar */
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--topbar-height);
+    padding: 0 24px;
+    background: var(--bg-topbar);
+    border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+    flex-shrink: 0;
+}
+
+.topbar-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.topbar-user {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+/* Page content */
+.page-content {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+}
