@@ -8,11 +8,11 @@
     <x-stat-card
         label="Сайти"
         :value="$stats['sites_total']"
-        :sub="$stats['sites_ok'] . ' активних'"
+        :sub="$stats['sites_active'] . ' активних'"
     />
     <x-stat-card
         label="Офлайн"
-        :value="$stats['sites_off']"
+        :value="$stats['sites_offline']"
         sub="зупинено"
     />
     <x-stat-card

@@ -16,8 +16,8 @@ class DashboardController extends Controller
     {
         $stats = [
             'sites_total'   => Site::count(),
-            'sites_ok'      => Site::where('status', 'ok')->count(),
-            'sites_off'     => Site::where('status', 'off')->count(),
+            'sites_active'  => Site::where('is_active', true)->count(),
+            'sites_offline' => Site::where('is_active', false)->count(),
             'groups_total'  => SiteGroup::count(),
             'users_total'   => User::where('is_active', true)->count(),
             'syncs_today'   => SyncLog::whereDate('synced_at', today())->count(),

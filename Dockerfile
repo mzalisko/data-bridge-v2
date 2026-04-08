@@ -25,6 +25,12 @@ RUN docker-php-ext-install \
     xml \
     intl
 
+# Install OPcache
+RUN docker-php-ext-install opcache
+
+# OPcache config (validate_timestamps=0 for Docker+Windows volume performance)
+COPY docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+
 # Install Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 
