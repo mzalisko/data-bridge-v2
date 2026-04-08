@@ -9,9 +9,9 @@
 - **Версія:** 0.1.0-alpha (в процесі)
 - **Активна фаза:** Phase 0–1 (Foundation)
 - **Активний спринт:** Sprint 01
-- **Наступна задача:** TASK-008 (View Engine — залишилось CSS shell/components + JS + login view) → потім TASK-009 (Auth)
+- **Наступна задача:** TASK-009 (Auth — AuthController + AuthGuard + Login view)
 - **Активна гілка:** `feature/task-008-view-engine`
-- **Останній коміт:** `5796f88` feat(design): View engine, Layout shell, CrmRail, CSS tokens
+- **Останній коміт:** `240bc44` style(design): CSS shell/components/drawer + layout.js
 
 ---
 
@@ -26,29 +26,14 @@
 | 2026-04-08 | TASK-005: Database PDO singleton | feature/task-005-database | ✅ |
 | 2026-04-08 | TASK-006: Router + routes.php + index.php | feature/task-006-router | ✅ |
 | 2026-04-08 | TASK-007: CSRF + Logger | feature/task-007-csrf-session | ✅ |
-| 2026-04-08 | TASK-008: View.php + Layout.php + CrmRail + tokens/reset CSS | feature/task-008-view-engine | 🔄 |
-
----
-
-## 🔲 TASK-008 — що залишилось
-
-Гілка: `feature/task-008-view-engine`
-
-- [ ] `public/assets/css/layout/shell.css`
-- [ ] `public/assets/css/components/cards.css`
-- [ ] `public/assets/css/components/buttons.css`
-- [ ] `public/assets/css/components/forms.css`
-- [ ] `public/assets/css/components/drawer.css`
-- [ ] `public/assets/css/app.css`
-- [ ] `public/assets/js/layout.js` (theme toggle + drawer open/close)
+| 2026-04-08 | TASK-008: View.php + Layout.php + CrmRail + tokens/reset CSS + shell/components/drawer CSS + layout.js | feature/task-008-view-engine | ✅ |
 
 ---
 
 ## 🔲 Наступні задачі
 
-1. **TASK-008** — завершити CSS + JS (поточна гілка)
-2. **TASK-009** — Auth (AuthController + AuthGuard + Login view)
-3. **TASK-010** — Dashboard skeleton (DashboardController + view + StatCard)
+1. **TASK-009** — Auth (AuthController + AuthGuard + Login view)
+2. **TASK-010** — Dashboard skeleton (DashboardController + view + StatCard)
 
 ---
 
