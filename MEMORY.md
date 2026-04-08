@@ -9,9 +9,9 @@
 - **Версія:** 0.1.0-alpha (Laravel stack)
 - **Активна фаза:** Phase 0–1 (Foundation — Laravel migration)
 - **Активний спринт:** Sprint 01
-- **Наступна задача:** TASK-L005 — Dashboard skeleton (DashboardController з реальними даними + StatCard Blade component)
-- **Активна гілка:** `feature/task-l004-auth` (запушено)
-- **Останній коміт:** `f9b655f` feat(auth): LoginController, auth/app layouts, design system CSS+JS
+- **Наступна задача:** TASK-L006 — SiteGroups (index + show + CRUD через Drawer)
+- **Активна гілка:** `feature/task-l005-dashboard` (запушено)
+- **Останній коміт:** `4cff26d` feat(dashboard): real-data DashboardController + x-stat-card component
 - **Точка повернення:** git tag `v0.1-vanilla-php-foundation` (весь vanilla PHP код збережено)
 
 ---
@@ -39,12 +39,12 @@
 | TASK-L002: 12 міграцій (всі 15 таблиць схеми) | feature/task-l002-migrations | ✅ |
 | TASK-L003: 13 Eloquent моделей з відносинами | feature/task-l003-models | ✅ |
 | TASK-L004: Auth (LoginController + Blade layouts + design system CSS/JS) | feature/task-l004-auth | ✅ |
+| TASK-L005: Dashboard (real data + x-stat-card + log list) | feature/task-l005-dashboard | ✅ |
 
 ## 🔲 Наступні задачі
 
-1. **TASK-L005** — Dashboard (DashboardController з реальними даними + x-stat-card Blade component)
-2. **TASK-L006** — SiteGroups (index + show + CRUD через Drawer)
-3. **TASK-L007** — Sites (index + show + CRUD через Drawer)
+1. **TASK-L006** — SiteGroups (index + show + CRUD через Drawer)
+2. **TASK-L007** — Sites (index + show + CRUD через Drawer)
 
 ---
 
