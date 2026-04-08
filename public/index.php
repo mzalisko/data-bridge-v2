@@ -46,16 +46,8 @@ if (!empty($_ENV['APP_DEBUG']) && $_ENV['APP_DEBUG'] === 'true') {
     error_reporting(0);
 }
 
-// Bootstrap Router — буде реалізовано в TASK-006
-// use DataBridge\Core\Router;
-// $router = new Router();
-// require_once BASE_PATH . '/src/routes.php';
-// $router->dispatch();
+use DataBridge\Core\Router;
 
-// Тимчасова відповідь поки Router не реалізовано
-echo json_encode([
-    'status' => 'ok',
-    'message' => 'DataBridge CRM — bootstrapped successfully',
-    'version' => '0.0.1-pre-alpha',
-    'task' => 'TASK-002 complete. Next: TASK-005 (Database) + TASK-006 (Router)',
-]);
+$router = new Router();
+require_once BASE_PATH . '/src/routes.php';
+$router->dispatch();
