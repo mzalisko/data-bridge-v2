@@ -76,7 +76,7 @@
 - Мова документації: Ukrainian | код і коміти: English
 - БЕЗ фреймворків (PHP/CSS/JS), без SaaS
 - Admin default: `admin@databridge.local` / `admin123` (з міграції)
-- Docker: `docker-compose up -d --build` → http://localhost:8080
+- Docker: `docker-compose up -d --build` → http://localhost:8082
 
 ---
 

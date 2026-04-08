@@ -203,7 +203,7 @@ docker-compose logs -f php           # логи
 docker-compose exec php php artisan migrate        # міграції
 docker-compose exec php php artisan db:seed        # сідери
 docker-compose exec php php artisan make:model Site -mcr  # model+migration+controller
-# URL: http://localhost:8080
+# URL: http://localhost:8082
 ```
 
 ---
@@ -239,6 +239,6 @@ dbapi_ + bin2hex(random_bytes(16)) = 38 символів
 
 - **Vault:** `C:\Users\zalis\OneDrive\Documents\DataBridgeV2\`
 - **Репо:** `M:\Projects\CC\data-bridge-v2\`
-- **URL (dev):** http://localhost:8080
+- **URL (dev):** http://localhost:8082
 - **Точка повернення (vanilla PHP):** git tag `v0.1-vanilla-php-foundation`
 - **Власник:** MeWeek (zaliskomykola@gmail.com)

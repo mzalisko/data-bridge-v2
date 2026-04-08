@@ -5,7 +5,7 @@ services:
     image: nginx:1.25-alpine
     container_name: databridge_nginx
     ports:
-      - "8080:80"
+      - "8082:80"
     volumes:
       - .:/var/www/html
       - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
@@ -46,7 +46,7 @@ services:
     image: mysql:8.0
     container_name: databridge_mysql
     ports:
-      - "3306:3306"
+      - "3307:3306"
     environment:
       MYSQL_DATABASE: ${DB_DATABASE:-databridge}
       MYSQL_USER: ${DB_USERNAME:-dbuser}
