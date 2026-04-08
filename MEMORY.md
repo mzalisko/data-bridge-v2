@@ -6,12 +6,12 @@
 
 ## 📍 Поточний стан
 
-- **Версія:** 0.1.0-alpha (перезапуск на Laravel)
+- **Версія:** 0.1.0-alpha (Laravel stack)
 - **Активна фаза:** Phase 0–1 (Foundation — Laravel migration)
-- **Активний спринт:** Sprint 01 (переосмислено під Laravel)
-- **Наступна задача: TASK-L002 — Database Migrations
-- **Активна гілка:** `feature/task-008-view-engine` (буде закрита після переходу)
-- **Останній коміт:** `5050d01` docs(obsidian): mark TASK-008 complete
+- **Активний спринт:** Sprint 01
+- **Наступна задача:** TASK-L005 — Dashboard skeleton (DashboardController з реальними даними + StatCard Blade component)
+- **Активна гілка:** `feature/task-l004-auth` (запушено)
+- **Останній коміт:** `f9b655f` feat(auth): LoginController, auth/app layouts, design system CSS+JS
 - **Точка повернення:** git tag `v0.1-vanilla-php-foundation` (весь vanilla PHP код збережено)
 
 ---
@@ -31,22 +31,28 @@
 
 ---
 
-## 🔲 Наступні задачі (Laravel stack)
+## ✅ Виконано (Laravel stack)
 
-1. **TASK-L001** — Laravel install + Docker налаштування (`composer create-project laravel/laravel`)
-2. **TASK-L002** — Database migrations (перенести `001_initial_schema.sql` → Artisan migrations)
-3. **TASK-L003** — Models + Eloquent relationships (Site, SiteGroup, User, ApiKey)
-4. **TASK-L004** — Auth (Laravel Breeze або вручну: LoginController + middleware)
-5. **TASK-L005** — Layout + Design System (перенести CSS/JS з vanilla PHP гілки)
-6. **TASK-L006** — Dashboard (DashboardController + Blade view + StatCard component)
+| Задача | Гілка | Статус |
+|---|---|---|
+| TASK-L001: Laravel 13 + Docker (nginx:8082, mysql:3307, cloudflared) | feature/task-l001-laravel | ✅ |
+| TASK-L002: 12 міграцій (всі 15 таблиць схеми) | feature/task-l002-migrations | ✅ |
+| TASK-L003: 13 Eloquent моделей з відносинами | feature/task-l003-models | ✅ |
+| TASK-L004: Auth (LoginController + Blade layouts + design system CSS/JS) | feature/task-l004-auth | ✅ |
+
+## 🔲 Наступні задачі
+
+1. **TASK-L005** — Dashboard (DashboardController з реальними даними + x-stat-card Blade component)
+2. **TASK-L006** — SiteGroups (index + show + CRUD через Drawer)
+3. **TASK-L007** — Sites (index + show + CRUD через Drawer)
 
 ---
 
 ## 🌿 Git стан
 
 - **Remote:** `git@github.com:mzalisko/data-bridge-v2.git` ✅
-- **Гілки на remote:** `main`, `develop`, `feature/task-004..008`
-- **Незлиті гілки:** task-004, task-005, task-006, task-007, task-008 (всі на GitHub, PR не відкриті)
+- **Активна гілка:** `feature/task-l004-auth` (запушено)
+- **Незлиті Laravel гілки:** task-l001, task-l002, task-l003, task-l004 (всі на GitHub)
 
 ---
 
