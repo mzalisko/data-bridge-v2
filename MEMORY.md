@@ -6,32 +6,47 @@
 
 ## 📍 Поточний стан
 
-- **Версія:** 0.0.1-pre-alpha
-- **Активна фаза:** Phase 0 (Environment Bootstrap)
-- **Активний спринт:** Sprint 01
-- **Наступна задача:** TASK-002 — Docker Setup
-- **Остання гілка:** —
-- **Останній коміт:** —
+- **Версія:** 0.1.0-alpha (перезапуск на Laravel)
+- **Активна фаза:** Phase 0–1 (Foundation — Laravel migration)
+- **Активний спринт:** Sprint 01 (переосмислено під Laravel)
+- **Наступна задача:** TASK-L001 — ініціалізація Laravel проекту (замінює vanilla PHP foundation)
+- **Активна гілка:** `feature/task-008-view-engine` (буде закрита після переходу)
+- **Останній коміт:** `5050d01` docs(obsidian): mark TASK-008 complete
+- **Точка повернення:** git tag `v0.1-vanilla-php-foundation` (весь vanilla PHP код збережено)
 
 ---
 
-## ✅ Виконано
+## ✅ Виконано (ця сесія)
 
-| Дата | Задача | Агент |
-|---|---|---|
-| 2026-04-08 | TASK-001: Obsidian Vault init (41 файл) | obsidian |
-| 2026-04-08 | Налаштування CLAUDE.md + MEMORY.md у репо | obsidian |
-| 2026-04-08 | Створення каркасу PHP-проекту | arch |
+| Дата | Задача | Гілка | Статус |
+|---|---|---|---|
+| 2026-04-08 | TASK-001: Obsidian Vault init | — | ✅ |
+| 2026-04-08 | TASK-002: Docker Setup | main | ✅ |
+| 2026-04-08 | TASK-003: Git init + remote | main | ✅ |
+| 2026-04-08 | TASK-004: PHP Directory Structure | feature/task-004-php-structure | ✅ |
+| 2026-04-08 | TASK-005: Database PDO singleton | feature/task-005-database | ✅ |
+| 2026-04-08 | TASK-006: Router + routes.php + index.php | feature/task-006-router | ✅ |
+| 2026-04-08 | TASK-007: CSRF + Logger | feature/task-007-csrf-session | ✅ |
+| 2026-04-08 | TASK-008: View.php + Layout.php + CrmRail + tokens/reset CSS + shell/components/drawer CSS + layout.js | feature/task-008-view-engine | ✅ |
 
 ---
 
-## 🔲 Наступні кроки
+## 🔲 Наступні задачі (Laravel stack)
 
-1. **TASK-002** — docker-compose.yml + Dockerfile + nginx.conf → запустити `docker-compose up`
-2. **TASK-003** — `git remote add origin <URL>` + перший push
-3. **TASK-004** — Структура директорій PHP (вже є каркас)
-4. **TASK-005** — `src/Core/Database.php` + `migrations/001_initial_schema.sql`
-5. **TASK-006** — `src/Core/Router.php` + `public/index.php`
+1. **TASK-L001** — Laravel install + Docker налаштування (`composer create-project laravel/laravel`)
+2. **TASK-L002** — Database migrations (перенести `001_initial_schema.sql` → Artisan migrations)
+3. **TASK-L003** — Models + Eloquent relationships (Site, SiteGroup, User, ApiKey)
+4. **TASK-L004** — Auth (Laravel Breeze або вручну: LoginController + middleware)
+5. **TASK-L005** — Layout + Design System (перенести CSS/JS з vanilla PHP гілки)
+6. **TASK-L006** — Dashboard (DashboardController + Blade view + StatCard component)
+
+---
+
+## 🌿 Git стан
+
+- **Remote:** `git@github.com:mzalisko/data-bridge-v2.git` ✅
+- **Гілки на remote:** `main`, `develop`, `feature/task-004..008`
+- **Незлиті гілки:** task-004, task-005, task-006, task-007, task-008 (всі на GitHub, PR не відкриті)
 
 ---
 
@@ -39,45 +54,30 @@
 
 | Рішення | Значення | Дата |
 |---|---|---|
-| PHP підхід | `final class` + `static` для Core; функції для Views | 2026-04-08 |
+| **PHP фреймворк** | **Laravel** (замість vanilla PHP) | 2026-04-08 |
+| Причина переходу | Складність CRM (ORM, RBAC, batch, API) виправдовує Laravel | 2026-04-08 |
+| Auth | Laravel вбудований + власні контролери (не Breeze UI) | 2026-04-08 |
+| Views | Blade templates + Blade components (`<x-stat-card>`, тощо) | 2026-04-08 |
+| CSS/JS | Без Tailwind/Bootstrap — наш Restrained Loft design system | 2026-04-08 |
+| CrmRail | Завжди темний (#111), незалежно від теми | 2026-04-08 |
+| Тема | Cookie `theme` = 'dark'/'light', default: dark | 2026-04-08 |
 | Drawer | 440px стандарт, 600px batch | 2026-04-08 |
-| API key | `dbapi_` + 32 hex = 38 символів | 2026-04-08 |
-| Auto-push | Пушити одразу після коміту | 2026-04-08 |
-| DB | MySQL 8.0, PDO prepared statements | 2026-04-08 |
-| Session | httponly + secure + samesite=Strict | 2026-04-08 |
-
----
-
-## ⚠️ Відкриті питання
-
-- [ ] **Git remote URL** — потрібно від MeWeek перед TASK-003
-- [ ] **VPS домен** — для production
-- [ ] **DB password** — вибрати перед TASK-002 (.env)
-
----
-
-## 🐳 Docker стан
-
-- **Статус:** НЕ запущено (чекає TASK-002)
-- **URL:** http://localhost:8080
-
----
-
-## 🌿 Git стан
-
-- **Remote:** не підключено
-- **Гілки:** відсутні (чекає git init)
+| API key | `dbapi_` + 32 hex = 38 символів; Hash::make() | 2026-04-08 |
+| DB | MySQL 8.0, Eloquent ORM + migrations | 2026-04-08 |
+| Validation | Form Requests (не ручна валідація) | 2026-04-08 |
+| RBAC | Laravel Policies + Gates | 2026-04-08 |
 
 ---
 
 ## 📋 Факти (не забувати)
 
-- Vault: `C:\Users\zalis\OneDrive\Documents\DataBridgeV2\`
+- Vault: `C:\Users\zalis\OneDrive\Documents\DataBridgeV2\` (MCP Obsidian доступний)
 - Репо: `M:\Projects\CC\data-bridge-v2\`
 - Мова документації: Ukrainian | код і коміти: English
-- Без фреймворків (PHP/CSS/JS), без SaaS
-- Sprint 01 tasks: TASK-001..010 (деталі у vault/08-Задачі/sprint_01.md)
+- БЕЗ фреймворків (PHP/CSS/JS), без SaaS
+- Admin default: `admin@databridge.local` / `admin123` (з міграції)
+- Docker: `docker-compose up -d --build` → http://localhost:8080
 
 ---
 
-*Оновлено: 2026-04-08 | Сесія: init*
+*Оновлено: 2026-04-08 | Сесія: sprint-01-foundation*
