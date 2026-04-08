@@ -9,7 +9,7 @@
 - **Версія:** 0.1.0-alpha (перезапуск на Laravel)
 - **Активна фаза:** Phase 0–1 (Foundation — Laravel migration)
 - **Активний спринт:** Sprint 01 (переосмислено під Laravel)
-- **Наступна задача:** TASK-L001 — ініціалізація Laravel проекту (замінює vanilla PHP foundation)
+- **Наступна задача: TASK-L002 — Database Migrations
 - **Активна гілка:** `feature/task-008-view-engine` (буде закрита після переходу)
 - **Останній коміт:** `5050d01` docs(obsidian): mark TASK-008 complete
 - **Точка повернення:** git tag `v0.1-vanilla-php-foundation` (весь vanilla PHP код збережено)
