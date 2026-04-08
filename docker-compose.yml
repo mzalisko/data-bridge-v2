@@ -62,6 +62,18 @@ services:
     networks:
       - databridge
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: databridge_cloudflared
+    command: tunnel --no-autoupdate --url http://nginx:80
+    depends_on:
+      - nginx
+    networks:
+      - databridge
+    restart: unless-stopped
+    profiles:
+      - tunnel
+
 volumes:
   mysql_data:
 
