@@ -9,9 +9,9 @@
 - **Версія:** 0.1.0-alpha (Laravel stack)
 - **Активна фаза:** Phase 0–1 (Foundation — Laravel migration)
 - **Активний спринт:** Sprint 01
-- **Наступна задача:** TASK-L008 — Users (index + CRUD + role management)
-- **Активна гілка:** `feature/task-l007-sites` (запушено)
-- **Останній коміт:** `1a1799b` feat(sites): Sites CRUD with Drawer UI
+- **Наступна задача:** TASK-L009 — Logs viewer (SystemLog + SyncLog paginated)
+- **Активна гілка:** `feature/task-l008-users` (запушено)
+- **Останній коміт:** `1f243a8` feat(users): Users CRUD with Drawer UI + role badges
 - **Точка повернення:** git tag `v0.1-vanilla-php-foundation` (весь vanilla PHP код збережено)
 
 ---
@@ -42,11 +42,12 @@
 | TASK-L005: Dashboard (real data + x-stat-card + log list) | feature/task-l005-dashboard | ✅ |
 | TASK-L006: SiteGroups CRUD + Drawer + Form Requests | feature/task-l006-site-groups | ✅ |
 | TASK-L007: Sites CRUD + Drawer + group pill badge | feature/task-l007-sites | ✅ |
+| TASK-L008: Users CRUD + Drawer + role badges | feature/task-l008-users | ✅ |
 
 ## 🔲 Наступні задачі
 
-1. **TASK-L008** — Users (index + CRUD + role management)
-2. **TASK-L009** — Logs viewer (SystemLog + BatchLog paginated list)
+1. **TASK-L009** — Logs viewer (SystemLog + SyncLog paginated list with level filter)
+2. **TASK-L010** — API Keys (generate + revoke per site)
 
 ---
 
