@@ -9,9 +9,9 @@
 - **Версія:** 0.1.0-alpha (Laravel stack)
 - **Активна фаза:** Phase 0–1 (Foundation — Laravel migration)
 - **Активний спринт:** Sprint 01
-- **Наступна задача:** TASK-L009 — Logs viewer (SystemLog + SyncLog paginated)
-- **Активна гілка:** `feature/task-l008-users` (запушено)
-- **Останній коміт:** `1f243a8` feat(users): Users CRUD with Drawer UI + role badges
+- **Наступна задача:** TASK-L010 — API Keys (generate + revoke per site)
+- **Активна гілка:** `feature/task-l009-logs` (запушено)
+- **Останній коміт:** `4d83457` feat(logs): Logs viewer with system + sync tabs, level/status filter
 - **Точка повернення:** git tag `v0.1-vanilla-php-foundation` (весь vanilla PHP код збережено)
 
 ---
@@ -43,19 +43,19 @@
 | TASK-L006: SiteGroups CRUD + Drawer + Form Requests | feature/task-l006-site-groups | ✅ |
 | TASK-L007: Sites CRUD + Drawer + group pill badge | feature/task-l007-sites | ✅ |
 | TASK-L008: Users CRUD + Drawer + role badges | feature/task-l008-users | ✅ |
+| TASK-L009: Logs viewer (SystemLog + SyncLog, tabs, level/status filter, paginated) | feature/task-l009-logs | ✅ |
 
 ## 🔲 Наступні задачі
 
-1. **TASK-L009** — Logs viewer (SystemLog + SyncLog paginated list with level filter)
-2. **TASK-L010** — API Keys (generate + revoke per site)
+1. **TASK-L010** — API Keys (generate + revoke per site)
 
 ---
 
 ## 🌿 Git стан
 
 - **Remote:** `git@github.com:mzalisko/data-bridge-v2.git` ✅
-- **Активна гілка:** `feature/task-l007-sites` (запушено)
-- **Незлиті Laravel гілки:** task-l001..task-l007 (всі на GitHub, PR не відкриті)
+- **Активна гілка:** `feature/task-l009-logs` (запушено)
+- **Незлиті Laravel гілки:** task-l001..task-l009 (всі на GitHub, PR не відкриті)
 
 ---
 
@@ -89,4 +89,4 @@
 
 ---
 
-*Оновлено: 2026-04-08 | Сесія: sprint-01-foundation*
+*Оновлено: 2026-04-10 | Сесія: sprint-01-l009-logs*
