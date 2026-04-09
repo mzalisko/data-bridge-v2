@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\SiteController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SiteGroupController;
 use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +31,9 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('users', UserController::class)
         ->only(['index', 'store', 'update', 'destroy']);
+
+    Route::get('users/{user}/permissions', [PermissionController::class, 'show'])->name('users.permissions.show');
+    Route::post('users/{user}/permissions', [PermissionController::class, 'update'])->name('users.permissions.update');
 
     Route::get('/logs/system', [LogController::class, 'system'])->name('logs.system');
     Route::get('/logs/sync', [LogController::class, 'sync'])->name('logs.sync');

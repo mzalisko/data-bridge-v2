@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Site;
 
 class UserPermission extends Model
 {
@@ -12,6 +13,7 @@ class UserPermission extends Model
     protected $fillable = [
         'user_id',
         'group_id',
+        'site_id',
         'permission',
         'granted',
     ];
@@ -31,5 +33,10 @@ class UserPermission extends Model
     public function siteGroup(): BelongsTo
     {
         return $this->belongsTo(SiteGroup::class, 'group_id');
+    }
+
+    public function site(): BelongsTo
+    {
+        return $this->belongsTo(Site::class);
     }
 }

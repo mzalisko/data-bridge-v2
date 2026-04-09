@@ -21,6 +21,14 @@
 <div class="users-list">
     @foreach($users as $user)
     <div class="user-row" onclick="openDrawer('drawer-user-{{ $user->id }}')">
+        <a href="{{ route('users.permissions.show', $user) }}"
+           class="perm-btn"
+           title="Права доступу"
+           onclick="event.stopPropagation()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+        </a>
         <div class="user-row__avatar">
             {{ strtoupper(substr($user->name, 0, 1)) }}
         </div>
