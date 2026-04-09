@@ -1,33 +1,25 @@
-# Environment
-.env
-*.local
-
-# PHP
-vendor/
-composer.lock
-
-# Logs
 *.log
-logs/
-
-# OS
 .DS_Store
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.fleet
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+_ide_helper.php
+Homestead.json
+Homestead.yaml
 Thumbs.db
-desktop.ini
-
-# IDE
-.idea/
-.vscode/
-*.iml
-
-# Docker
-docker/mysql-data/
-
-# Uploads
-public/uploads/
-
-# Cache
-*.cache
-
-# Claude Code
-.claude/

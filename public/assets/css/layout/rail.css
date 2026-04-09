@@ -1,0 +1,58 @@
+/* DataBridge CRM — CRM Rail */
+
+.crm-rail {
+    width: var(--rail-width);
+    background: var(--rail-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-md) 0;
+    flex-shrink: 0;
+    gap: var(--space-md);
+}
+
+.rail-logo {
+    font-size: 22px;
+    color: var(--accent);
+    margin-bottom: var(--space-sm);
+    line-height: 1;
+}
+
+.rail-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+    width: 100%;
+}
+
+.rail-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+    width: 100%;
+}
+
+.rail-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-item);
+    color: #636366;
+    transition: background var(--duration-fast) var(--ease-ui),
+                color var(--duration-fast) var(--ease-ui);
+}
+
+.rail-item:hover {
+    background: rgba(255,255,255,.06);
+    color: #ebebf0;
+}
+
+.rail-item.is-active {
+    background: var(--accent);
+    color: #ffffff;
+}

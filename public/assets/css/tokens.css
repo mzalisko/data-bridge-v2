@@ -1,0 +1,88 @@
+/* DataBridge CRM — Design Tokens (Restrained Loft) */
+
+:root {
+    /* Radius */
+    --radius-card: 24px;
+    --radius-pill: 12px;
+    --radius-item: 10px;
+    --radius-input: 8px;
+
+    /* Spacing */
+    --space-xs:  4px;
+    --space-sm:  8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 40px;
+
+    /* Typography */
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-size-xs:   11px;
+    --font-size-sm:   13px;
+    --font-size-base: 14px;
+    --font-size-md:   16px;
+    --font-size-lg:   20px;
+    --font-size-xl:   28px;
+
+    /* Status dots */
+    --dot-ok:    #48bb78;
+    --dot-pause: #ed8936;
+    --dot-off:   #f56565;
+
+    /* Transitions */
+    --ease-ui: cubic-bezier(0.4, 0, 0.2, 1);
+    --duration-fast: 150ms;
+    --duration-base: 250ms;
+
+    /* Drawer widths */
+    --drawer-width:       440px;
+    --drawer-width-batch: 600px;
+
+    /* Rail */
+    --rail-width: 60px;
+    --rail-bg:    #111111;
+}
+
+/* Light theme */
+[data-theme="light"] {
+    --bg-page:        #ebedf1;
+    --bg-card:        #ffffff;
+    --bg-input:       #f5f6f8;
+    --bg-hover:       #f0f1f4;
+
+    --text-primary:   #111827;
+    --text-secondary: #6b7280;
+    --text-muted:     #9ca3af;
+    --text-inverse:   #ffffff;
+
+    --border-color:   #e5e7eb;
+    --border-focus:   #6366f1;
+
+    --accent:         #6366f1;
+    --accent-hover:   #4f46e5;
+
+    --shadow-card: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
+    --shadow-drawer: -4px 0 32px rgba(0,0,0,.12);
+}
+
+/* Dark theme (default) */
+[data-theme="dark"],
+:root {
+    --bg-page:        #0f0f10;
+    --bg-card:        #1c1c1e;
+    --bg-input:       #2a2a2c;
+    --bg-hover:       #252527;
+
+    --text-primary:   #f5f5f7;
+    --text-secondary: #8d8d93;
+    --text-muted:     #636366;
+    --text-inverse:   #111111;
+
+    --border-color:   #3a3a3c;
+    --border-focus:   #818cf8;
+
+    --accent:         #818cf8;
+    --accent-hover:   #6366f1;
+
+    --shadow-card: 0 1px 3px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.2);
+    --shadow-drawer: -4px 0 32px rgba(0,0,0,.4);
+}

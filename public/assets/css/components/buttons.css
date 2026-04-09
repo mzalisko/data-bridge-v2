@@ -1,0 +1,87 @@
+/* DataBridge CRM — Buttons */
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    height: 40px;
+    padding: 0 var(--space-lg);
+    border-radius: var(--radius-item);
+    background: var(--accent);
+    color: #ffffff;
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    transition: background var(--duration-fast) var(--ease-ui),
+                opacity var(--duration-fast) var(--ease-ui);
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+}
+
+.btn-primary:active {
+    opacity: .85;
+}
+
+.btn-primary--full {
+    width: 100%;
+}
+
+.btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    height: 36px;
+    padding: 0 var(--space-md);
+    border-radius: var(--radius-item);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    transition: background var(--duration-fast) var(--ease-ui),
+                color var(--duration-fast) var(--ease-ui);
+}
+
+.btn-ghost:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-item);
+    background: transparent;
+    color: var(--text-secondary);
+    transition: background var(--duration-fast) var(--ease-ui),
+                color var(--duration-fast) var(--ease-ui);
+}
+
+.btn-icon:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    height: 36px;
+    padding: 0 var(--space-md);
+    border-radius: var(--radius-item);
+    background: transparent;
+    color: var(--dot-off);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    transition: background var(--duration-fast) var(--ease-ui);
+}
+
+.btn-danger:hover {
+    background: rgba(245, 101, 101, .1);
+}

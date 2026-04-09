@@ -1,4 +1,4 @@
-FROM php:8.2-fpm-alpine
+FROM php:8.3-fpm-alpine
 
 # Install system dependencies
 RUN apk add --no-cache \
@@ -6,15 +6,30 @@ RUN apk add --no-cache \
     curl \
     libpng-dev \
     libzip-dev \
+    libxml2-dev \
+    oniguruma-dev \
+    icu-dev \
     zip \
     unzip
 
-# Install PHP extensions
+# Install PHP extensions required by Laravel
 RUN docker-php-ext-install \
     pdo \
     pdo_mysql \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    gd \
     zip \
-    gd
+    xml \
+    intl
+
+# Install OPcache
+RUN docker-php-ext-install opcache
+
+# OPcache config (validate_timestamps=0 for Docker+Windows volume performance)
+COPY docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
 # Install Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
@@ -22,19 +37,14 @@ COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy composer files first (layer caching)
-COPY composer.json composer.lock* ./
-
-# Install PHP dependencies (if any)
-RUN composer install --no-dev --no-scripts --no-interaction 2>/dev/null || true
-
-# Copy project files
-COPY . .
-
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/public
+# Set permissions script that runs at startup
+RUN echo '#!/bin/sh' > /usr/local/bin/entrypoint.sh && \
+    echo 'chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true' >> /usr/local/bin/entrypoint.sh && \
+    echo 'exec php-fpm' >> /usr/local/bin/entrypoint.sh && \
+    chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 9000
 
-CMD ["php-fpm"]
+# Use entrypoint to set permissions then start php-fpm
+# vendor/ comes from the host volume mount (dev) or COPY (prod)
+CMD ["/usr/local/bin/entrypoint.sh"]

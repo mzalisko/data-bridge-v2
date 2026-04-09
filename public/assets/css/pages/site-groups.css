@@ -1,0 +1,107 @@
+/* DataBridge CRM — Site Groups page */
+
+.page-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-lg);
+}
+
+.alert {
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-item);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-md);
+}
+
+.alert--success {
+    background: rgba(72, 187, 120, .12);
+    color: var(--dot-ok);
+    border: 1px solid rgba(72, 187, 120, .25);
+}
+
+.empty-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-xl) 0;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}
+
+/* Group grid */
+.group-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+.group-card__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.group-card__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.group-card__name {
+    font-weight: 600;
+    font-size: var(--font-size-md);
+    color: var(--text-primary);
+}
+
+.group-card__desc {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.group-card__count {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-top: auto;
+}
+
+.pagination-wrap {
+    margin-top: var(--space-md);
+}
+
+/* Drawer form extras */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+}
+
+.color-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.form-color {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-input);
+    border: 1px solid var(--border-color);
+    background: var(--bg-input);
+    cursor: pointer;
+    padding: 2px;
+}
+
+.form-color-value {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    font-family: monospace;
+}
+
+.drawer__footer-left {
+    margin-right: auto;
+}

@@ -19,35 +19,45 @@
 | `design` | UI/UX, CSS-токени, компоненти |
 | `git` | Версійний контроль, коміти, гілки |
 | `obsidian` | Документація у vault (українською) |
-| `sec` | Безпека, CSRF, аутентифікація, RBAC |
+| `sec` | Безпека, аутентифікація, RBAC, Policies |
 | `analyst` | Бізнес-логіка, валідація, вимоги |
 
 ---
 
-## 📁 Структура проекту
+## 📁 Структура проекту (Laravel)
 
 ```
-data-bridge-v2/                    ← ТИ ТУТ (PHP код)
+data-bridge-v2/                    ← ТИ ТУТ (Laravel проект)
 ├── CLAUDE.md                      ← цей файл (auto-read)
 ├── MEMORY.md                      ← постійна пам'ять (auto-read via @import)
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Admin/             ← DashboardController, SiteController,
+│   │   │   │                          SiteGroupController, UserController, LogController
+│   │   │   ├── Auth/              ← LoginController, LogoutController
+│   │   │   └── Api/               ← SyncController (REST для WP-плагінів)
+│   │   ├── Middleware/            ← ApiKeyAuth, RoleCheck, ...
+│   │   └── Requests/              ← Form Request validators
+│   ├── Models/                    ← Site, SiteGroup, User, Log, ApiKey
+│   ├── Services/                  ← SyncService, BatchService, ApiKeyService
+│   └── Policies/                  ← SitePolicy, UserPolicy (RBAC)
+├── database/
+│   ├── migrations/                ← php artisan make:migration
+│   └── seeders/                   ← AdminSeeder (default admin user)
+├── resources/
+│   ├── views/
+│   │   ├── layouts/               ← app.blade.php, auth.blade.php
+│   │   ├── components/            ← crm-rail.blade.php, stat-card.blade.php, ...
+│   │   └── pages/                 ← dashboard, sites/, site-groups/, users/, logs/
+│   └── css/ js/                   ← наш custom CSS (без Tailwind), vanilla JS
 ├── public/
-│   ├── index.php                  ← єдина точка входу
-│   ├── .htaccess                  ← URL rewriting
-│   └── assets/css/ js/ img/
-├── src/
-│   ├── Core/                      ← Router, View, Layout, Database, CSRF, Session
-│   ├── Auth/                      ← AuthController, AuthGuard
-│   ├── Admin/                     ← Dashboard, Sites, SiteGroups, Users, Logs controllers
-│   ├── Api/                       ← SyncController (REST для WP-плагінів)
-│   └── Views/
-│       ├── Pages/                 ← Dashboard, Sites/, SiteGroups/, Users/, Logs/
-│       └── Components/            ← CrmRail, StatCard, GroupCard, SiteCard, Drawer
+│   └── assets/css/ js/ img/       ← скомпільований / статичний фронт
+├── routes/
+│   ├── web.php                    ← всі web маршрути
+│   └── api.php                    ← /api/v1/* маршрути
 ├── config/
-│   └── database.php
-├── migrations/
-│   └── 001_initial_schema.sql
 ├── docker-compose.yml
-├── Dockerfile
 └── composer.json
 
 Obsidian Vault (документація):
@@ -65,7 +75,7 @@ C:\Users\zalis\OneDrive\Documents\DataBridgeV2\
 | Робота з БД / міграції | `04-База-даних/schema.md` |
 | Робота з Router / controllers | `01-Архітектура/routing.md` |
 | Робота з API / sync | `01-Архітектура/api_contract.md` + `02-Модулі/sync_engine.md` |
-| Робота з безпекою (CSRF, auth) | `06-Безпека/csrf.md` або `06-Безпека/authentication.md` |
+| Робота з безпекою (Auth, Policies) | `06-Безпека/authentication.md` |
 | Робота з UI / CSS | `05-UI/design_system.md` + `05-UI/components.md` |
 | Batch операції | `02-Модулі/batch_edit.md` |
 | Конкретний модуль (phones/prices/...) | `02-Модулі/{module}.md` |
@@ -104,37 +114,65 @@ Vault знаходиться тут: `C:\Users\zalis\OneDrive\Documents\DataBrid
 
 ## 🚫 Абсолютні правила (НІКОЛИ не порушувати)
 
-1. **Без PHP-фреймворку** — ні Laravel, ні Symfony, ні Slim
-2. **Без CSS-фреймворку** — ні Tailwind, ні Bootstrap
-3. **Без JS-фреймворку** — ні React, ні Vue, ні Alpine
-4. **Без plaintext паролів** — тільки `password_hash()` / `password_verify()`
-5. **Без SQL-конкатенації** — тільки PDO prepared statements
-6. **Без unescaped output** — тільки `htmlspecialchars($v, ENT_QUOTES, 'UTF-8')`
-7. **Без POST без CSRF** — завжди `CSRF::verify()` першим
+1. **Laravel як єдиний PHP фреймворк** — без Symfony, Slim або інших
+2. **Без CSS-фреймворку** — ні Tailwind, ні Bootstrap (тільки наш design system)
+3. **Без JS-фреймворку** — ні React, ні Vue, ні Alpine (тільки vanilla JS)
+4. **Без plaintext паролів** — тільки `Hash::make()` / `Hash::check()`
+5. **Без SQL-конкатенації** — тільки Eloquent або `DB::` з bindings
+6. **Без unescaped output** — Blade `{{ }}` авто-екранує; `{!! !!}` тільки для довіреного HTML
+7. **CSRF завжди** — `@csrf` в кожній формі (Laravel middleware `VerifyCsrfToken`)
 8. **Без зламаного коду в комітах** — кожен коміт = робочий стан
 9. **Документація тільки українською** — код і коміти англійською
 10. **Пушити одразу після коміту** — без очікування дозволу
 
 ---
 
-## 🏗️ PHP-архітектура (патерн контролера)
+## 🏗️ Laravel-архітектура (патерн контролера)
 
 ```php
-public function index(): void
+// app/Http/Controllers/Admin/SiteController.php
+class SiteController extends Controller
 {
-    AuthGuard::require();                           // 1. Auth check
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        CSRF::verify();                             // 2. CSRF (тільки POST)
+    public function index(): View
+    {
+        $sites = Site::with('siteGroup')
+            ->orderByDesc('created_at')
+            ->paginate(20);
+
+        return view('pages.sites.index', compact('sites'));
     }
-    $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT); // 3. Validate
-    $pdo = Database::getInstance()->getConnection();
-    $stmt = $pdo->prepare('SELECT * FROM sites WHERE id = ?'); // 4. PDO
-    $stmt->execute([$id]);
-    View::render('Pages/Sites/Show', [              // 5. Render
-        'title' => 'Деталі сайту',
-        'site'  => $stmt->fetch(PDO::FETCH_ASSOC),
-        'csrf'  => CSRF::getToken(),
-    ]);
+
+    public function store(StoreSiteRequest $request): RedirectResponse
+    {
+        Site::create($request->validated());
+
+        return redirect()->route('sites.index')
+            ->with('success', 'Сайт додано');
+    }
+
+    public function update(UpdateSiteRequest $request, Site $site): RedirectResponse
+    {
+        $site->update($request->validated());
+
+        return redirect()->route('sites.index');
+    }
+}
+```
+
+```php
+// app/Http/Requests/StoreSiteRequest.php
+class StoreSiteRequest extends FormRequest
+{
+    public function authorize(): bool { return true; }
+
+    public function rules(): array
+    {
+        return [
+            'domain'        => ['required', 'string', 'max:255', 'unique:sites'],
+            'site_group_id' => ['required', 'integer', 'exists:site_groups,id'],
+            'status'        => ['required', 'in:ok,pause,off'],
+        ];
+    }
 }
 ```
 
@@ -152,15 +190,20 @@ public function index(): void
 /* Карти: border: none, тільки box-shadow */
 ```
 
+Blade components для UI: `<x-stat-card>`, `<x-site-card>`, `<x-drawer>`, тощо.
+
 ---
 
-## 🔌 Docker
+## 🔌 Docker + Artisan
 
 ```bash
-docker-compose up -d --build    # запуск
-docker-compose ps               # статус
-docker-compose logs -f php      # логи
-# URL: http://localhost:8080
+docker-compose up -d --build         # запуск
+docker-compose ps                    # статус
+docker-compose logs -f php           # логи
+docker-compose exec php php artisan migrate        # міграції
+docker-compose exec php php artisan db:seed        # сідери
+docker-compose exec php php artisan make:model Site -mcr  # model+migration+controller
+# URL: http://localhost:8082
 ```
 
 ---
@@ -186,7 +229,7 @@ sec(scope): ...             # безпека
 
 ```
 dbapi_ + bin2hex(random_bytes(16)) = 38 символів
-Зберігати: password_hash($raw, PASSWORD_BCRYPT)
+Зберігати: Hash::make($raw)   (PASSWORD_BCRYPT)
 Відображати: тільки перші 12 символів (key_prefix)
 ```
 
@@ -196,5 +239,6 @@ dbapi_ + bin2hex(random_bytes(16)) = 38 символів
 
 - **Vault:** `C:\Users\zalis\OneDrive\Documents\DataBridgeV2\`
 - **Репо:** `M:\Projects\CC\data-bridge-v2\`
-- **URL (dev):** http://localhost:8080
+- **URL (dev):** http://localhost:8082
+- **Точка повернення (vanilla PHP):** git tag `v0.1-vanilla-php-foundation`
 - **Власник:** MeWeek (zaliskomykola@gmail.com)
