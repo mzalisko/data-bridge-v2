@@ -69,11 +69,13 @@
     flex-direction: column;
     gap: var(--space-sm);
     cursor: pointer;
-    transition: box-shadow var(--duration-fast) var(--ease-ui);
+    transition: background var(--duration-fast) var(--ease-ui),
+                box-shadow var(--duration-fast) var(--ease-ui);
 }
 
 .group-card:hover {
-    box-shadow: var(--shadow-card), 0 0 0 2px var(--accent);
+    background: var(--bg-hover);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .2), 0 8px 32px rgba(0, 0, 0, .15);
 }
 
 /* Site card */
@@ -86,11 +88,13 @@
     align-items: center;
     gap: var(--space-md);
     cursor: pointer;
-    transition: box-shadow var(--duration-fast) var(--ease-ui);
+    transition: background var(--duration-fast) var(--ease-ui),
+                box-shadow var(--duration-fast) var(--ease-ui);
 }
 
 .site-card:hover {
-    box-shadow: var(--shadow-card), 0 0 0 2px var(--accent);
+    background: var(--bg-hover);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .2), 0 8px 32px rgba(0, 0, 0, .15);
 }
 
 .site-card__name {

@@ -16,11 +16,11 @@
     box-shadow: var(--shadow-card);
     padding: var(--space-md) var(--space-lg);
     cursor: pointer;
-    transition: box-shadow var(--duration-fast) var(--ease-ui);
+    transition: background var(--duration-fast) var(--ease-ui);
 }
 
 .user-row:hover {
-    box-shadow: var(--shadow-card), 0 0 0 2px var(--accent);
+    background: var(--bg-hover);
 }
 
 .user-row__avatar {

@@ -17,10 +17,7 @@
 
 @if($groups->isEmpty())
     <div class="empty-page">
-        <p>Груп ще немає.</p>
-        <button class="btn-primary" onclick="openDrawer('drawer-group-create')">
-            Створити першу групу
-        </button>
+        <p>Груп ще немає. Натисніть «+ Нова група» щоб розпочати.</p>
     </div>
 @else
     <div class="group-grid">

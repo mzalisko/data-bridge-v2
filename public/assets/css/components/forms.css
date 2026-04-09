@@ -115,3 +115,71 @@ textarea.form-input {
     resize: vertical;
     min-height: 80px;
 }
+
+/* Input group (input + icon buttons inline) */
+.input-group {
+    display: flex;
+    align-items: center;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-input);
+    overflow: hidden;
+    transition: border-color var(--duration-fast) var(--ease-ui),
+                box-shadow var(--duration-fast) var(--ease-ui);
+}
+
+.input-group:focus-within {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, .15);
+}
+
+.input-group .form-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none !important;
+    min-width: 0;
+}
+
+.input-group__actions {
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    gap: 1px;
+    flex-shrink: 0;
+}
+
+.input-group__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--ease-ui),
+                color var(--duration-fast) var(--ease-ui);
+    flex-shrink: 0;
+}
+
+.input-group__btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.input-group__btn--copied {
+    color: var(--dot-ok);
+}
+
+.input-group--error {
+    border-color: var(--dot-off);
+}
+
+.form-hint {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}

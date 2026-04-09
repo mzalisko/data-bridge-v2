@@ -64,7 +64,9 @@
     align-items: center;
     justify-content: flex-end;
     gap: var(--space-sm);
-    padding: var(--space-lg);
+    padding: var(--space-md) var(--space-lg);
     border-top: 1px solid var(--border-color);
+    background: var(--bg-card);
     flex-shrink: 0;
+    min-height: 64px;
 }

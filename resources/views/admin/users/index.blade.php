@@ -97,4 +97,14 @@
 </div>
 @endforeach
 
+@push('scripts')
+<script>
+    // Auto-generate password when create drawer opens
+    document.querySelector('[onclick="openDrawer(\'drawer-user-create\')"]')
+        ?.addEventListener('click', function() {
+            setTimeout(function() { generatePassword('password-new'); }, 50);
+        });
+</script>
+@endpush
+
 @endsection

@@ -6,9 +6,27 @@
 
 <div class="page-toolbar">
     <h1 class="page-title">Сайти</h1>
-    <button class="btn-primary" onclick="openDrawer('drawer-site-create')">
-        + Новий сайт
-    </button>
+    <div style="display:flex;align-items:center;gap:var(--space-sm);">
+        <div class="view-toggle">
+            <button id="btn-view-list" class="view-toggle__btn is-active" title="Список">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                    <line x1="8" y1="18" x2="21" y2="18"/>
+                    <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
+                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                </svg>
+            </button>
+            <button id="btn-view-grid" class="view-toggle__btn" title="Сітка">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                </svg>
+            </button>
+        </div>
+        <button class="btn-primary" onclick="openDrawer('drawer-site-create')">
+            + Новий сайт
+        </button>
+    </div>
 </div>
 
 @if(session('success'))
@@ -17,13 +35,10 @@
 
 @if($sites->isEmpty())
     <div class="empty-page">
-        <p>Сайтів ще немає.</p>
-        <button class="btn-primary" onclick="openDrawer('drawer-site-create')">
-            Додати перший сайт
-        </button>
+        <p>Сайтів ще немає. Натисніть «+ Новий сайт» щоб додати перший.</p>
     </div>
 @else
-    <div class="sites-list">
+    <div class="sites-list" id="sites-list">
         @foreach($sites as $site)
         <div class="site-card" onclick="openDrawer('drawer-site-{{ $site->id }}')">
             <span class="status-dot status-dot--{{ $site->is_active ? 'ok' : 'off' }}"></span>
@@ -101,5 +116,11 @@
     </div>
 </div>
 @endforeach
+
+@push('scripts')
+<script>
+    initViewToggle('sites-view', 'sites-list', 'btn-view-list', 'btn-view-grid');
+</script>
+@endpush
 
 @endsection
