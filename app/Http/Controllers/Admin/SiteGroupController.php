@@ -7,15 +7,25 @@ use App\Http\Requests\Admin\StoreSiteGroupRequest;
 use App\Http\Requests\Admin\UpdateSiteGroupRequest;
 use App\Models\SiteGroup;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class SiteGroupController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $groups = SiteGroup::withCount('sites')
-            ->orderByDesc('created_at')
-            ->paginate(20);
+        $query = SiteGroup::withCount('sites');
+
+        if ($request->filled('search')) {
+            $q = $request->search;
+            $query->where(function ($qb) use ($q) {
+                $qb->where('name', 'like', "%{$q}%")
+                   ->orWhere('description', 'like', "%{$q}%");
+            });
+        }
+
+        $query->orderByDesc('created_at');
+        $groups = $query->paginate(20)->withQueryString();
 
         return view('admin.site-groups.index', compact('groups'));
     }

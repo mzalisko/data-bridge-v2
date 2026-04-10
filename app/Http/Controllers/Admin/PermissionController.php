@@ -13,11 +13,24 @@ use Illuminate\View\View;
 
 class PermissionController extends Controller
 {
+    public function fragment(User $user): View
+    {
+        $groups = SiteGroup::with('sites')->orderBy('name')->get();
+        $perms  = $this->buildPermMap($user);
+
+        return view('admin.users._perm_form', compact('user', 'groups', 'perms'));
+    }
+
     public function show(User $user): View
     {
         $groups = SiteGroup::with('sites')->orderBy('name')->get();
+        $perms  = $this->buildPermMap($user);
 
-        // Build permission map: "global|view" => true, "group_5|edit" => true, "site_12|delete" => true
+        return view('admin.users.permissions', compact('user', 'groups', 'perms'));
+    }
+
+    private function buildPermMap(User $user): array
+    {
         $perms = [];
         foreach ($user->permissions as $p) {
             if ($p->group_id === null && $p->site_id === null) {
@@ -28,8 +41,7 @@ class PermissionController extends Controller
                 $perms["group_{$p->group_id}|{$p->permission}"] = $p->granted;
             }
         }
-
-        return view('admin.users.permissions', compact('user', 'groups', 'perms'));
+        return $perms;
     }
 
     public function update(Request $request, User $user): RedirectResponse

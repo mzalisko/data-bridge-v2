@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
         ->only(['index', 'store', 'update', 'destroy']);
 
     Route::get('users/{user}/permissions', [PermissionController::class, 'show'])->name('users.permissions.show');
+    Route::get('users/{user}/permissions/form', [PermissionController::class, 'fragment'])->name('users.permissions.fragment');
     Route::post('users/{user}/permissions', [PermissionController::class, 'update'])->name('users.permissions.update');
 
     Route::get('/logs/system', [LogController::class, 'system'])->name('logs.system');

@@ -17,6 +17,14 @@ class SiteController extends Controller
     {
         $query = Site::with('siteGroup');
 
+        if ($request->filled('search')) {
+            $q = $request->search;
+            $query->where(function ($qb) use ($q) {
+                $qb->where('name', 'like', "%{$q}%")
+                   ->orWhere('url', 'like', "%{$q}%");
+            });
+        }
+
         if ($request->filled('group_id')) {
             $query->where('group_id', $request->group_id);
         }

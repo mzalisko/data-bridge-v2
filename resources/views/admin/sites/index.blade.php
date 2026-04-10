@@ -10,10 +10,8 @@
         <div class="view-toggle">
             <button id="btn-view-list" class="view-toggle__btn is-active" title="Список">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
-                    <line x1="8" y1="18" x2="21" y2="18"/>
-                    <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
-                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                    <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
                 </svg>
             </button>
             <button id="btn-view-grid" class="view-toggle__btn" title="Сітка">
@@ -23,22 +21,19 @@
                 </svg>
             </button>
         </div>
-        <button class="btn-primary" onclick="openDrawer('drawer-site-create')">
-            + Новий сайт
-        </button>
+        <button class="btn-primary" onclick="openDrawer('drawer-site-create')">+ Новий сайт</button>
     </div>
 </div>
 
-{{-- Group filter bar --}}
+{{-- Group nav --}}
 <div class="group-nav">
-    <a href="{{ request()->fullUrlWithQuery(['group_id' => null, 'page' => null]) }}"
+    <a href="{{ request()->fullUrlWithQuery(['group_id'=>null,'page'=>null]) }}"
        class="group-nav__item {{ !request('group_id') ? 'is-active' : '' }}">
-        Всі сайти
-        <span class="group-nav__count">{{ $groups->sum('sites_count') }}</span>
+        Всі <span class="group-nav__count">{{ $groups->sum('sites_count') }}</span>
     </a>
     @foreach($groups as $group)
-    <a href="{{ request()->fullUrlWithQuery(['group_id' => $group->id, 'page' => null]) }}"
-       class="group-nav__item {{ request('group_id') == $group->id ? 'is-active' : '' }}">
+    <a href="{{ request()->fullUrlWithQuery(['group_id'=>$group->id,'page'=>null]) }}"
+       class="group-nav__item {{ request('group_id')==$group->id ? 'is-active' : '' }}">
         <span class="group-nav__dot" style="background:{{ $group->color ?? '#706f70' }}"></span>
         {{ $group->name }}
         <span class="group-nav__count">{{ $group->sites_count }}</span>
@@ -46,27 +41,30 @@
     @endforeach
 </div>
 
-{{-- Filter + sort bar --}}
-<div class="filter-bar">
-    <div class="filter-pills">
-        <a href="{{ request()->fullUrlWithQuery(['status' => null, 'page' => null]) }}"
-           class="filter-pill {{ !request('status') ? 'is-active' : '' }}">Всі</a>
-        <a href="{{ request()->fullUrlWithQuery(['status' => 'active', 'page' => null]) }}"
-           class="filter-pill {{ request('status') === 'active' ? 'is-active' : '' }}">
-            <span class="status-dot status-dot--ok"></span> Активні
-        </a>
-        <a href="{{ request()->fullUrlWithQuery(['status' => 'inactive', 'page' => null]) }}"
-           class="filter-pill {{ request('status') === 'inactive' ? 'is-active' : '' }}">
-            <span class="status-dot status-dot--off"></span> Зупинені
-        </a>
+{{-- Controls bar --}}
+<div class="page-controls">
+    <div class="page-controls__search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" class="form-input page-controls__search-input"
+               placeholder="Пошук сайтів…"
+               value="{{ request('search') }}" id="site-search">
     </div>
-    <div class="filter-sort">
-        <span class="filter-sort__label">Сортування</span>
-        <select class="form-input form-input--sm" onchange="applyQueryParam('sort', this.value)">
-            <option value="date"   {{ request('sort','date') === 'date'   ? 'selected' : '' }}>За датою ↓</option>
-            <option value="name"   {{ request('sort','date') === 'name'   ? 'selected' : '' }}>За назвою A→Z</option>
-            <option value="status" {{ request('sort','date') === 'status' ? 'selected' : '' }}>За статусом</option>
-            <option value="group"  {{ request('sort','date') === 'group'  ? 'selected' : '' }}>За групою</option>
+    <div class="page-controls__filters">
+        <div class="btn-group">
+            <a href="{{ request()->fullUrlWithQuery(['status'=>null,'page'=>null]) }}"
+               class="btn-group__btn {{ !request('status') ? 'is-active' : '' }}">Всі</a>
+            <a href="{{ request()->fullUrlWithQuery(['status'=>'active','page'=>null]) }}"
+               class="btn-group__btn {{ request('status')==='active' ? 'is-active' : '' }}">Active</a>
+            <a href="{{ request()->fullUrlWithQuery(['status'=>'inactive','page'=>null]) }}"
+               class="btn-group__btn {{ request('status')==='inactive' ? 'is-active' : '' }}">Disabled</a>
+        </div>
+        <select class="page-controls__select" onchange="applyQueryParam('sort', this.value)">
+            <option value="date"   {{ request('sort','date')==='date'   ? 'selected':'' }}>За датою ↓</option>
+            <option value="name"   {{ request('sort','date')==='name'   ? 'selected':'' }}>За назвою A→Z</option>
+            <option value="status" {{ request('sort','date')==='status' ? 'selected':'' }}>За статусом</option>
+            <option value="group"  {{ request('sort','date')==='group'  ? 'selected':'' }}>За групою</option>
         </select>
     </div>
 </div>
@@ -76,16 +74,18 @@
 @endif
 
 @if($sites->isEmpty())
-    <div class="empty-page">
-        <p>Сайтів не знайдено.</p>
-    </div>
+    <div class="empty-page"><p>Сайтів не знайдено.</p></div>
 @else
     <div class="sites-list" id="sites-list">
         @foreach($sites as $site)
         <div class="site-card" onclick="window.location='{{ route('sites.show', $site) }}'">
-            <span class="status-dot status-dot--{{ $site->is_active ? 'ok' : 'off' }}" title="{{ $site->is_active ? 'Активний' : 'Зупинено' }}"></span>
             <div class="site-card__info">
-                <span class="site-card__name">{{ $site->name }}</span>
+                <div class="site-card__name-row">
+                    <span class="site-card__name">{{ $site->name }}</span>
+                    <span class="status-badge status-badge--{{ $site->is_active ? 'active' : 'disabled' }}">
+                        <span class="status-badge__dot"></span>{{ $site->is_active ? 'Active' : 'Disabled' }}
+                    </span>
+                </div>
                 <span class="site-card__url">{{ $site->url }}</span>
             </div>
             <div class="site-card__group">
@@ -114,10 +114,7 @@
         </div>
         @endforeach
     </div>
-
-    <div class="pagination-wrap">
-        {{ $sites->links() }}
-    </div>
+    <div class="pagination-wrap">{{ $sites->links() }}</div>
 @endif
 
 {{-- Create drawer --}}
@@ -148,23 +145,16 @@
         <button class="btn-icon" onclick="closeDrawer('drawer-site-{{ $site->id }}')">✕</button>
     </div>
     <div class="drawer__body">
-        <form method="POST"
-              action="{{ route('sites.update', $site) }}"
-              class="form-stack"
-              id="form-site-{{ $site->id }}">
-            @csrf
-            @method('PUT')
+        <form method="POST" action="{{ route('sites.update', $site) }}" class="form-stack" id="form-site-{{ $site->id }}">
+            @csrf @method('PUT')
             @include('admin.sites._form', ['site' => $site, 'groups' => $groups])
         </form>
     </div>
     <div class="drawer__footer">
         <form method="POST" action="{{ route('sites.destroy', $site) }}" class="drawer__footer-left">
-            @csrf
-            @method('DELETE')
+            @csrf @method('DELETE')
             <button type="submit" class="btn-danger"
-                    onclick="return confirm('Видалити сайт «{{ $site->name }}»?')">
-                Видалити
-            </button>
+                    onclick="return confirm('Видалити сайт «{{ $site->name }}»?')">Видалити</button>
         </form>
         <button type="button" class="btn-ghost" onclick="closeDrawer('drawer-site-{{ $site->id }}')">Скасувати</button>
         <button type="submit" form="form-site-{{ $site->id }}" class="btn-primary">Зберегти</button>
@@ -175,6 +165,13 @@
 @push('scripts')
 <script>
     initViewToggle('sites-view', 'sites-list', 'btn-view-list', 'btn-view-grid');
+
+    var _ss;
+    document.getElementById('site-search').addEventListener('input', function() {
+        clearTimeout(_ss);
+        var v = this.value;
+        _ss = setTimeout(function() { applyQueryParam('search', v); }, 400);
+    });
 </script>
 @endpush
 

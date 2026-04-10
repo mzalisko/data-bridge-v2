@@ -181,6 +181,13 @@
     min-width: 0;
 }
 
+.site-card__name-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
 .site-card__name {
     font-weight: 600;
     font-size: var(--font-size-base);

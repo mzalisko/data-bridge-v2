@@ -6,9 +6,19 @@
 
 <div class="page-toolbar">
     <h1 class="page-title">Групи сайтів</h1>
-    <button class="btn-primary" onclick="openDrawer('drawer-group-create')">
-        + Нова група
-    </button>
+    <button class="btn-primary" onclick="openDrawer('drawer-group-create')">+ Нова група</button>
+</div>
+
+{{-- Controls bar --}}
+<div class="page-controls">
+    <div class="page-controls__search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" class="form-input page-controls__search-input"
+               placeholder="Пошук груп…"
+               value="{{ request('search') }}" id="group-search">
+    </div>
 </div>
 
 @if(session('success'))
@@ -101,5 +111,16 @@
     </div>
 </div>
 @endforeach
+
+@push('scripts')
+<script>
+    var _gs;
+    document.getElementById('group-search').addEventListener('input', function() {
+        clearTimeout(_gs);
+        var v = this.value;
+        _gs = setTimeout(function() { applyQueryParam('search', v); }, 400);
+    });
+</script>
+@endpush
 
 @endsection

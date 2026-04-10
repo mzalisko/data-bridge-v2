@@ -85,3 +85,35 @@
 .btn-danger:hover {
     background: rgba(245, 101, 101, .1);
 }
+
+/* ─── Button group (compact filter buttons) ─── */
+.btn-group {
+    display: inline-flex;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-item);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.btn-group__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 10px;
+    height: 32px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    color: var(--text-muted);
+    background: var(--bg-card);
+    border-right: 1px solid var(--border-color);
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background var(--duration-fast) var(--ease-ui),
+                color var(--duration-fast) var(--ease-ui);
+}
+
+.btn-group__btn:last-child { border-right: none; }
+.btn-group__btn:hover      { background: var(--bg-hover); color: var(--text-primary); }
+.btn-group__btn.is-active  { background: var(--accent); color: #fff; border-color: transparent; }
