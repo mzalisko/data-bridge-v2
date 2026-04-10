@@ -6,9 +6,69 @@
 
 <div class="page-toolbar">
     <h1 class="page-title">Користувачі</h1>
-    <button class="btn-primary" onclick="openDrawer('drawer-user-create')">
-        + Новий користувач
-    </button>
+    <div style="display:flex;align-items:center;gap:var(--space-sm);">
+        <div class="view-toggle">
+            <button id="btn-uview-list" class="view-toggle__btn is-active" title="Список">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                    <line x1="8" y1="18" x2="21" y2="18"/>
+                    <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
+                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                </svg>
+            </button>
+            <button id="btn-uview-grid" class="view-toggle__btn" title="Картки">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                </svg>
+            </button>
+        </div>
+        <button class="btn-primary" onclick="openDrawer('drawer-user-create')">
+            + Новий користувач
+        </button>
+    </div>
+</div>
+
+{{-- Filter bar --}}
+<div class="users-filter-bar">
+    <div class="users-filter-bar__search">
+        <svg class="users-filter-bar__search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text"
+               class="form-input users-filter-bar__search-input"
+               placeholder="Пошук по імені або email…"
+               value="{{ request('search') }}"
+               id="user-search-input">
+    </div>
+    <div class="users-filter-bar__controls">
+        <div class="filter-select-wrap">
+            <label class="filter-select-label">Роль</label>
+            <select class="form-input form-input--sm" onchange="applyQueryParam('role', this.value)">
+                <option value=""   {{ !request('role')               ? 'selected' : '' }}>Всі</option>
+                <option value="admin"   {{ request('role') === 'admin'   ? 'selected' : '' }}>Admin</option>
+                <option value="manager" {{ request('role') === 'manager' ? 'selected' : '' }}>Manager</option>
+                <option value="editor"  {{ request('role') === 'editor'  ? 'selected' : '' }}>Editor</option>
+                <option value="viewer"  {{ request('role') === 'viewer'  ? 'selected' : '' }}>Viewer</option>
+            </select>
+        </div>
+        <div class="filter-select-wrap">
+            <label class="filter-select-label">Статус</label>
+            <select class="form-input form-input--sm" onchange="applyQueryParam('status', this.value)">
+                <option value=""         {{ !request('status')              ? 'selected' : '' }}>Всі</option>
+                <option value="active"   {{ request('status') === 'active'  ? 'selected' : '' }}>Active</option>
+                <option value="inactive" {{ request('status') === 'inactive'? 'selected' : '' }}>Disabled</option>
+            </select>
+        </div>
+        <div class="filter-select-wrap">
+            <label class="filter-select-label">Сортування</label>
+            <select class="form-input form-input--sm" onchange="applyQueryParam('sort', this.value)">
+                <option value="date" {{ request('sort','date') === 'date' ? 'selected' : '' }}>За датою ↓</option>
+                <option value="name" {{ request('sort','date') === 'name' ? 'selected' : '' }}>За іменем A→Z</option>
+                <option value="role" {{ request('sort','date') === 'role' ? 'selected' : '' }}>За роллю</option>
+            </select>
+        </div>
+    </div>
 </div>
 
 @if(session('success'))
@@ -18,18 +78,12 @@
     <div class="alert alert--error">{{ session('error') }}</div>
 @endif
 
-<div class="users-list">
-    @foreach($users as $user)
+<div class="users-list" id="users-list">
+    @forelse($users as $user)
+
+    {{-- ── List row ── --}}
     <div class="user-row" onclick="openDrawer('drawer-user-{{ $user->id }}')">
-        <a href="{{ route('users.permissions.show', $user) }}"
-           class="perm-btn"
-           title="Права доступу"
-           onclick="event.stopPropagation()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-        </a>
-        <div class="user-row__avatar">
+        <div class="user-row__avatar" style="background:{{ match($user->role) { 'admin' => '#818cf8', 'manager' => '#f59e0b', 'editor' => '#34d399', default => '#9ca3af' } }}">
             {{ strtoupper(substr($user->name, 0, 1)) }}
         </div>
         <div class="user-row__info">
@@ -42,9 +96,70 @@
             <span class="user-row__email">{{ $user->email }}</span>
         </div>
         <span class="role-badge role-badge--{{ $user->role }}">{{ $user->role }}</span>
-        <span class="status-dot status-dot--{{ $user->is_active ? 'ok' : 'off' }}"></span>
+        <span class="status-badge status-badge--{{ $user->is_active ? 'active' : 'disabled' }}">
+            <span class="status-badge__dot"></span>
+            {{ $user->is_active ? 'Active' : 'Disabled' }}
+        </span>
+        <span class="user-row__date">з {{ $user->created_at->format('d.m.Y') }}</span>
+        <div class="user-row__actions" onclick="event.stopPropagation()">
+            <a href="{{ route('users.permissions.show', $user) }}"
+               class="btn-icon" title="Права доступу">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+            </a>
+            <button class="btn-icon" title="Редагувати"
+                    onclick="openDrawer('drawer-user-{{ $user->id }}')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+            </button>
+        </div>
     </div>
-    @endforeach
+
+    {{-- ── Card ── --}}
+    <div class="user-card">
+        <div class="user-card__avatar" style="background:{{ match($user->role) { 'admin' => '#818cf8', 'manager' => '#f59e0b', 'editor' => '#34d399', default => '#9ca3af' } }}">
+            {{ strtoupper(substr($user->name, 0, 1)) }}
+        </div>
+        <div class="user-card__name">
+            {{ $user->name }}
+            @if($user->id === auth()->id())
+                <span class="user-row__you">ви</span>
+            @endif
+        </div>
+        <div class="user-card__email">{{ $user->email }}</div>
+        <div class="user-card__badges">
+            <span class="role-badge role-badge--{{ $user->role }}">{{ $user->role }}</span>
+            <span class="status-badge status-badge--{{ $user->is_active ? 'active' : 'disabled' }}">
+                <span class="status-badge__dot"></span>
+                {{ $user->is_active ? 'Active' : 'Disabled' }}
+            </span>
+        </div>
+        <div class="user-card__date">з {{ $user->created_at->format('d.m.Y') }}</div>
+        <div class="user-card__actions">
+            <a href="{{ route('users.permissions.show', $user) }}" class="btn-ghost btn-sm">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                Права
+            </a>
+            <button class="btn-primary btn-sm" onclick="openDrawer('drawer-user-{{ $user->id }}')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Редагувати
+            </button>
+        </div>
+    </div>
+
+    @empty
+    <div class="empty-page" style="grid-column:1/-1;">
+        <p>Користувачів не знайдено.</p>
+    </div>
+    @endforelse
 </div>
 
 <div class="pagination-wrap">
@@ -107,7 +222,18 @@
 
 @push('scripts')
 <script>
-    // Auto-generate password when create drawer opens
+    initUserViewToggle('users-view', 'users-list', 'btn-uview-list', 'btn-uview-grid');
+
+    // Debounced search
+    var searchTimer;
+    document.getElementById('user-search-input').addEventListener('input', function() {
+        clearTimeout(searchTimer);
+        var val = this.value;
+        searchTimer = setTimeout(function() {
+            applyQueryParam('search', val);
+        }, 400);
+    });
+
     document.querySelector('[onclick="openDrawer(\'drawer-user-create\')"]')
         ?.addEventListener('click', function() {
             setTimeout(function() { generatePassword('password-new'); }, 50);

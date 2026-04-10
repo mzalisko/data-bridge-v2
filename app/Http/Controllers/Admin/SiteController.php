@@ -15,11 +15,25 @@ class SiteController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Site::with('siteGroup')->orderByDesc('created_at');
+        $query = Site::with('siteGroup');
 
         if ($request->filled('group_id')) {
             $query->where('group_id', $request->group_id);
         }
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status === 'active');
+        }
+
+        match($request->get('sort', 'date')) {
+            'name'   => $query->orderBy('name'),
+            'status' => $query->orderByDesc('is_active')->orderBy('name'),
+            'group'  => $query->orderBy(
+                            \App\Models\SiteGroup::select('name')
+                                ->whereColumn('site_groups.id', 'sites.group_id')
+                                ->limit(1)
+                        )->orderBy('name'),
+            default  => $query->orderByDesc('created_at'),
+        };
 
         $sites  = $query->paginate(25)->withQueryString();
         $groups = SiteGroup::withCount('sites')->orderBy('name')->get();

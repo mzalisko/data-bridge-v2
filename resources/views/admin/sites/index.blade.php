@@ -31,13 +31,13 @@
 
 {{-- Group filter bar --}}
 <div class="group-nav">
-    <a href="{{ route('sites.index') }}"
+    <a href="{{ request()->fullUrlWithQuery(['group_id' => null, 'page' => null]) }}"
        class="group-nav__item {{ !request('group_id') ? 'is-active' : '' }}">
         Всі сайти
         <span class="group-nav__count">{{ $groups->sum('sites_count') }}</span>
     </a>
     @foreach($groups as $group)
-    <a href="{{ route('sites.index', ['group_id' => $group->id]) }}"
+    <a href="{{ request()->fullUrlWithQuery(['group_id' => $group->id, 'page' => null]) }}"
        class="group-nav__item {{ request('group_id') == $group->id ? 'is-active' : '' }}">
         <span class="group-nav__dot" style="background:{{ $group->color ?? '#706f70' }}"></span>
         {{ $group->name }}
@@ -46,24 +46,47 @@
     @endforeach
 </div>
 
+{{-- Filter + sort bar --}}
+<div class="filter-bar">
+    <div class="filter-pills">
+        <a href="{{ request()->fullUrlWithQuery(['status' => null, 'page' => null]) }}"
+           class="filter-pill {{ !request('status') ? 'is-active' : '' }}">Всі</a>
+        <a href="{{ request()->fullUrlWithQuery(['status' => 'active', 'page' => null]) }}"
+           class="filter-pill {{ request('status') === 'active' ? 'is-active' : '' }}">
+            <span class="status-dot status-dot--ok"></span> Активні
+        </a>
+        <a href="{{ request()->fullUrlWithQuery(['status' => 'inactive', 'page' => null]) }}"
+           class="filter-pill {{ request('status') === 'inactive' ? 'is-active' : '' }}">
+            <span class="status-dot status-dot--off"></span> Зупинені
+        </a>
+    </div>
+    <div class="filter-sort">
+        <span class="filter-sort__label">Сортування</span>
+        <select class="form-input form-input--sm" onchange="applyQueryParam('sort', this.value)">
+            <option value="date"   {{ request('sort','date') === 'date'   ? 'selected' : '' }}>За датою ↓</option>
+            <option value="name"   {{ request('sort','date') === 'name'   ? 'selected' : '' }}>За назвою A→Z</option>
+            <option value="status" {{ request('sort','date') === 'status' ? 'selected' : '' }}>За статусом</option>
+            <option value="group"  {{ request('sort','date') === 'group'  ? 'selected' : '' }}>За групою</option>
+        </select>
+    </div>
+</div>
+
 @if(session('success'))
     <div class="alert alert--success">{{ session('success') }}</div>
 @endif
 
 @if($sites->isEmpty())
     <div class="empty-page">
-        <p>Сайтів ще немає. Натисніть «+ Новий сайт» щоб додати перший.</p>
+        <p>Сайтів не знайдено.</p>
     </div>
 @else
     <div class="sites-list" id="sites-list">
         @foreach($sites as $site)
         <div class="site-card" onclick="window.location='{{ route('sites.show', $site) }}'">
-            <span class="status-dot status-dot--{{ $site->is_active ? 'ok' : 'off' }}"></span>
+            <span class="status-dot status-dot--{{ $site->is_active ? 'ok' : 'off' }}" title="{{ $site->is_active ? 'Активний' : 'Зупинено' }}"></span>
             <div class="site-card__info">
                 <span class="site-card__name">{{ $site->name }}</span>
-                <a href="{{ $site->url }}" target="_blank" class="site-card__url" onclick="event.stopPropagation()">
-                    {{ $site->url }}
-                </a>
+                <span class="site-card__url">{{ $site->url }}</span>
             </div>
             <div class="site-card__group">
                 @if($site->siteGroup)
@@ -72,16 +95,22 @@
                     </span>
                 @endif
             </div>
+            <span class="site-card__meta">{{ $site->created_at->format('d.m.Y') }}</span>
             <div class="site-card__actions" onclick="event.stopPropagation()">
+                <a href="{{ $site->url }}" target="_blank" class="btn-icon" title="Відкрити сайт">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                        <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                </a>
                 <button class="btn-icon" title="Редагувати"
                         onclick="openDrawer('drawer-site-{{ $site->id }}')">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                     </svg>
                 </button>
             </div>
-            <span class="site-card__meta">{{ $site->created_at->format('d.m.Y') }}</span>
         </div>
         @endforeach
     </div>

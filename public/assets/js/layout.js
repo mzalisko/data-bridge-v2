@@ -61,6 +61,41 @@ function initViewToggle(storageKey, listId, btnListId, btnGridId) {
     }
 }
 
+// Users view toggle (list rows ↔ cards)
+function initUserViewToggle(storageKey, listId, btnListId, btnGridId) {
+    var list    = document.getElementById(listId);
+    var btnList = document.getElementById(btnListId);
+    var btnGrid = document.getElementById(btnGridId);
+    if (!list || !btnList || !btnGrid) return;
+
+    var saved = localStorage.getItem(storageKey) || 'list';
+    applyView(saved);
+
+    btnList.addEventListener('click', function() { applyView('list'); });
+    btnGrid.addEventListener('click', function() { applyView('grid'); });
+
+    function applyView(mode) {
+        if (mode === 'grid') {
+            list.classList.add('users-list--grid');
+            btnGrid.classList.add('is-active');
+            btnList.classList.remove('is-active');
+        } else {
+            list.classList.remove('users-list--grid');
+            btnList.classList.add('is-active');
+            btnGrid.classList.remove('is-active');
+        }
+        localStorage.setItem(storageKey, mode);
+    }
+}
+
+// Apply single query param, preserve others
+function applyQueryParam(key, value) {
+    var u = new URL(window.location.href);
+    u.searchParams.set(key, value);
+    u.searchParams.delete('page');
+    window.location = u.toString();
+}
+
 // Password: toggle visibility
 function togglePasswordVisibility(inputId, btn) {
     var input = document.getElementById(inputId);
