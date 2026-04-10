@@ -8,19 +8,31 @@ use App\Http\Requests\Admin\UpdateSiteRequest;
 use App\Models\Site;
 use App\Models\SiteGroup;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class SiteController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $sites = Site::with('siteGroup')
-            ->orderByDesc('created_at')
-            ->paginate(25);
+        $query = Site::with('siteGroup')->orderByDesc('created_at');
 
-        $groups = SiteGroup::orderBy('name')->get(['id', 'name', 'color']);
+        if ($request->filled('group_id')) {
+            $query->where('group_id', $request->group_id);
+        }
+
+        $sites  = $query->paginate(25)->withQueryString();
+        $groups = SiteGroup::withCount('sites')->orderBy('name')->get();
 
         return view('admin.sites.index', compact('sites', 'groups'));
+    }
+
+    public function show(Site $site): View
+    {
+        $site->load('siteGroup');
+        $groups = SiteGroup::orderBy('name')->get(['id', 'name', 'color']);
+
+        return view('admin.sites.show', compact('site', 'groups'));
     }
 
     public function store(StoreSiteRequest $request): RedirectResponse

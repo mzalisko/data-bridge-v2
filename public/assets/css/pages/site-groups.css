@@ -73,6 +73,58 @@
     margin-top: var(--space-md);
 }
 
+/* Group nav bar (horizontal tabs) */
+.group-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-lg);
+    overflow-x: auto;
+    padding-bottom: 2px;
+    flex-wrap: nowrap;
+}
+
+.group-nav__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: 6px var(--space-md);
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background var(--duration-fast) var(--ease-ui),
+                color var(--duration-fast) var(--ease-ui);
+    flex-shrink: 0;
+}
+
+.group-nav__item:hover {
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.group-nav__item.is-active {
+    background: var(--accent);
+    color: #fff;
+}
+
+.group-nav__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.group-nav__count {
+    font-size: var(--font-size-xs);
+    opacity: .7;
+    background: rgba(255,255,255,.12);
+    border-radius: 10px;
+    padding: 1px 6px;
+}
+
 /* Drawer form extras */
 .form-row {
     display: grid;

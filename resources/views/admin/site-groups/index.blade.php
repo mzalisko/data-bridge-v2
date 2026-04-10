@@ -22,7 +22,17 @@
 @else
     <div class="group-grid">
         @foreach($groups as $group)
-        <div class="group-card" onclick="openDrawer('drawer-group-{{ $group->id }}')">
+        <div class="group-card" onclick="window.location='{{ route('site-groups.show', $group) }}'"
+             style="cursor:pointer;">
+            <div class="group-card__actions" onclick="event.stopPropagation()">
+                <button class="btn-icon" style="position:absolute;top:12px;right:12px;"
+                        onclick="openDrawer('drawer-group-{{ $group->id }}')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                </button>
+            </div>
             <div class="group-card__header">
                 <span class="group-card__dot" style="background:{{ $group->color ?? '#706f70' }}"></span>
                 <span class="group-card__name">{{ $group->name }}</span>

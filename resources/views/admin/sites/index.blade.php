@@ -29,6 +29,23 @@
     </div>
 </div>
 
+{{-- Group filter bar --}}
+<div class="group-nav">
+    <a href="{{ route('sites.index') }}"
+       class="group-nav__item {{ !request('group_id') ? 'is-active' : '' }}">
+        Всі сайти
+        <span class="group-nav__count">{{ $groups->sum('sites_count') }}</span>
+    </a>
+    @foreach($groups as $group)
+    <a href="{{ route('sites.index', ['group_id' => $group->id]) }}"
+       class="group-nav__item {{ request('group_id') == $group->id ? 'is-active' : '' }}">
+        <span class="group-nav__dot" style="background:{{ $group->color ?? '#706f70' }}"></span>
+        {{ $group->name }}
+        <span class="group-nav__count">{{ $group->sites_count }}</span>
+    </a>
+    @endforeach
+</div>
+
 @if(session('success'))
     <div class="alert alert--success">{{ session('success') }}</div>
 @endif
@@ -40,7 +57,7 @@
 @else
     <div class="sites-list" id="sites-list">
         @foreach($sites as $site)
-        <div class="site-card" onclick="openDrawer('drawer-site-{{ $site->id }}')">
+        <div class="site-card" onclick="window.location='{{ route('sites.show', $site) }}'">
             <span class="status-dot status-dot--{{ $site->is_active ? 'ok' : 'off' }}"></span>
             <div class="site-card__info">
                 <span class="site-card__name">{{ $site->name }}</span>
@@ -54,6 +71,15 @@
                         {{ $site->siteGroup->name }}
                     </span>
                 @endif
+            </div>
+            <div class="site-card__actions" onclick="event.stopPropagation()">
+                <button class="btn-icon" title="Редагувати"
+                        onclick="openDrawer('drawer-site-{{ $site->id }}')">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                </button>
             </div>
             <span class="site-card__meta">{{ $site->created_at->format('d.m.Y') }}</span>
         </div>

@@ -24,10 +24,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('site-groups', SiteGroupController::class)
-        ->only(['index', 'store', 'update', 'destroy']);
+        ->only(['index', 'store', 'update', 'destroy', 'show']);
 
     Route::resource('sites', SiteController::class)
-        ->only(['index', 'store', 'update', 'destroy']);
+        ->only(['index', 'store', 'update', 'destroy', 'show']);
 
     Route::resource('users', UserController::class)
         ->only(['index', 'store', 'update', 'destroy']);

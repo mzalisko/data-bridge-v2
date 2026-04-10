@@ -61,6 +61,7 @@
 
 /* Group card */
 .group-card {
+    position: relative;
     background: var(--bg-card);
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-card);

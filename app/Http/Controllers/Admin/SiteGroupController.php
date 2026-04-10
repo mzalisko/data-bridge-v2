@@ -20,6 +20,15 @@ class SiteGroupController extends Controller
         return view('admin.site-groups.index', compact('groups'));
     }
 
+    public function show(SiteGroup $siteGroup): View
+    {
+        $siteGroup->loadCount('sites');
+        $sites = $siteGroup->sites()->orderByDesc('created_at')->get();
+        $allGroups = SiteGroup::orderBy('name')->get(['id', 'name', 'color']);
+
+        return view('admin.site-groups.show', compact('siteGroup', 'sites', 'allGroups'));
+    }
+
     public function store(StoreSiteGroupRequest $request): RedirectResponse
     {
         SiteGroup::create($request->validated());
