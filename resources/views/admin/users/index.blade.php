@@ -27,36 +27,48 @@
 
 {{-- Controls bar --}}
 <div class="page-controls">
-    <div class="page-controls__search">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input type="text" class="form-input page-controls__search-input"
-               placeholder="Пошук по імені або email…"
-               value="{{ request('search') }}" id="user-search">
+    <div class="page-controls__search-row">
+        <div class="page-controls__search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" class="page-controls__search-input"
+                   placeholder="Пошук по імені або email…"
+                   value="{{ request('search') }}" id="user-search">
+        </div>
+        <span class="page-controls__count">{{ $users->total() }} користувачів</span>
     </div>
-    <div class="page-controls__filters">
-        <div class="btn-group">
-            <a href="{{ request()->fullUrlWithQuery(['role'=>null,'page'=>null]) }}"
-               class="btn-group__btn {{ !request('role') ? 'is-active' : '' }}">Всі</a>
-            <a href="{{ request()->fullUrlWithQuery(['role'=>'admin','page'=>null]) }}"
-               class="btn-group__btn {{ request('role')==='admin' ? 'is-active' : '' }}">Admin</a>
-            <a href="{{ request()->fullUrlWithQuery(['role'=>'manager','page'=>null]) }}"
-               class="btn-group__btn {{ request('role')==='manager' ? 'is-active' : '' }}">Manager</a>
-            <a href="{{ request()->fullUrlWithQuery(['role'=>'editor','page'=>null]) }}"
-               class="btn-group__btn {{ request('role')==='editor' ? 'is-active' : '' }}">Editor</a>
-            <a href="{{ request()->fullUrlWithQuery(['role'=>'viewer','page'=>null]) }}"
-               class="btn-group__btn {{ request('role')==='viewer' ? 'is-active' : '' }}">Viewer</a>
-        </div>
-        <div class="btn-group">
-            <a href="{{ request()->fullUrlWithQuery(['status'=>null,'page'=>null]) }}"
-               class="btn-group__btn {{ !request('status') ? 'is-active' : '' }}">Всі</a>
-            <a href="{{ request()->fullUrlWithQuery(['status'=>'active','page'=>null]) }}"
-               class="btn-group__btn {{ request('status')==='active' ? 'is-active' : '' }}">Active</a>
-            <a href="{{ request()->fullUrlWithQuery(['status'=>'inactive','page'=>null]) }}"
-               class="btn-group__btn {{ request('status')==='inactive' ? 'is-active' : '' }}">Disabled</a>
-        </div>
-        <select class="page-controls__select" onchange="applyQueryParam('sort', this.value)">
+    <div class="page-controls__pills">
+        <a href="{{ request()->fullUrlWithQuery(['role' => null, 'status' => null, 'page' => null]) }}"
+           class="filter-pill {{ !request('role') && !request('status') ? 'is-active' : '' }}">
+            Всі
+        </a>
+
+        <div class="filter-pill-sep"></div>
+        <a href="{{ request()->fullUrlWithQuery(['role'=>'admin','page'=>null]) }}"
+           class="filter-pill {{ request('role')==='admin' ? 'is-active' : '' }}">Admin</a>
+        <a href="{{ request()->fullUrlWithQuery(['role'=>'manager','page'=>null]) }}"
+           class="filter-pill {{ request('role')==='manager' ? 'is-active' : '' }}">Manager</a>
+        <a href="{{ request()->fullUrlWithQuery(['role'=>'editor','page'=>null]) }}"
+           class="filter-pill {{ request('role')==='editor' ? 'is-active' : '' }}">Editor</a>
+        <a href="{{ request()->fullUrlWithQuery(['role'=>'viewer','page'=>null]) }}"
+           class="filter-pill {{ request('role')==='viewer' ? 'is-active' : '' }}">Viewer</a>
+
+        <div class="filter-pill-sep"></div>
+        <a href="{{ request()->fullUrlWithQuery(['status'=>'active','page'=>null]) }}"
+           class="filter-pill {{ request('status')==='active' ? 'is-active' : '' }}">
+            <span class="filter-pill__dot" style="background:var(--dot-ok)"></span> Active
+        </a>
+        <a href="{{ request()->fullUrlWithQuery(['status'=>'inactive','page'=>null]) }}"
+           class="filter-pill {{ request('status')==='inactive' ? 'is-active' : '' }}">
+            <span class="filter-pill__dot" style="background:var(--dot-off)"></span> Disabled
+        </a>
+
+        @if(request('role') || request('status'))
+            <a href="{{ request()->fullUrlWithQuery(['role' => null, 'status' => null, 'page' => null]) }}" class="filter-pill">✕ Очистити</a>
+        @endif
+
+        <select class="page-controls__sort" onchange="applyQueryParam('sort', this.value)">
             <option value="date" {{ request('sort','date')==='date' ? 'selected':'' }}>За датою ↓</option>
             <option value="name" {{ request('sort','date')==='name' ? 'selected':'' }}>За іменем A→Z</option>
             <option value="role" {{ request('sort','date')==='role' ? 'selected':'' }}>За роллю</option>
@@ -75,9 +87,9 @@
 @forelse($users as $user)
 
     {{-- ── List row ── --}}
-    <div class="user-row" onclick="openDrawer('drawer-user-{{ $user->id }}')">
+    <div class="user-row" data-searchable="{{ $user->name }} {{ $user->email }} {{ $user->role }}" onclick="openDrawer('drawer-user-{{ $user->id }}')">
         <div class="user-row__avatar" style="background:{{ match($user->role){ 'admin'=>'#818cf8','manager'=>'#f59e0b','editor'=>'#34d399',default=>'#9ca3af' } }}">
-            {{ strtoupper(substr($user->name,0,1)) }}
+            {{ mb_strtoupper(mb_substr($user->name, 0, 1, 'UTF-8'), 'UTF-8') }}
         </div>
         <div class="user-row__info">
             <span class="user-row__name">
@@ -86,10 +98,14 @@
             </span>
             <span class="user-row__email">{{ $user->email }}</span>
         </div>
-        <span class="role-badge role-badge--{{ $user->role }}">{{ $user->role }}</span>
-        <span class="status-badge status-badge--{{ $user->is_active ? 'active' : 'disabled' }}">
-            <span class="status-badge__dot"></span>{{ $user->is_active ? 'Active' : 'Disabled' }}
-        </span>
+        <div class="user-row__role">
+            <span class="role-badge role-badge--{{ $user->role }}">{{ $user->role }}</span>
+        </div>
+        <div class="user-row__status">
+            <span class="status-badge status-badge--{{ $user->is_active ? 'active' : 'disabled' }}">
+                <span class="status-badge__dot"></span>{{ $user->is_active ? 'Active' : 'Disabled' }}
+            </span>
+        </div>
         <span class="user-row__date">з {{ $user->created_at->format('d.m.Y') }}</span>
         <div class="user-row__actions" onclick="event.stopPropagation()">
             <button class="btn-icon" title="Права доступу"
@@ -109,37 +125,43 @@
     </div>
 
     {{-- ── Card ── --}}
-    <div class="user-card">
-        <div class="user-card__avatar" style="background:{{ match($user->role){ 'admin'=>'#818cf8','manager'=>'#f59e0b','editor'=>'#34d399',default=>'#9ca3af' } }}">
-            {{ strtoupper(substr($user->name,0,1)) }}
+    <div class="user-card" data-searchable="{{ $user->name }} {{ $user->email }} {{ $user->role }}">
+        <div class="user-card__top">
+            <div class="user-card__avatar" style="background:{{ match($user->role){ 'admin'=>'#818cf8','manager'=>'#f59e0b','editor'=>'#34d399',default=>'#9ca3af' } }}">
+                {{ mb_strtoupper(mb_substr($user->name, 0, 1, 'UTF-8'), 'UTF-8') }}
+            </div>
+            <div class="user-card__info">
+                <div class="user-card__name">
+                    {{ $user->name }}
+                    @if($user->id===auth()->id()) <span class="user-row__you">ви</span> @endif
+                </div>
+                <div class="user-card__email">{{ $user->email }}</div>
+            </div>
         </div>
-        <div class="user-card__name">
-            {{ $user->name }}
-            @if($user->id===auth()->id()) <span class="user-row__you">ви</span> @endif
-        </div>
-        <div class="user-card__email">{{ $user->email }}</div>
+
         <div class="user-card__badges">
             <span class="role-badge role-badge--{{ $user->role }}">{{ $user->role }}</span>
             <span class="status-badge status-badge--{{ $user->is_active ? 'active' : 'disabled' }}">
                 <span class="status-badge__dot"></span>{{ $user->is_active ? 'Active' : 'Disabled' }}
             </span>
         </div>
-        <div class="user-card__date">з {{ $user->created_at->format('d.m.Y') }}</div>
-        <div class="user-card__actions">
-            <button class="btn-ghost btn-sm"
-                    onclick="openPermDrawer({{ $user->id }}, '{{ addslashes($user->name) }}')">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
-                Права
-            </button>
-            <button class="btn-primary btn-sm" onclick="openDrawer('drawer-user-{{ $user->id }}')">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-                Редагувати
-            </button>
+
+        <div class="user-card__footer">
+            <div class="user-card__date">з {{ $user->created_at->format('d.m.Y') }}</div>
+            <div class="user-card__actions">
+                <button class="btn-icon" title="Права доступу"
+                        onclick="openPermDrawer({{ $user->id }}, '{{ addslashes($user->name) }}')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                </button>
+                <button class="btn-icon" title="Редагувати" onclick="openDrawer('drawer-user-{{ $user->id }}')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -220,14 +242,7 @@
 @push('scripts')
 <script>
     initUserViewToggle('users-view', 'users-list', 'btn-uview-list', 'btn-uview-grid');
-
-    // Debounced search
-    var _st;
-    document.getElementById('user-search').addEventListener('input', function() {
-        clearTimeout(_st);
-        var v = this.value;
-        _st = setTimeout(function() { applyQueryParam('search', v); }, 400);
-    });
+    initClientSearch('user-search', '.user-row, .user-card');
 
     // Permissions drawer
     function openPermDrawer(userId, userName) {

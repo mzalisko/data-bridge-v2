@@ -25,46 +25,53 @@
     </div>
 </div>
 
-{{-- Group nav --}}
-<div class="group-nav">
-    <a href="{{ request()->fullUrlWithQuery(['group_id'=>null,'page'=>null]) }}"
-       class="group-nav__item {{ !request('group_id') ? 'is-active' : '' }}">
-        Всі <span class="group-nav__count">{{ $groups->sum('sites_count') }}</span>
-    </a>
-    @foreach($groups as $group)
-    <a href="{{ request()->fullUrlWithQuery(['group_id'=>$group->id,'page'=>null]) }}"
-       class="group-nav__item {{ request('group_id')==$group->id ? 'is-active' : '' }}">
-        <span class="group-nav__dot" style="background:{{ $group->color ?? '#706f70' }}"></span>
-        {{ $group->name }}
-        <span class="group-nav__count">{{ $group->sites_count }}</span>
-    </a>
-    @endforeach
-</div>
-
 {{-- Controls bar --}}
 <div class="page-controls">
-    <div class="page-controls__search">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input type="text" class="form-input page-controls__search-input"
-               placeholder="Пошук сайтів…"
-               value="{{ request('search') }}" id="site-search">
-    </div>
-    <div class="page-controls__filters">
-        <div class="btn-group">
-            <a href="{{ request()->fullUrlWithQuery(['status'=>null,'page'=>null]) }}"
-               class="btn-group__btn {{ !request('status') ? 'is-active' : '' }}">Всі</a>
-            <a href="{{ request()->fullUrlWithQuery(['status'=>'active','page'=>null]) }}"
-               class="btn-group__btn {{ request('status')==='active' ? 'is-active' : '' }}">Active</a>
-            <a href="{{ request()->fullUrlWithQuery(['status'=>'inactive','page'=>null]) }}"
-               class="btn-group__btn {{ request('status')==='inactive' ? 'is-active' : '' }}">Disabled</a>
+    <div class="page-controls__search-row">
+        <div class="page-controls__search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" class="page-controls__search-input"
+                   placeholder="Пошук сайтів…"
+                   value="{{ request('search') }}" id="site-search">
         </div>
-        <select class="page-controls__select" onchange="applyQueryParam('sort', this.value)">
-            <option value="date"   {{ request('sort','date')==='date'   ? 'selected':'' }}>За датою ↓</option>
-            <option value="name"   {{ request('sort','date')==='name'   ? 'selected':'' }}>За назвою A→Z</option>
-            <option value="status" {{ request('sort','date')==='status' ? 'selected':'' }}>За статусом</option>
-            <option value="group"  {{ request('sort','date')==='group'  ? 'selected':'' }}>За групою</option>
+        <span class="page-controls__count">{{ $sites->total() }} сайтів</span>
+    </div>
+    <div class="page-controls__pills">
+        <a href="{{ request()->fullUrlWithQuery(['status' => null, 'page' => null]) }}"
+           class="filter-pill {{ !request('status') ? 'is-active' : '' }}">
+            Всі <span class="filter-pill__count">{{ $totalCount }}</span>
+        </a>
+        <a href="{{ request()->fullUrlWithQuery(['status' => 'active', 'page' => null]) }}"
+           class="filter-pill {{ request('status') === 'active' ? 'is-active' : '' }}">
+            <span class="filter-pill__dot" style="background:var(--dot-ok)"></span>
+            Active <span class="filter-pill__count">{{ $activeCount }}</span>
+        </a>
+        <a href="{{ request()->fullUrlWithQuery(['status' => 'inactive', 'page' => null]) }}"
+           class="filter-pill {{ request('status') === 'inactive' ? 'is-active' : '' }}">
+            <span class="filter-pill__dot" style="background:var(--dot-off)"></span>
+            Disabled <span class="filter-pill__count">{{ $inactiveCount }}</span>
+        </a>
+        @if($groups->isNotEmpty())
+            <div class="filter-pill-sep"></div>
+            @foreach($groups as $group)
+            <a href="{{ request()->fullUrlWithQuery(['group_id' => $group->id, 'page' => null]) }}"
+               class="filter-pill {{ request('group_id') == $group->id ? 'is-active' : '' }}">
+                <span class="filter-pill__dot" style="background:{{ $group->color ?? '#708499' }}"></span>
+                {{ $group->name }}
+            </a>
+            @endforeach
+            @if(request('group_id'))
+            <a href="{{ request()->fullUrlWithQuery(['group_id' => null, 'page' => null]) }}"
+               class="filter-pill">✕ Очистити</a>
+            @endif
+        @endif
+        <select class="page-controls__sort" onchange="applyQueryParam('sort', this.value)">
+            <option value="date"   {{ request('sort', 'date') === 'date'   ? 'selected' : '' }}>За датою ↓</option>
+            <option value="name"   {{ request('sort', 'date') === 'name'   ? 'selected' : '' }}>За назвою A→Z</option>
+            <option value="status" {{ request('sort', 'date') === 'status' ? 'selected' : '' }}>За статусом</option>
+            <option value="group"  {{ request('sort', 'date') === 'group'  ? 'selected' : '' }}>За групою</option>
         </select>
     </div>
 </div>
@@ -78,26 +85,54 @@
 @else
     <div class="sites-list" id="sites-list">
         @foreach($sites as $site)
-        <div class="site-card" onclick="window.location='{{ route('sites.show', $site) }}'">
+        @php
+            $color = $site->siteGroup?->color ?? '#708499';
+            $letter = strtoupper(substr(parse_url($site->url, PHP_URL_HOST) ?: $site->name, 0, 1));
+            $syncOk = $site->latestSyncLog?->status === 'success';
+            $syncWarn = $site->latestSyncLog && !$syncOk;
+            $syncDot = $syncOk ? 'var(--dot-ok)' : ($syncWarn ? 'var(--dot-pause)' : 'var(--text-muted)');
+            $syncTime = $site->latestSyncLog?->created_at?->diffForHumans() ?? null;
+        @endphp
+        <div class="site-card {{ !$site->is_active ? 'site-card--disabled' : '' }}"
+             data-searchable="{{ $site->name }} {{ $site->url }} {{ $site->siteGroup?->name }}"
+             onclick="window.location='{{ route('sites.show', $site) }}'">
+            <div class="site-card__favicon"
+                 style="background:{{ $color }}26;color:{{ $color }};">
+                {{ $letter }}
+            </div>
             <div class="site-card__info">
                 <div class="site-card__name-row">
                     <span class="site-card__name">{{ $site->name }}</span>
-                    <span class="status-badge status-badge--{{ $site->is_active ? 'active' : 'disabled' }}">
-                        <span class="status-badge__dot"></span>{{ $site->is_active ? 'Active' : 'Disabled' }}
-                    </span>
                 </div>
-                <span class="site-card__url">{{ $site->url }}</span>
+                <div class="site-card__meta-row">
+                    <span class="site-card__url">{{ $site->url }}</span>
+                    @if($syncTime)
+                        <span class="site-card__meta-sep">·</span>
+                        <span class="site-card__sync-dot" style="background:{{ $syncDot }}"></span>
+                        <span class="site-card__sync-time">{{ $syncTime }}</span>
+                    @endif
+                </div>
+            </div>
+            <div class="site-card__status">
+                <span class="status-badge status-badge--{{ $site->is_active ? 'active' : 'disabled' }}">
+                    <span class="status-badge__dot"></span>{{ $site->is_active ? 'Active' : 'Disabled' }}
+                </span>
             </div>
             <div class="site-card__group">
                 @if($site->siteGroup)
-                    <span class="group-pill" style="--pill-color:{{ $site->siteGroup->color ?? '#706f70' }}">
+                    <span class="group-pill" style="--pill-color:{{ $color }}">
                         {{ $site->siteGroup->name }}
                     </span>
                 @endif
             </div>
-            <span class="site-card__meta">{{ $site->created_at->format('d.m.Y') }}</span>
+            <span class="site-card__date">{{ $site->created_at->format('d.m.Y') }}</span>
             <div class="site-card__actions" onclick="event.stopPropagation()">
-                <a href="{{ $site->url }}" target="_blank" class="btn-icon" title="Відкрити сайт">
+                @php $isFav = in_array($site->id, $favoriteIds); @endphp
+                <button class="db-fav-btn {{ $isFav ? 'is-fav' : '' }}" 
+                        style="font-size: 18px; margin-right: 4px;"
+                        title="{{ $isFav ? 'Прибрати з улюблених' : 'Додати до улюблених' }}" 
+                        onclick="toggleFavorite(event, this, {{ $site->id }})">★</button>
+                <a href="{{ $site->url }}" target="_blank" class="btn-icon" title="Відкрити">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
                         <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
@@ -165,13 +200,7 @@
 @push('scripts')
 <script>
     initViewToggle('sites-view', 'sites-list', 'btn-view-list', 'btn-view-grid');
-
-    var _ss;
-    document.getElementById('site-search').addEventListener('input', function() {
-        clearTimeout(_ss);
-        var v = this.value;
-        _ss = setTimeout(function() { applyQueryParam('search', v); }, 400);
-    });
+    initClientSearch('site-search', '.site-card');
 </script>
 @endpush
 

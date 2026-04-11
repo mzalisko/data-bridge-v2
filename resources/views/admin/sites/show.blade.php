@@ -9,11 +9,6 @@
         <a href="{{ route('sites.index') }}" class="btn-ghost">← Сайти</a>
         <span class="status-dot status-dot--{{ $site->is_active ? 'ok' : 'off' }}"></span>
         <h1 class="page-title">{{ $site->name }}</h1>
-        @if($site->siteGroup)
-            <span class="group-pill" style="--pill-color:{{ $site->siteGroup->color ?? '#706f70' }}">
-                {{ $site->siteGroup->name }}
-            </span>
-        @endif
     </div>
     <div style="display:flex;gap:var(--space-sm);">
         <a href="{{ $site->url }}" target="_blank" class="btn-ghost">↗ Відкрити</a>
@@ -21,25 +16,95 @@
     </div>
 </div>
 
-{{-- Info cards --}}
-<div class="stat-grid" style="margin-bottom:var(--space-lg);">
-    <x-stat-card label="URL" :value="parse_url($site->url, PHP_URL_HOST)" />
-    <x-stat-card label="Статус" :value="$site->is_active ? 'Активний' : 'Зупинено'" />
-    <x-stat-card label="Група" :value="$site->siteGroup?->name ?? '—'" />
-    <x-stat-card label="Додано" :value="$site->created_at->format('d.m.Y')" />
-</div>
+@php
+    $color  = $site->siteGroup?->color ?? '#708499';
+    $letter = strtoupper(substr(parse_url($site->url, PHP_URL_HOST) ?: $site->name, 0, 1));
+    $syncLog  = $site->latestSyncLog;
+    $syncOk   = $syncLog?->status === 'success';
+    $syncWarn = $syncLog && !$syncOk;
+    $syncColor = $syncOk ? 'var(--dot-ok)' : ($syncWarn ? 'var(--dot-pause)' : 'var(--text-muted)');
+@endphp
 
-@if($site->description)
-<div class="card" style="margin-bottom:var(--space-lg);">
-    <p style="font-size:var(--font-size-sm);color:var(--text-secondary);line-height:1.6;">{{ $site->description }}</p>
-</div>
-@endif
+<div class="site-show">
+    {{-- Sidebar --}}
+    <div class="site-show__sidebar">
+        <div class="site-show__favicon"
+             style="background:{{ $color }}26;color:{{ $color }};">
+            {{ $letter }}
+        </div>
+        <div>
+            <div class="site-show__name">{{ $site->name }}</div>
+            <div class="site-show__url">{{ $site->url }}</div>
+        </div>
 
-{{-- Tabs placeholder (L011) --}}
-<div class="card">
-    <p style="color:var(--text-muted);font-size:var(--font-size-sm);text-align:center;padding:var(--space-lg) 0;">
-        Вкладки (телефони, ціни, адреси) — будуть доступні в задачі L011
-    </p>
+        <div class="site-show__info">
+            <div class="site-show__info-row">
+                <span class="site-show__info-label">Статус</span>
+                <span class="site-show__info-val"
+                      style="color:{{ $site->is_active ? 'var(--dot-ok)' : 'var(--dot-off)' }}">
+                    ● {{ $site->is_active ? 'Active' : 'Disabled' }}
+                </span>
+            </div>
+            <div class="site-show__info-row">
+                <span class="site-show__info-label">Група</span>
+                <span class="site-show__info-val">{{ $site->siteGroup?->name ?? '—' }}</span>
+            </div>
+            @if($syncLog)
+            <div class="site-show__info-row">
+                <span class="site-show__info-label">Sync</span>
+                <span class="site-show__info-val" style="color:{{ $syncColor }}">
+                    {{ $syncLog->created_at->diffForHumans() }}
+                </span>
+            </div>
+            @endif
+            <div class="site-show__info-row">
+                <span class="site-show__info-label">Додано</span>
+                <span class="site-show__info-val">{{ $site->created_at->format('d.m.Y') }}</span>
+            </div>
+        </div>
+
+        {{-- Navigation --}}
+        <nav class="site-show__nav">
+            <a class="site-show__nav-item is-active" href="#">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l.72-.72a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.5 16a2 2 0 0 1 .42.92z"/>
+                </svg>
+                Телефони
+                <span class="site-show__nav-count">—</span>
+            </a>
+            <a class="site-show__nav-item" href="#">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="1" x2="12" y2="23"/>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                Ціни
+                <span class="site-show__nav-count">—</span>
+            </a>
+            <a class="site-show__nav-item" href="#">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                </svg>
+                Адреси
+                <span class="site-show__nav-count">—</span>
+            </a>
+            <a class="site-show__nav-item" href="#">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                </svg>
+                Sync-логи
+            </a>
+        </nav>
+    </div>
+
+    {{-- Content --}}
+    <div class="site-show__content">
+        <div class="site-show__content-title">Телефони</div>
+        <p class="site-show__placeholder">
+            Вкладки з даними (телефони, ціни, адреси) — будуть доступні в задачі L011
+        </p>
+    </div>
 </div>
 
 {{-- Edit drawer --}}
@@ -50,23 +115,16 @@
         <button class="btn-icon" onclick="closeDrawer('drawer-site-edit')">✕</button>
     </div>
     <div class="drawer__body">
-        <form method="POST"
-              action="{{ route('sites.update', $site) }}"
-              class="form-stack"
-              id="form-site-edit">
-            @csrf
-            @method('PUT')
+        <form method="POST" action="{{ route('sites.update', $site) }}" class="form-stack" id="form-site-edit">
+            @csrf @method('PUT')
             @include('admin.sites._form', ['site' => $site, 'groups' => $groups])
         </form>
     </div>
     <div class="drawer__footer">
         <form method="POST" action="{{ route('sites.destroy', $site) }}" class="drawer__footer-left">
-            @csrf
-            @method('DELETE')
+            @csrf @method('DELETE')
             <button type="submit" class="btn-danger"
-                    onclick="return confirm('Видалити сайт «{{ $site->name }}»?')">
-                Видалити
-            </button>
+                    onclick="return confirm('Видалити сайт «{{ $site->name }}»?')">Видалити</button>
         </form>
         <button type="button" class="btn-ghost" onclick="closeDrawer('drawer-site-edit')">Скасувати</button>
         <button type="submit" form="form-site-edit" class="btn-primary">Зберегти</button>

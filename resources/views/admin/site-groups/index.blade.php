@@ -6,18 +6,37 @@
 
 <div class="page-toolbar">
     <h1 class="page-title">Групи сайтів</h1>
-    <button class="btn-primary" onclick="openDrawer('drawer-group-create')">+ Нова група</button>
+    <div style="display:flex;align-items:center;gap:var(--space-sm);">
+        <div class="view-toggle">
+            <button id="btn-view-list" class="view-toggle__btn is-active" title="Список">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                    <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                </svg>
+            </button>
+            <button id="btn-view-grid" class="view-toggle__btn" title="Сітка">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                </svg>
+            </button>
+        </div>
+        <button class="btn-primary" onclick="openDrawer('drawer-group-create')">+ Нова група</button>
+    </div>
 </div>
 
 {{-- Controls bar --}}
 <div class="page-controls">
-    <div class="page-controls__search">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input type="text" class="form-input page-controls__search-input"
-               placeholder="Пошук груп…"
-               value="{{ request('search') }}" id="group-search">
+    <div class="page-controls__search-row">
+        <div class="page-controls__search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" class="page-controls__search-input"
+                   placeholder="Пошук груп…"
+                   value="{{ request('search') }}" id="group-search">
+        </div>
+        <span class="page-controls__count">{{ $groups->total() }} груп</span>
     </div>
 </div>
 
@@ -26,16 +45,40 @@
 @endif
 
 @if($groups->isEmpty())
-    <div class="empty-page">
-        <p>Груп ще немає. Натисніть «+ Нова група» щоб розпочати.</p>
-    </div>
+    <div class="empty-page"><p>Груп ще немає. Натисніть «+ Нова група» щоб розпочати.</p></div>
 @else
-    <div class="group-grid">
+    <div class="group-list" id="groups-list">
         @foreach($groups as $group)
-        <div class="group-card" onclick="window.location='{{ route('site-groups.show', $group) }}'"
-             style="cursor:pointer;">
-            <div class="group-card__actions" onclick="event.stopPropagation()">
-                <button class="btn-icon" style="position:absolute;top:12px;right:12px;"
+        @php
+            $sites = $group->sites->take(3);
+            $extra = $group->sites_count - $sites->count();
+            $colorHex = $group->color ?? '#708499';
+            $letter = mb_strtoupper(mb_substr($group->name, 0, 1, 'UTF-8'), 'UTF-8');
+        @endphp
+        <div class="group-row"
+             data-searchable="{{ $group->name }} {{ $group->description }}"
+             onclick="window.location='{{ route('site-groups.show', $group) }}'">
+            <div class="group-row__icon"
+                 style="background:{{ $colorHex }}26;color:{{ $colorHex }};">
+                {{ $letter }}
+            </div>
+            <div class="group-row__info">
+                <span class="group-row__name">{{ $group->name }}</span>
+                @if($group->description)
+                    <span class="group-row__desc">{{ Str::limit($group->description, 60) }}</span>
+                @endif
+            </div>
+            <div class="group-row__sites" onclick="event.stopPropagation()">
+                @foreach($sites as $site)
+                    <span class="group-row__site-chip">{{ parse_url($site->url, PHP_URL_HOST) ?: $site->url }}</span>
+                @endforeach
+                @if($extra > 0)
+                    <span class="group-row__site-chip">+{{ $extra }}</span>
+                @endif
+            </div>
+            <span class="group-row__count">{{ $group->sites_count }}</span>
+            <div class="group-row__actions" onclick="event.stopPropagation()">
+                <button class="btn-icon" title="Редагувати"
                         onclick="openDrawer('drawer-group-{{ $group->id }}')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -43,21 +86,10 @@
                     </svg>
                 </button>
             </div>
-            <div class="group-card__header">
-                <span class="group-card__dot" style="background:{{ $group->color ?? '#706f70' }}"></span>
-                <span class="group-card__name">{{ $group->name }}</span>
-            </div>
-            @if($group->description)
-                <p class="group-card__desc">{{ Str::limit($group->description, 80) }}</p>
-            @endif
-            <span class="group-card__count">{{ $group->sites_count }} сайтів</span>
         </div>
         @endforeach
     </div>
-
-    <div class="pagination-wrap">
-        {{ $groups->links() }}
-    </div>
+    <div class="pagination-wrap">{{ $groups->links() }}</div>
 @endif
 
 {{-- Create drawer --}}
@@ -92,19 +124,15 @@
               action="{{ route('site-groups.update', $group) }}"
               class="form-stack"
               id="form-group-{{ $group->id }}">
-            @csrf
-            @method('PUT')
+            @csrf @method('PUT')
             @include('admin.site-groups._form', ['group' => $group])
         </form>
     </div>
     <div class="drawer__footer">
         <form method="POST" action="{{ route('site-groups.destroy', $group) }}" class="drawer__footer-left">
-            @csrf
-            @method('DELETE')
+            @csrf @method('DELETE')
             <button type="submit" class="btn-danger"
-                    onclick="return confirm('Видалити групу «{{ $group->name }}»?')">
-                Видалити
-            </button>
+                    onclick="return confirm('Видалити групу «{{ $group->name }}»?')">Видалити</button>
         </form>
         <button type="button" class="btn-ghost" onclick="closeDrawer('drawer-group-{{ $group->id }}')">Скасувати</button>
         <button type="submit" form="form-group-{{ $group->id }}" class="btn-primary">Зберегти</button>
@@ -114,12 +142,22 @@
 
 @push('scripts')
 <script>
-    var _gs;
-    document.getElementById('group-search').addEventListener('input', function() {
-        clearTimeout(_gs);
-        var v = this.value;
-        _gs = setTimeout(function() { applyQueryParam('search', v); }, 400);
-    });
+    initViewToggle('groups-view', 'groups-list', 'btn-view-list', 'btn-view-grid');
+    // Замінюємо клас для груп (grid використовує group-list--grid)
+    (function() {
+        var list = document.getElementById('groups-list');
+        if (!list) return;
+        var saved = localStorage.getItem('groups-view') || 'list';
+        if (saved === 'grid') list.classList.add('group-list--grid');
+        document.getElementById('btn-view-list').addEventListener('click', function() {
+            list.classList.remove('group-list--grid');
+        });
+        document.getElementById('btn-view-grid').addEventListener('click', function() {
+            list.classList.add('group-list--grid');
+        });
+    })();
+
+    initClientSearch('group-search', '.group-row');
 </script>
 @endpush
 

@@ -21,11 +21,11 @@
 @endif
 
 {{-- Group nav --}}
-<div class="group-nav">
+<div class="page-controls__pills" style="margin-bottom: var(--space-lg); overflow-x: auto; padding-bottom: 4px; flex-wrap: nowrap;">
     @foreach($allGroups as $g)
     <a href="{{ route('site-groups.show', $g) }}"
-       class="group-nav__item {{ $g->id === $siteGroup->id ? 'is-active' : '' }}">
-        <span class="group-nav__dot" style="background:{{ $g->color ?? '#706f70' }}"></span>
+       class="filter-pill {{ $g->id === $siteGroup->id ? 'is-active' : '' }}">
+        <span class="filter-pill__dot" style="background:{{ $g->color ?? '#706f70' }}"></span>
         {{ $g->name }}
     </a>
     @endforeach
@@ -39,15 +39,29 @@
 @else
     <div class="sites-list" id="sites-list">
         @foreach($sites as $site)
-        <div class="site-card" onclick="window.location='{{ route('sites.show', $site) }}'">
-            <span class="status-dot status-dot--{{ $site->is_active ? 'ok' : 'off' }}"></span>
-            <div class="site-card__info">
-                <span class="site-card__name">{{ $site->name }}</span>
-                <a href="{{ $site->url }}" target="_blank" class="site-card__url" onclick="event.stopPropagation()">
-                    {{ $site->url }}
-                </a>
+        @php
+            $color = $siteGroup->color ?? '#708499';
+            $letter = strtoupper(substr(parse_url($site->url, PHP_URL_HOST) ?: $site->name, 0, 1));
+        @endphp
+        <div class="site-card {{ !$site->is_active ? 'site-card--disabled' : '' }}" onclick="window.location='{{ route('sites.show', $site) }}'">
+            <div class="site-card__favicon"
+                 style="background:{{ $color }}26;color:{{ $color }};">
+                {{ $letter }}
             </div>
-            <span class="site-card__meta">{{ $site->created_at->format('d.m.Y') }}</span>
+            <div class="site-card__info">
+                <div class="site-card__name-row">
+                    <span class="site-card__name">{{ $site->name }}</span>
+                </div>
+                <div class="site-card__meta-row">
+                    <span class="site-card__url">{{ $site->url }}</span>
+                </div>
+            </div>
+            <div class="site-card__status">
+                <span class="status-badge status-badge--{{ $site->is_active ? 'active' : 'disabled' }}">
+                    <span class="status-badge__dot"></span>{{ $site->is_active ? 'Active' : 'Disabled' }}
+                </span>
+            </div>
+            <span class="site-card__date" style="margin-left: auto;">{{ $site->created_at->format('d.m.Y') }}</span>
         </div>
         @endforeach
     </div>

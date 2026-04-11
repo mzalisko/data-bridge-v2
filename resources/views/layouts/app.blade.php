@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'DataBridge CRM')</title>
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v={{ filemtime(public_path('assets/css/app.css')) }}">
 </head>
@@ -11,7 +12,15 @@
 <div class="shell">
     {{-- CRM Rail --}}
     <nav class="crm-rail">
-        <div class="rail-logo">⬡</div>
+        <div class="rail-logo" title="DataBridge CRM">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 2.1l4 4-4 4"/>
+                <path d="M3 12.2v-2a4 4 0 0 1 4-4h13.8"/>
+                <path d="M7 21.9l-4-4 4-4"/>
+                <path d="M21 11.8v2a4 4 0 0 1-4 4H3.2"/>
+            </svg>
+            <span class="rail-logo__text">DataBridge</span>
+        </div>
 
         <ul class="rail-nav">
             <li>
@@ -105,8 +114,12 @@
         <header class="topbar">
             <div class="topbar__title">@yield('title', 'DataBridge CRM')</div>
             <div class="topbar__user">
-                <span class="status-dot status-dot--ok"></span>
-                {{ auth()->user()->name ?? auth()->user()->email }}
+                @php $n = auth()->user()->name ?? (auth()->user()->email ?? 'User'); @endphp
+                <div class="topbar__user-avatar">
+                    {{ mb_strtoupper(mb_substr($n, 0, 1, 'UTF-8'), 'UTF-8') }}
+                    <span class="topbar__user-status"></span>
+                </div>
+                <span class="topbar__user-name">{{ $n }}</span>
             </div>
         </header>
 

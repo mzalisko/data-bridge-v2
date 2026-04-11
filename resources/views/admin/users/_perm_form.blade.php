@@ -86,7 +86,7 @@
             </tr>
             @endforeach
             @endforeach
-
+            
             @if($groups->isEmpty())
             <tr><td colspan="5" class="perm-empty">Групи та сайти ще не додані</td></tr>
             @endif
