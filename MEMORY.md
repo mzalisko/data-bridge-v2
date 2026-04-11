@@ -9,10 +9,9 @@
 - **Версія:** 0.1.0-alpha (Laravel stack)
 - **Активна фаза:** Phase 0–1 (Foundation — Laravel migration)
 - **Активний спринт:** Sprint 01
+- **Активна гілка:** `feature/task-ui-redesign` (запушено)
 - **Наступна задача:** TASK-L010 — API Keys (generate + revoke per site)
-- **Активна гілка:** `feature/task-l009-logs` (запушено)
-- **Останній коміт:** `4d83457` feat(logs): Logs viewer with system + sync tabs, level/status filter
-- **Точка повернення:** git tag `v0.1-vanilla-php-foundation` (весь vanilla PHP код збережено)
+- **Виконано:** UI Redesign — TG Dark, controls pills, groups list-row, sites favicon-block, site-show sidebar
 
 ---
 
