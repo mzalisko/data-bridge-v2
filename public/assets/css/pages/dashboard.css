@@ -1,0 +1,370 @@
+/* DataBridge CRM — Dashboard page */
+
+/* ─── Layout ─── */
+.db-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: var(--space-lg);
+    align-items: start;
+}
+
+.db-side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+/* ─── Greeting ─── */
+.db-greeting {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* ─── Global Status Badge ─── */
+.db-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    flex-shrink: 0;
+}
+
+.db-status--ok {
+    background: rgba(52, 211, 153, .12);
+    color: var(--dot-ok);
+    border: 1px solid rgba(52, 211, 153, .25);
+}
+
+.db-status--err {
+    background: rgba(248, 113, 113, .12);
+    color: var(--dot-off);
+    border: 1px solid rgba(248, 113, 113, .25);
+}
+
+/* ─── Cards ─── */
+.db-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+}
+
+.db-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.db-card__title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.db-card__count {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+.db-card__link {
+    font-size: var(--font-size-xs);
+    color: var(--accent);
+    text-decoration: none;
+    transition: opacity var(--duration-fast);
+}
+
+.db-card__link:hover { opacity: .7; }
+
+/* ─── Empty ─── */
+.db-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xl) var(--space-lg);
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.db-side__empty {
+    padding: var(--space-md) var(--space-lg);
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+.db-main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    min-width: 0;
+}
+
+/* ─── Timeline ─── */
+.db-timeline {
+    list-style: none;
+    padding: var(--space-sm) var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.db-event {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+}
+
+.db-event:last-child { border-bottom: none; }
+
+.db-event__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+    background: var(--text-muted);
+}
+
+.db-event--success .db-event__dot { background: var(--dot-ok); }
+.db-event--error   .db-event__dot { background: var(--dot-off); }
+.db-event--warning .db-event__dot { background: var(--dot-pause); }
+
+.db-event__body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.db-event__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+}
+
+.db-event__site {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color var(--duration-fast);
+}
+
+a.db-event__site:hover { color: var(--accent); }
+
+.db-event__time {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.db-event__desc {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+.db-event__desc--err { color: var(--dot-off); }
+
+/* ─── Problem list ─── */
+.db-problem-list {
+    list-style: none;
+    padding: var(--space-sm) var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.db-problem-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    border-radius: var(--radius-item);
+    transition: background var(--duration-fast);
+}
+
+.db-problem-item:hover { background: var(--bg-hover); }
+
+.db-problem-item__favicon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.db-problem-item__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.db-problem-item__name {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.db-problem-item__err {
+    font-size: var(--font-size-xs);
+    color: var(--dot-off);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ─── Quick item flex fix ─── */
+.db-quick-list li {
+    display: flex;
+    align-items: center;
+}
+
+.db-quick-item {
+    flex: 1;
+    min-width: 0;
+}
+
+/* ─── Quick access ─── */
+.db-quick-list {
+    list-style: none;
+    padding: var(--space-sm) var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.db-quick-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    border-radius: var(--radius-item);
+    text-decoration: none;
+    transition: background var(--duration-fast);
+}
+
+.db-quick-item:hover { background: var(--bg-hover); }
+
+.db-quick-item__favicon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.db-quick-item__name {
+    flex: 1;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.db-quick-item__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ─── Card Footer (Pagination) ─── */
+.db-card__footer {
+    padding: var(--space-sm) var(--space-lg);
+    border-top: 1px solid var(--border-color);
+    background: rgba(0,0,0,.1);
+}
+
+.db-card__footer nav {
+    display: flex;
+    justify-content: center;
+}
+
+/* ─── Compact Pagination Reset ─── */
+.db-card__footer .pagination,
+.db-card__footer [role="navigation"] {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+}
+
+/* Hide bulky Laravel text and large SVGs */
+.db-card__footer .hidden.sm\:flex-1 { display: none !important; }
+.db-card__footer svg { width: 14px; height: 14px; }
+
+.db-card__footer a, 
+.db-card__footer span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px;
+    min-width: 28px;
+    height: 28px;
+    font-size: 11px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-page);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all var(--duration-fast);
+}
+
+.db-card__footer a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.db-card__footer [aria-current="page"] span {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+.db-card__footer .cursor-default { opacity: 0.5; pointer-events: none; }
+
+
+
+@media (max-width: 1024px) {
+    .db-layout {
+        grid-template-columns: 1fr;
+    }
+    .db-side {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-md);
+    }
+}
+
+@media (max-width: 640px) {
+    .db-side {
+        grid-template-columns: 1fr;
+    }
+}

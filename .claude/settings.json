@@ -1,0 +1,47 @@
+{
+  "env": {
+    "PROJECT": "DataBridgeV2",
+    "OBSIDIAN_VAULT": "C:\\Users\\zalis\\OneDrive\\Documents\\DataBridgeV2",
+    "DB_HOST": "mysql",
+    "DB_PORT": "3306",
+    "DB_NAME": "databridge",
+    "DB_USER": "dbuser",
+    "DB_MIGRATIONS_PATH": "./migrations",
+    "API_VERSION": "v1",
+    "APP_URL": "http://localhost:8080",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(php:*)",
+      "Bash(composer:*)",
+      "Bash(mysql:*)",
+      "Bash(docker:*)",
+      "Bash(docker-compose:*)",
+      "Bash(npm:*)",
+      "Bash(node:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(cat:*)",
+      "Bash(chmod:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep"
+    ],
+    "deny": [
+      "Bash(rm -rf /*:*)"
+    ]
+  },
+  "model": "claude-sonnet-4-6",
+  "enabledPlugins": {
+    "skill-creator@claude-plugins-official": true
+  }
+}

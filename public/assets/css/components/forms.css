@@ -1,0 +1,198 @@
+/* DataBridge CRM — Forms */
+
+/* Login / centered form card */
+.form-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-xl) var(--space-lg);
+}
+
+.form-card__header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-xl);
+    text-align: center;
+}
+
+.form-card__logo {
+    font-size: 36px;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: var(--space-sm);
+}
+
+.form-card__title {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.form-card__subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+/* Form stack */
+.form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+/* Form group */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.form-label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.form-input {
+    height: 40px;
+    padding: 0 var(--space-md);
+    border-radius: var(--radius-input);
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    transition: border-color var(--duration-fast) var(--ease-ui),
+                box-shadow var(--duration-fast) var(--ease-ui);
+    width: 100%;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, .15);
+}
+
+.form-input--sm {
+    height: 34px;
+    font-size: var(--font-size-sm);
+    padding-top: 0;
+    padding-bottom: 0;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238d8d93' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 28px;
+    cursor: pointer;
+}
+
+.form-input--error {
+    border-color: var(--dot-off);
+}
+
+.form-input--error:focus {
+    box-shadow: 0 0 0 3px rgba(245, 101, 101, .15);
+}
+
+.form-error {
+    font-size: var(--font-size-xs);
+    color: var(--dot-off);
+}
+
+/* Checkbox row */
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.form-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.form-check-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+/* Textarea */
+textarea.form-input {
+    height: auto;
+    padding: var(--space-sm) var(--space-md);
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Input group (input + icon buttons inline) */
+.input-group {
+    display: flex;
+    align-items: center;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-input);
+    overflow: hidden;
+    transition: border-color var(--duration-fast) var(--ease-ui),
+                box-shadow var(--duration-fast) var(--ease-ui);
+}
+
+.input-group:focus-within {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, .15);
+}
+
+.input-group .form-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none !important;
+    min-width: 0;
+}
+
+.input-group__actions {
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    gap: 1px;
+    flex-shrink: 0;
+}
+
+.input-group__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--ease-ui),
+                color var(--duration-fast) var(--ease-ui);
+    flex-shrink: 0;
+}
+
+.input-group__btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.input-group__btn--copied {
+    color: var(--dot-ok);
+}
+
+.input-group--error {
+    border-color: var(--dot-off);
+}
+
+.form-hint {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}

@@ -1,0 +1,159 @@
+/* DataBridge CRM — Logs pages */
+
+/* Tab switcher */
+.logs-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: var(--space-lg);
+}
+
+.logs-tab {
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: background var(--duration-fast) var(--ease-ui),
+                color var(--duration-fast) var(--ease-ui);
+}
+
+.logs-tab:hover {
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.logs-tab.is-active {
+    background: var(--accent);
+    color: #fff;
+}
+
+/* Filter bar */
+.logs-filter {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+}
+
+.logs-filter select,
+.logs-filter input[type="text"] {
+    height: 36px;
+    padding: 0 36px 0 var(--space-md);
+    border-radius: var(--radius-item);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    min-width: 160px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238d8d93' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    transition: border-color var(--duration-fast) var(--ease-ui);
+}
+
+.logs-filter input[type="text"] {
+    background-image: none;
+    padding-right: var(--space-md);
+}
+
+.logs-filter select:focus,
+.logs-filter input[type="text"]:focus {
+    outline: none;
+    border-color: var(--border-focus);
+}
+
+/* Log table */
+.log-table {
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    border-collapse: collapse;
+    overflow: hidden;
+    margin-bottom: var(--space-lg);
+}
+
+.log-table th,
+.log-table td {
+    padding: var(--space-md) var(--space-lg);
+    text-align: left;
+    font-size: var(--font-size-sm);
+}
+
+.log-table th {
+    color: var(--text-muted);
+    font-weight: 500;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+}
+
+.log-table td {
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.log-table tr:last-child td {
+    border-bottom: none;
+}
+
+.log-table tbody tr:hover td {
+    background: var(--bg-hover);
+}
+
+/* Level badge */
+.level-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.level-badge--info    { background: rgba(99,102,241,.15);  color: #818cf8; }
+.level-badge--warning { background: rgba(251,191, 36,.15); color: #f59e0b; }
+.level-badge--error   { background: rgba(245,101,101,.15); color: #f56565; }
+.level-badge--debug   { background: rgba(156,163,175,.15); color: #9ca3af; }
+
+/* Status badge (sync) */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.status-badge--success { background: rgba(72,187,120,.15);  color: #48bb78; }
+.status-badge--error   { background: rgba(245,101,101,.15); color: #f56565; }
+.status-badge--pending { background: rgba(156,163,175,.15); color: #9ca3af; }
+
+/* Muted cell */
+.log-table .cell-muted {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+}
+
+.log-table .cell-mono {
+    font-family: monospace;
+    font-size: var(--font-size-xs);
+}
+
+/* Empty state */
+.logs-empty {
+    text-align: center;
+    padding: var(--space-xl) 0;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}

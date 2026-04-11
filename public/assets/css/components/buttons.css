@@ -1,0 +1,119 @@
+/* DataBridge CRM — Buttons */
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    height: 40px;
+    padding: 0 var(--space-lg);
+    border-radius: var(--radius-item);
+    background: var(--accent);
+    color: #ffffff;
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    transition: background var(--duration-fast) var(--ease-ui),
+                opacity var(--duration-fast) var(--ease-ui);
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+}
+
+.btn-primary:active {
+    opacity: .85;
+}
+
+.btn-primary--full {
+    width: 100%;
+}
+
+.btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    height: 36px;
+    padding: 0 var(--space-md);
+    border-radius: var(--radius-item);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    transition: background var(--duration-fast) var(--ease-ui),
+                color var(--duration-fast) var(--ease-ui);
+}
+
+.btn-ghost:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-item);
+    background: transparent;
+    color: var(--text-secondary);
+    transition: background var(--duration-fast) var(--ease-ui),
+                color var(--duration-fast) var(--ease-ui);
+}
+
+.btn-icon:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    height: 36px;
+    padding: 0 var(--space-md);
+    border-radius: var(--radius-item);
+    background: transparent;
+    color: var(--dot-off);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    transition: background var(--duration-fast) var(--ease-ui);
+}
+
+.btn-danger:hover {
+    background: rgba(245, 101, 101, .1);
+}
+
+/* ─── Button group (compact filter buttons) ─── */
+.btn-group {
+    display: inline-flex;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-item);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.btn-group__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 10px;
+    height: 32px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    color: var(--text-muted);
+    background: var(--bg-card);
+    border-right: 1px solid var(--border-color);
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background var(--duration-fast) var(--ease-ui),
+                color var(--duration-fast) var(--ease-ui);
+}
+
+.btn-group__btn:last-child { border-right: none; }
+.btn-group__btn:hover      { background: var(--bg-hover); color: var(--text-primary); }
+.btn-group__btn.is-active  { background: var(--accent); color: #fff; border-color: transparent; }

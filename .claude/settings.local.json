@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__obsidian__get_workspace_files",
+      "mcp__obsidian__view",
+      "Bash(mkdir -p M:/Projects/CC/data-bridge-v2/src/Core M:/Projects/CC/data-bridge-v2/src/Auth M:/Projects/CC/data-bridge-v2/src/Admin M:/Projects/CC/data-bridge-v2/src/Api M:/Projects/CC/data-bridge-v2/src/Views/Pages/SiteGroups M:/Projects/CC/data-bridge-v2/src/Views/Pages/Sites M:/Projects/CC/data-bridge-v2/src/Views/Pages/Users M:/Projects/CC/data-bridge-v2/src/Views/Pages/Logs M:/Projects/CC/data-bridge-v2/src/Views/Pages/Errors M:/Projects/CC/data-bridge-v2/src/Views/Components)",
+      "Bash(mkdir -p M:/Projects/CC/data-bridge-v2/public/assets/css/base M:/Projects/CC/data-bridge-v2/public/assets/css/layout M:/Projects/CC/data-bridge-v2/public/assets/css/components M:/Projects/CC/data-bridge-v2/public/assets/js M:/Projects/CC/data-bridge-v2/public/assets/img)"
+    ]
+  },
+  "spinnerTipsEnabled": true
+}

@@ -1,0 +1,95 @@
+/* DataBridge CRM — Drawer */
+
+.drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .5);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-base) var(--ease-ui);
+}
+
+.drawer-overlay.is-open {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: var(--drawer-width);
+    background: var(--bg-card);
+    border-left: 1px solid var(--border-color);
+    z-index: 101;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform var(--duration-base) var(--ease-ui);
+}
+
+.drawer.is-open {
+    transform: translateX(0);
+}
+
+.drawer--batch {
+    width: var(--drawer-width-batch);
+}
+
+.drawer__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.drawer__title {
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.drawer__body {
+    flex: 1;
+    overflow: auto;
+    padding: var(--space-lg);
+}
+
+.drawer__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-lg);
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-card);
+    flex-shrink: 0;
+    min-height: 64px;
+}
+
+/* ─── Responsive Drawer ─── */
+@media (max-width: 768px) {
+    .drawer {
+        width: 100% !important;
+        border-left: none;
+    }
+    .drawer__footer {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+    .drawer__footer button, 
+    .drawer__footer .btn-danger,
+    .drawer__footer-left form {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+    .drawer__footer-left {
+        width: 100%;
+        margin: 0;
+    }
+}
