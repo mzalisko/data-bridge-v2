@@ -141,3 +141,71 @@ function copyPassword(inputId, btn) {
         }, 1500);
     });
 }
+
+// Client-side search — filters DOM rows without page reload
+// inputId:       id of the <input> element
+// itemsSelector: CSS selector for filterable rows (e.g. '.site-card', '.group-row')
+// searchAttr:    data-attribute that holds searchable text (default: 'data-searchable')
+function initClientSearch(inputId, itemsSelector, searchAttr) {
+    searchAttr = searchAttr || 'data-searchable';
+    var input = document.getElementById(inputId);
+    if (!input) return;
+
+    // Restore focus if search value came from URL (back-navigation)
+    if (input.value) input.focus();
+
+    input.addEventListener('input', function () {
+        var q = this.value.toLowerCase().trim();
+        document.querySelectorAll(itemsSelector).forEach(function (el) {
+            var text = (el.getAttribute(searchAttr) || el.textContent).toLowerCase();
+            el.style.display = text.includes(q) ? '' : 'none';
+        });
+    });
+}
+
+// Favorites: toggle via AJAX
+function toggleFavorite(e, btn, siteId) {
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+    if (!csrf) {
+        console.error('CSRF token not found. Favorite toggle failed.');
+        return;
+    }
+
+    // Prevent row click
+    if (e && e.stopPropagation) e.stopPropagation();
+
+    fetch('/sites/' + siteId + '/favorite', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrf,
+            'Accept': 'application/json',
+        }
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('Network response was not ok');
+        return r.json();
+    })
+    .then(data => {
+        if (data.favorite) {
+            btn.classList.add('is-fav');
+            btn.title = 'Прибрати з улюблених';
+        } else {
+            btn.classList.remove('is-fav');
+            btn.title = 'Додати до улюблених';
+            
+            // Special case for dashboard Sidebar
+            const li = btn.closest('li');
+            const title = btn.closest('.db-card')?.querySelector('.db-card__title')?.textContent;
+            if (li && title && title.includes('Улюблені')) {
+                li.style.opacity = '0';
+                li.style.transform = 'translateX(20px)';
+                li.style.transition = 'all 0.3s ease';
+                setTimeout(() => { li.remove(); }, 300);
+            }
+        }
+    })
+    .catch(err => {
+        console.error('Favorite toggle failed:', err);
+    });
+}
+

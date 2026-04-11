@@ -82,18 +82,36 @@
     white-space: nowrap;
 }
 
+.user-row__role {
+    width: 100px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.user-row__status {
+    width: 90px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
 .user-row__date {
     font-size: var(--font-size-xs);
     color: var(--text-muted);
     white-space: nowrap;
     flex-shrink: 0;
+    width: 80px;
+    text-align: right;
 }
 
 .user-row__actions {
     display: flex;
+    justify-content: flex-end;
     align-items: center;
     gap: 2px;
     flex-shrink: 0;
+    width: 60px;
     opacity: 0;
     transition: opacity var(--duration-fast) var(--ease-ui);
 }
@@ -167,33 +185,47 @@
 
 /* ─── Card view ──────────────────────────────────────── */
 .user-card {
+    display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
+    align-items: stretch;
     background: var(--bg-card);
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-card);
-    padding: var(--space-lg);
-    gap: var(--space-sm);
+    padding: var(--space-md);
+    gap: var(--space-md);
     transition: box-shadow var(--duration-fast) var(--ease-ui);
+    text-align: left;
 }
 
 .user-card:hover {
     box-shadow: var(--shadow-card), 0 0 0 2px var(--accent);
 }
 
+.user-card__top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    min-width: 0;
+}
+
 .user-card__avatar {
-    width: 60px;
-    height: 60px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     color: #fff;
     font-weight: 700;
-    font-size: 22px;
+    font-size: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    margin-bottom: var(--space-xs);
+}
+
+.user-card__info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
 }
 
 .user-card__name {
@@ -203,22 +235,33 @@
     display: flex;
     align-items: center;
     gap: var(--space-xs);
-    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 .user-card__email {
     font-size: var(--font-size-xs);
     color: var(--text-muted);
-    word-break: break-all;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 .user-card__badges {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: var(--space-sm);
-    justify-content: center;
-    flex-wrap: wrap;
-    margin: var(--space-xs) 0;
+}
+
+.user-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
 }
 
 .user-card__date {
@@ -229,11 +272,6 @@
 .user-card__actions {
     display: flex;
     gap: var(--space-sm);
-    width: 100%;
-    border-top: 1px solid var(--border-color);
-    padding-top: var(--space-sm);
-    margin-top: var(--space-xs);
-    justify-content: center;
 }
 
 /* ─── Small buttons ──────────────────────────────────── */
@@ -356,4 +394,21 @@
     background: rgba(245, 101, 101, .12);
     color: var(--dot-off);
     border: 1px solid rgba(245, 101, 101, .25);
+}
+
+/* ─── Responsive Additions ─── */
+@media (max-width: 768px) {
+    .users-list .user-row {
+        display: none !important;
+    }
+    .users-list .user-card {
+        display: flex !important;
+    }
+    
+    .users-list,
+    .users-list--grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: var(--space-md);
+    }
 }

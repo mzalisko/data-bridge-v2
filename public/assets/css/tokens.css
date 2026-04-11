@@ -23,7 +23,7 @@
     --font-size-lg:   20px;
     --font-size-xl:   28px;
 
-    /* Status dots */
+    /* Status dots — незмінні між темами */
     --dot-ok:    #48bb78;
     --dot-pause: #ed8936;
     --dot-off:   #f56565;
@@ -33,39 +33,40 @@
     --duration-fast: 150ms;
     --duration-base: 250ms;
 
-    /* Drawer widths */
+    /* Drawer */
     --drawer-width:       440px;
     --drawer-width-batch: 600px;
 
-    /* Rail */
+    /* Rail — завжди темний */
     --rail-width: 60px;
-    --rail-bg:    #111111;
+    --rail-bg:    #0e1621;
 
-    /* Dark theme (default) */
-    --bg-page:        #0f0f10;
-    --bg-card:        #1c1c1e;
-    --bg-input:       #2a2a2c;
-    --bg-hover:       #252527;
+    /* Dark theme (default) — TG Dark */
+    --bg-page:        #17212b;
+    --bg-card:        #242f3d;
+    --bg-card2:       #1e2a38;
+    --bg-input:       #1e2a38;
+    --bg-hover:       #2a3a4d;
 
-    --text-primary:   #f5f5f7;
-    --text-secondary: #8d8d93;
-    --text-muted:     #636366;
-    --text-inverse:   #111111;
+    --text-primary:   #ffffff;
+    --text-secondary: #a0b4c4;
+    --text-muted:     #708499;
+    --text-inverse:   #ffffff;
 
-    --border-color:   #3a3a3c;
-    --border-focus:   #818cf8;
+    --border-color:   #2b3c4e;
+    --border-focus:   #5288c1;
 
-    --accent:         #818cf8;
-    --accent-hover:   #6366f1;
+    --accent:         #5288c1;
+    --accent-hover:   #3d6fa8;
 
-    --shadow-card:   0 1px 3px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.2);
-    --shadow-drawer: -4px 0 32px rgba(0,0,0,.4);
+    --shadow-card:   0 1px 3px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
+    --shadow-drawer: -4px 0 32px rgba(0,0,0,.5);
 }
 
-/* Light theme — overrides root */
 [data-theme="light"] {
     --bg-page:        #ebedf1;
     --bg-card:        #ffffff;
+    --bg-card2:       #f5f6f8;
     --bg-input:       #f5f6f8;
     --bg-hover:       #f0f1f4;
 
@@ -75,10 +76,10 @@
     --text-inverse:   #ffffff;
 
     --border-color:   #e5e7eb;
-    --border-focus:   #6366f1;
+    --border-focus:   #3d6fa8;
 
-    --accent:         #6366f1;
-    --accent-hover:   #4f46e5;
+    --accent:         #3d6fa8;
+    --accent-hover:   #2d5a8a;
 
     --shadow-card:   0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
     --shadow-drawer: -4px 0 32px rgba(0,0,0,.12);
