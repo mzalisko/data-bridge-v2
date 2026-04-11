@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SiteController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SiteGroupController;
+use App\Http\Controllers\Admin\FavoriteController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Auth\LoginController;
@@ -28,6 +29,8 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('sites', SiteController::class)
         ->only(['index', 'store', 'update', 'destroy', 'show']);
+
+    Route::post('sites/{site}/favorite', [FavoriteController::class, 'toggle'])->name('sites.favorite');
 
     Route::resource('users', UserController::class)
         ->only(['index', 'store', 'update', 'destroy']);

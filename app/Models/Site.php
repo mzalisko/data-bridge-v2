@@ -69,4 +69,9 @@ class Site extends Model
     {
         return $this->syncLogs()->first();
     }
+
+    public function latestSyncLog(): HasOne
+    {
+        return $this->hasOne(SyncLog::class)->latestOfMany();
+    }
 }

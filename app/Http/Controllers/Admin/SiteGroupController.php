@@ -14,7 +14,8 @@ class SiteGroupController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = SiteGroup::withCount('sites');
+        $query = SiteGroup::withCount('sites')
+            ->with('sites:id,group_id,url');
 
         if ($request->filled('search')) {
             $q = $request->search;
@@ -24,7 +25,7 @@ class SiteGroupController extends Controller
             });
         }
 
-        $query->orderByDesc('created_at');
+        $query->orderBy('name');
         $groups = $query->paginate(20)->withQueryString();
 
         return view('admin.site-groups.index', compact('groups'));

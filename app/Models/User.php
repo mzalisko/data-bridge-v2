@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -36,6 +37,12 @@ class User extends Authenticatable
     public function permissions(): HasMany
     {
         return $this->hasMany(UserPermission::class);
+    }
+
+    public function favoriteSites(): BelongsToMany
+    {
+        return $this->belongsToMany(Site::class, 'user_favorite_sites')
+                    ->withTimestamps();
     }
 
     public function systemLogs(): HasMany

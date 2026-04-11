@@ -15,38 +15,48 @@ class SiteController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Site::with('siteGroup');
+        $query = Site::with(['siteGroup', 'latestSyncLog'])
+            ->orderBy(match($request->get('sort', 'date')) {
+                'name'   => 'name',
+                'status' => 'is_active',
+                default  => 'created_at',
+            }, match($request->get('sort', 'date')) {
+                'name' => 'asc',
+                default => 'desc',
+            });
+
+        if ($request->filled('group_id')) {
+            $query->where('group_id', $request->get('group_id'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->get('status') === 'active');
+        }
 
         if ($request->filled('search')) {
-            $q = $request->search;
-            $query->where(function ($qb) use ($q) {
-                $qb->where('name', 'like', "%{$q}%")
-                   ->orWhere('url', 'like', "%{$q}%");
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('url', 'like', "%{$search}%");
             });
         }
 
-        if ($request->filled('group_id')) {
-            $query->where('group_id', $request->group_id);
-        }
-        if ($request->filled('status')) {
-            $query->where('is_active', $request->status === 'active');
-        }
+        // Counts for pills
+        $totalCount    = Site::count();
+        $activeCount   = Site::where('is_active', true)->count();
+        $inactiveCount = Site::where('is_active', false)->count();
 
-        match($request->get('sort', 'date')) {
-            'name'   => $query->orderBy('name'),
-            'status' => $query->orderByDesc('is_active')->orderBy('name'),
-            'group'  => $query->orderBy(
-                            \App\Models\SiteGroup::select('name')
-                                ->whereColumn('site_groups.id', 'sites.group_id')
-                                ->limit(1)
-                        )->orderBy('name'),
-            default  => $query->orderByDesc('created_at'),
-        };
-
-        $sites  = $query->paginate(25)->withQueryString();
+        $sites  = $query->paginate(20)->withQueryString();
         $groups = SiteGroup::withCount('sites')->orderBy('name')->get();
+        
+        $favoriteIds = auth()->user()
+            ->favoriteSites()
+            ->pluck('site_id')
+            ->toArray();
 
-        return view('admin.sites.index', compact('sites', 'groups'));
+        return view('admin.sites.index', compact(
+            'sites', 'groups', 'totalCount', 'activeCount', 'inactiveCount', 'favoriteIds'
+        ));
     }
 
     public function show(Site $site): View
