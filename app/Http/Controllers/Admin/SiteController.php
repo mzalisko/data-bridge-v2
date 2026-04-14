@@ -61,7 +61,7 @@ class SiteController extends Controller
 
     public function show(Site $site): View
     {
-        $site->load('siteGroup');
+        $site->load(['siteGroup', 'apiKey']);
         $groups = SiteGroup::orderBy('name')->get(['id', 'name', 'color']);
 
         return view('admin.sites.show', compact('site', 'groups'));
