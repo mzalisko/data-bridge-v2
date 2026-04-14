@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SiteGroupController;
 use App\Http\Controllers\Admin\FavoriteController;
 use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\ApiKeyController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,9 @@ Route::middleware('auth')->group(function () {
         ->only(['index', 'store', 'update', 'destroy', 'show']);
 
     Route::post('sites/{site}/favorite', [FavoriteController::class, 'toggle'])->name('sites.favorite');
+
+    Route::post('sites/{site}/api-key/generate', [ApiKeyController::class, 'generate'])->name('sites.api-key.generate');
+    Route::post('sites/{site}/api-key/revoke',   [ApiKeyController::class, 'revoke'])->name('sites.api-key.revoke');
 
     Route::resource('users', UserController::class)
         ->only(['index', 'store', 'update', 'destroy']);
