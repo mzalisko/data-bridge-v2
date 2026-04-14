@@ -49,7 +49,7 @@ class ApiKeyTest extends TestCase
         $this->actingAs($this->admin)
             ->post("/sites/{$site->id}/api-key/generate");
 
-        $this->assertDatabaseCount('api_keys', 1);
+        $this->assertEquals(1, ApiKey::where('site_id', $site->id)->count());
         $newPrefix = ApiKey::where('site_id', $site->id)->value('key_prefix');
         $this->assertNotEquals($firstPrefix, $newPrefix);
     }
