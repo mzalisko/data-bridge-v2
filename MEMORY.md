@@ -9,9 +9,9 @@
 - **Версія:** 0.1.0-alpha (Laravel stack)
 - **Активна фаза:** Phase 0–1 (Foundation — Laravel migration)
 - **Активний спринт:** Sprint 01
-- **Активна гілка:** `feature/task-ui-redesign` (запушено)
-- **Наступна задача:** TASK-L010 — API Keys (generate + revoke per site)
-- **Виконано:** UI Redesign — TG Dark, controls pills, groups list-row, sites favicon-block, site-show sidebar
+- **Активна гілка:** `feature/task-l010-api-keys` (запушено)
+- **Наступна задача:** TASK-L011 — Site data (phones, prices, addresses, socials)
+- **Виконано:** TASK-L010 — API Keys (generate + revoke + sidebar block у sites/show)
 
 ---
 
@@ -43,18 +43,21 @@
 | TASK-L007: Sites CRUD + Drawer + group pill badge | feature/task-l007-sites | ✅ |
 | TASK-L008: Users CRUD + Drawer + role badges | feature/task-l008-users | ✅ |
 | TASK-L009: Logs viewer (SystemLog + SyncLog, tabs, level/status filter, paginated) | feature/task-l009-logs | ✅ |
+| TASK-UI: UI Redesign (TG Dark, dashboard timeline, favorites, site/group/user redesign) | feature/task-ui-redesign | ✅ |
+| TASK-L010: API Keys (generate + revoke per site, sidebar block in sites/show) | feature/task-l010-api-keys | ✅ |
 
 ## 🔲 Наступні задачі
 
-1. **TASK-L010** — API Keys (generate + revoke per site)
+1. **TASK-L011** — Site data tabs (phones, prices, addresses, socials)
 
 ---
 
 ## 🌿 Git стан
 
 - **Remote:** `git@github.com:mzalisko/data-bridge-v2.git` ✅
-- **Активна гілка:** `feature/task-l009-logs` (запушено)
-- **Незлиті Laravel гілки:** task-l001..task-l009 (всі на GitHub, PR не відкриті)
+- **Активна гілка:** `feature/task-l010-api-keys` (запушено)
+- **Незлиті Laravel гілки:** task-l001..task-l010 (всі на GitHub, PR не відкриті)
+- **Тестові дані:** 3 групи, 7 сайтів, 3 юзери (admin + manager + viewer)
 
 ---
 
@@ -84,8 +87,11 @@
 - Мова документації: Ukrainian | код і коміти: English
 - БЕЗ фреймворків (PHP/CSS/JS), без SaaS
 - Admin default: `admin@databridge.local` / `admin123` (з міграції)
+- Test users: `irina@databridge.local` / `pass123` (manager), `oleksiy@databridge.local` / `pass123` (viewer)
 - Docker: `docker-compose up -d --build` → http://localhost:8082
+- **ВАЖЛИВО:** При рестарті Docker — MySQL дані зберігаються у volume, але якщо volume скинувся — запустити `php artisan db:seed --class=AdminSeeder` та `php artisan db:seed --class=TestDataSeeder`
+- Cloudflare tunnel URL змінюється при кожному рестарті (trycloudflare.com — ефемерний). Для dev використовуй localhost:8082
 
 ---
 
-*Оновлено: 2026-04-10 | Сесія: sprint-01-l009-logs*
+*Оновлено: 2026-04-15 | Сесія: sprint-01-l010-api-keys*
