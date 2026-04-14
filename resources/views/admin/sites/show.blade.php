@@ -63,6 +63,8 @@
             </div>
         </div>
 
+        @include('admin.sites._api-key', ['site' => $site])
+
         {{-- Navigation --}}
         <nav class="site-show__nav">
             <a class="site-show__nav-item is-active" href="#">
