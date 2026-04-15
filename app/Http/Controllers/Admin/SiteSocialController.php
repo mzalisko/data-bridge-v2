@@ -12,12 +12,7 @@ class SiteSocialController extends Controller
 {
     public function store(Request $request, Site $site): RedirectResponse
     {
-        $data = $request->validate([
-            'platform'   => ['required', 'string', 'max:50'],
-            'handle'     => ['nullable', 'string', 'max:100'],
-            'url'        => ['nullable', 'url', 'max:500'],
-            'sort_order' => ['integer'],
-        ]);
+        $data = $request->all();
 
         $data['site_id'] = $site->id;
 
@@ -29,12 +24,7 @@ class SiteSocialController extends Controller
 
     public function update(Request $request, Site $site, SiteSocial $social): RedirectResponse
     {
-        $data = $request->validate([
-            'platform'   => ['required', 'string', 'max:50'],
-            'handle'     => ['nullable', 'string', 'max:100'],
-            'url'        => ['nullable', 'url', 'max:500'],
-            'sort_order' => ['integer'],
-        ]);
+        $data = $request->all();
 
         $social->update($data);
 

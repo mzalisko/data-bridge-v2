@@ -12,16 +12,9 @@ class SitePhoneController extends Controller
 {
     public function store(Request $request, Site $site): RedirectResponse
     {
-        $data = $request->validate([
-            'label'       => ['nullable', 'string', 'max:100'],
-            'country_iso' => ['nullable', 'string', 'max:2'],
-            'dial_code'   => ['nullable', 'string', 'max:10'],
-            'number'      => ['required', 'string', 'max:50'],
-            'is_primary'  => ['boolean'],
-            'sort_order'  => ['integer'],
-        ]);
+        $data = $request->all();
 
-        $data['site_id']   = $site->id;
+        $data['site_id']    = $site->id;
         $data['is_primary'] = $request->boolean('is_primary');
 
         SitePhone::create($data);
@@ -32,14 +25,7 @@ class SitePhoneController extends Controller
 
     public function update(Request $request, Site $site, SitePhone $phone): RedirectResponse
     {
-        $data = $request->validate([
-            'label'       => ['nullable', 'string', 'max:100'],
-            'country_iso' => ['nullable', 'string', 'max:2'],
-            'dial_code'   => ['nullable', 'string', 'max:10'],
-            'number'      => ['required', 'string', 'max:50'],
-            'is_primary'  => ['boolean'],
-            'sort_order'  => ['integer'],
-        ]);
+        $data = $request->all();
 
         $data['is_primary'] = $request->boolean('is_primary');
 

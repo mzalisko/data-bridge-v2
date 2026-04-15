@@ -12,14 +12,7 @@ class SitePriceController extends Controller
 {
     public function store(Request $request, Site $site): RedirectResponse
     {
-        $data = $request->validate([
-            'label'      => ['nullable', 'string', 'max:100'],
-            'amount'     => ['required', 'numeric', 'min:0'],
-            'currency'   => ['required', 'string', 'max:10'],
-            'period'     => ['nullable', 'string', 'max:50'],
-            'is_visible' => ['boolean'],
-            'sort_order' => ['integer'],
-        ]);
+        $data = $request->all();
 
         $data['site_id']    = $site->id;
         $data['is_visible'] = $request->boolean('is_visible', true);
@@ -32,14 +25,7 @@ class SitePriceController extends Controller
 
     public function update(Request $request, Site $site, SitePrice $price): RedirectResponse
     {
-        $data = $request->validate([
-            'label'      => ['nullable', 'string', 'max:100'],
-            'amount'     => ['required', 'numeric', 'min:0'],
-            'currency'   => ['required', 'string', 'max:10'],
-            'period'     => ['nullable', 'string', 'max:50'],
-            'is_visible' => ['boolean'],
-            'sort_order' => ['integer'],
-        ]);
+        $data = $request->all();
 
         $data['is_visible'] = $request->boolean('is_visible');
 
