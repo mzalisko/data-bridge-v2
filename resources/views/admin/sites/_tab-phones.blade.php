@@ -73,17 +73,30 @@
                 <label class="form-label">Мітка <span class="form-hint">(необов'язково)</span></label>
                 <input type="text" name="label" class="form-input" placeholder="Основний, WhatsApp, Офіс…" maxlength="100">
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Країна (ISO)</label>
-                    <input type="text" name="country_iso" class="form-input" placeholder="UA" maxlength="2"
-                           style="text-transform:uppercase" oninput="syncDialCode(this)" required>
+            <div class="form-group">
+                <label class="form-label">Країна</label>
+                @if(($countries ?? collect())->isNotEmpty())
+                <select class="form-input form-select" onchange="selectCountry(this, 'create')" id="country-select-create">
+                    <option value="">— Оберіть країну —</option>
+                    @foreach($countries as $c)
+                    <option value="{{ $c->iso }}" data-dial="{{ $c->dial_code }}">
+                        {{ $c->iso }} — {{ $c->name ?? $c->iso }} (+{{ $c->dial_code }})
+                    </option>
+                    @endforeach
+                    <option value="__other__">Інше (ввести вручну)</option>
+                </select>
+                @endif
+                <div id="country-manual-create" style="{{ ($countries ?? collect())->isNotEmpty() ? 'display:none' : '' }}">
+                    <div class="form-row" style="margin-top:6px;">
+                        <input type="text" id="country-iso-manual-create" class="form-input" placeholder="UA" maxlength="2"
+                               style="text-transform:uppercase;width:80px">
+                        <input type="text" class="form-input" placeholder="+380" style="flex:1">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Код (+)</label>
-                    <input type="text" name="dial_code" class="form-input" placeholder="380" maxlength="8" id="dial-code-create" required>
-                </div>
+                <input type="hidden" name="country_iso" id="country-iso-create" required>
+                <input type="hidden" name="dial_code"   id="dial-code-create"   required>
             </div>
+            <div id="country-selected-chip-create" class="phone-country-chip" style="display:none"></div>
             <div class="form-group">
                 <label class="form-label">Номер <span class="form-hint">(без коду країни)</span></label>
                 <input type="text" name="number" class="form-input" placeholder="(073) 900-80-01" maxlength="32" required>
@@ -132,25 +145,47 @@
                 <label class="form-label">Номер <span class="form-hint">(без коду країни)</span></label>
                 <input type="text" name="number" class="form-input" value="{{ old('number', ltrim($phone->number, '+')) }}" maxlength="32" required>
             </div>
-            {{-- Geo section --}}
-            <details class="form-details">
-                <summary class="form-details__summary">Геодані (ISO / код)</summary>
-                <div class="form-details__body">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Країна (ISO)</label>
-                            <input type="text" name="country_iso" class="form-input"
-                                   value="{{ old('country_iso', $phone->country_iso) }}" maxlength="2"
-                                   style="text-transform:uppercase" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Код (+)</label>
-                            <input type="text" name="dial_code" class="form-input"
-                                   value="{{ old('dial_code', $phone->dial_code) }}" maxlength="8" required>
-                        </div>
+            {{-- Country select --}}
+            @php
+                $editIso  = old('country_iso', $phone->country_iso);
+                $editDial = old('dial_code',   $phone->dial_code);
+                $inList   = ($countries ?? collect())->contains('iso', $editIso);
+            @endphp
+            <div class="form-group">
+                <label class="form-label">Країна</label>
+                @if(($countries ?? collect())->isNotEmpty())
+                <select class="form-input form-select" onchange="selectCountry(this, 'edit-{{ $phone->id }}')"
+                        id="country-select-edit-{{ $phone->id }}">
+                    <option value="">— Оберіть країну —</option>
+                    @foreach($countries as $c)
+                    <option value="{{ $c->iso }}" data-dial="{{ $c->dial_code }}"
+                            {{ $editIso === $c->iso ? 'selected' : '' }}>
+                        {{ $c->iso }} — {{ $c->name ?? $c->iso }} (+{{ $c->dial_code }})
+                    </option>
+                    @endforeach
+                    <option value="__other__" {{ !$inList && $editIso ? 'selected' : '' }}>Інше (ввести вручну)</option>
+                </select>
+                @endif
+                <div id="country-manual-edit-{{ $phone->id }}"
+                     style="{{ (!$inList && $editIso) || ($countries ?? collect())->isEmpty() ? '' : 'display:none' }}">
+                    <div class="form-row" style="margin-top:6px;">
+                        <input type="text" id="country-iso-manual-edit-{{ $phone->id }}"
+                               class="form-input" placeholder="UA" maxlength="2"
+                               style="text-transform:uppercase;width:80px"
+                               value="{{ !$inList ? $editIso : '' }}"
+                               oninput="syncManualIso(this, 'edit-{{ $phone->id }}')">
+                        <input type="text" id="dial-manual-edit-{{ $phone->id }}"
+                               class="form-input" placeholder="380"
+                               style="flex:1"
+                               value="{{ !$inList ? $editDial : '' }}"
+                               oninput="syncManualDial(this, 'edit-{{ $phone->id }}')">
                     </div>
                 </div>
-            </details>
+                <input type="hidden" name="country_iso" id="country-iso-edit-{{ $phone->id }}"
+                       value="{{ $editIso }}" required>
+                <input type="hidden" name="dial_code"   id="dial-code-edit-{{ $phone->id }}"
+                       value="{{ $editDial }}" required>
+            </div>
             <div class="form-group">
                 <label class="form-label form-label--checkbox">
                     <input type="checkbox" name="is_primary" value="1" {{ $phone->is_primary ? 'checked' : '' }}> Основний номер
@@ -168,15 +203,37 @@
 @endforeach
 
 <script>
-// Dial codes from CRM settings (Settings → Country codes)
-var dialCodes = {
-@foreach($countries ?? [] as $c)
-    '{{ $c->iso }}': '{{ $c->dial_code }}',
-@endforeach
-};
-function syncDialCode(input) {
-    var iso = input.value.toUpperCase();
-    var codeEl = document.getElementById('dial-code-create');
-    if (codeEl && dialCodes[iso]) codeEl.value = dialCodes[iso];
+// Country select handler — fills hidden iso/dial_code inputs + shows manual row if "Інше"
+function selectCountry(sel, prefix) {
+    var val  = sel.value;
+    var dial = sel.options[sel.selectedIndex]?.dataset?.dial || '';
+    var isoEl  = document.getElementById('country-iso-'  + prefix);
+    var dialEl = document.getElementById('dial-code-'    + prefix);
+    var manual = document.getElementById('country-manual-' + prefix);
+
+    if (val === '__other__') {
+        if (isoEl)  isoEl.value  = '';
+        if (dialEl) dialEl.value = '';
+        if (manual) manual.style.display = '';
+        // focus first manual input
+        var firstManual = manual?.querySelector('input');
+        if (firstManual) firstManual.focus();
+    } else {
+        if (isoEl)  isoEl.value  = val;
+        if (dialEl) dialEl.value = dial;
+        if (manual) manual.style.display = 'none';
+    }
+}
+
+// Manual ISO input → sync hidden field
+function syncManualIso(input, prefix) {
+    var isoEl = document.getElementById('country-iso-' + prefix);
+    if (isoEl) isoEl.value = input.value.toUpperCase();
+}
+
+// Manual dial input → sync hidden field
+function syncManualDial(input, prefix) {
+    var dialEl = document.getElementById('dial-code-' + prefix);
+    if (dialEl) dialEl.value = input.value;
 }
 </script>
