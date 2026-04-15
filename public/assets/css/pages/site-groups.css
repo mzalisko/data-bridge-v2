@@ -344,6 +344,8 @@
 
 .group-row__end {
     display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
     align-items: center;
     gap: 6px;
     flex-shrink: 0;
