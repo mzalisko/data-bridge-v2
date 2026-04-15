@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/pages/users.css') }}?v={{ filemtime(public_path('assets/css/pages/users.css')) }}">
+@endpush
+
 @section('title', 'Користувачі')
 
 @section('content')

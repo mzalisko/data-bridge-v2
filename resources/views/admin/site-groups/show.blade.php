@@ -1,5 +1,10 @@
 @extends('layouts.app')
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/pages/site-groups.css') }}?v={{ filemtime(public_path('assets/css/pages/site-groups.css')) }}">
+<link rel="stylesheet" href="{{ asset('assets/css/pages/sites.css') }}?v={{ filemtime(public_path('assets/css/pages/sites.css')) }}">
+@endpush
+
 @section('title', $siteGroup->name)
 
 @section('content')
@@ -13,7 +18,23 @@
         </div>
         <span class="role-badge" style="background:rgba(129,140,248,.12);color:var(--accent);">{{ $siteGroup->sites_count }} сайтів</span>
     </div>
-    <button class="btn-primary" onclick="openDrawer('drawer-group-edit')">Редагувати</button>
+    <div style="display:flex;align-items:center;gap:var(--space-sm);">
+        <div class="view-toggle">
+            <button id="btn-sg-view-list" class="view-toggle__btn is-active" title="Список">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                    <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                </svg>
+            </button>
+            <button id="btn-sg-view-grid" class="view-toggle__btn" title="Сітка">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                </svg>
+            </button>
+        </div>
+        <button class="btn-primary" onclick="openDrawer('drawer-group-edit')">Редагувати</button>
+    </div>
 </div>
 
 @if($siteGroup->description)
@@ -37,7 +58,7 @@
         <p>У цій групі ще немає сайтів.</p>
     </div>
 @else
-    <div class="sites-list" id="sites-list">
+    <div class="sites-list" id="sg-sites-list">
         @foreach($sites as $site)
         @php
             $color = $siteGroup->color ?? '#708499';
@@ -97,5 +118,11 @@
         <button type="submit" form="form-group-edit" class="btn-primary">Зберегти</button>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    initViewToggle('sg-sites-view', 'sg-sites-list', 'btn-sg-view-list', 'btn-sg-view-grid');
+</script>
+@endpush
 
 @endsection

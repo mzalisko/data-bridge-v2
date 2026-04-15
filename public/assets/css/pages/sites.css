@@ -355,7 +355,7 @@
 }
 
 .site-show__sidebar {
-    width: 220px;
+    width: 260px;
     flex-shrink: 0;
     border-right: 1px solid var(--border-color);
     display: flex;
@@ -555,15 +555,24 @@
 .api-key-block__dot--off     { background: var(--dot-off); }
 .api-key-block__dot--none    { background: var(--text-muted); opacity: 0.5; }
 
+/* Prefix row: code + copy icon */
+.api-key-block__prefix-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--bg-page);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    padding: 4px 6px 4px 8px;
+}
+
 .api-key-block__prefix {
     font-family: 'Courier New', monospace;
     font-size: 11px;
     color: var(--text-secondary);
-    background: var(--bg-page);
-    border-radius: 6px;
-    padding: 5px 8px;
     letter-spacing: 0.04em;
-    border: 1px solid var(--border-color);
+    flex: 1;
+    min-width: 0;
 }
 
 .api-key-block__prefix--revoked {
@@ -571,6 +580,84 @@
     text-decoration: line-through;
 }
 
+/* Small icon button (copy, etc.) */
+.api-key-block__icon-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background var(--duration-fast) var(--ease-ui),
+                color var(--duration-fast) var(--ease-ui);
+}
+
+.api-key-block__icon-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+/* Actions row: regenerate + revoke icons */
+.api-key-block__actions {
+    display: flex;
+    gap: 5px;
+}
+
+.api-key-block__action-btn {
+    flex: 1;
+    height: 30px;
+    border-radius: 7px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--ease-ui),
+                color var(--duration-fast) var(--ease-ui),
+                border-color var(--duration-fast) var(--ease-ui);
+}
+
+.api-key-block__action-btn--ghost:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.api-key-block__action-btn--danger {
+    border-color: rgba(245, 101, 101, 0.2);
+    color: rgba(245, 101, 101, 0.5);
+}
+
+.api-key-block__action-btn--danger:hover {
+    background: rgba(245, 101, 101, 0.1);
+    border-color: rgba(245, 101, 101, 0.4);
+    color: var(--dot-off);
+}
+
+/* Revoke 2-step confirm zone */
+.api-key-block__revoke-confirm {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 8px;
+    background: rgba(245, 101, 101, 0.06);
+    border: 1px solid rgba(245, 101, 101, 0.2);
+    border-radius: 8px;
+}
+
+.api-key-block__revoke-warn {
+    font-size: 10px;
+    color: var(--dot-off);
+    line-height: 1.4;
+}
+
+/* Flash (raw key shown once) */
 .api-key-block__flash {
     background: rgba(72, 187, 120, 0.08);
     border: 1px solid rgba(72, 187, 120, 0.25);
@@ -615,18 +702,8 @@
     background: rgba(72, 187, 120, 0.25);
 }
 
-.api-key-block__btn-row {
-    display: flex;
-    gap: 5px;
-}
-
-.api-key-block__btn-row form {
-    flex: 1;
-    display: flex;
-}
-
+/* Shared small button (generate / generate new) */
 .btn-xs {
-    flex: 1;
     border-radius: 8px;
     font-size: 11px;
     font-weight: 600;
@@ -639,7 +716,7 @@
 }
 
 .btn-xs--ghost {
-    background: var(--bg-card2);
+    background: var(--bg-page);
     color: var(--text-secondary);
     border: 1px solid var(--border-color);
 }
@@ -652,7 +729,7 @@
 .btn-xs--danger {
     background: rgba(245, 101, 101, 0.1);
     color: var(--dot-off);
-    border: 1px solid rgba(245, 101, 101, 0.2);
+    border: 1px solid rgba(245, 101, 101, 0.25);
 }
 
 .btn-xs--danger:hover {
@@ -670,8 +747,8 @@
 }
 
 .btn-xs--full {
-    flex: none;
     width: 100%;
+    display: block;
 }
 
 .api-key-block__no-key {

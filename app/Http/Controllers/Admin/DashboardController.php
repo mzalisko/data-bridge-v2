@@ -19,12 +19,10 @@ class DashboardController extends Controller
             ->orderByDesc('synced_at')
             ->paginate($syncsLimit, ['*'], 'syncs_page');
 
-        // Last system logs (Show all up to 50, else paginate by 20)
-        $logsCount = SystemLog::count();
-        $logsLimit = $logsCount > 50 ? 20 : 50;
+        // Last system logs — always 8 per page (AJAX pagination in blade)
         $recentLogs = SystemLog::with('user')
             ->orderByDesc('created_at')
-            ->paginate($logsLimit, ['*'], 'logs_page');
+            ->paginate(8, ['*'], 'logs_page');
 
         // Sites whose latest sync ended in error
         $problemSites = Site::with('latestSyncLog')

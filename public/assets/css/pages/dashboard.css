@@ -289,10 +289,12 @@ a.db-event__site:hover { color: var(--accent); }
 }
 
 .db-quick-item__dot {
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     flex-shrink: 0;
+    background: #4a5568;
+    box-shadow: 0 0 0 1.5px rgba(255,255,255,0.06);
 }
 
 /* ─── Card Footer (Pagination) ─── */

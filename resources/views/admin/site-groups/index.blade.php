@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/pages/site-groups.css') }}?v={{ filemtime(public_path('assets/css/pages/site-groups.css')) }}">
+@endpush
+
 @section('title', 'Групи сайтів')
 
 @section('content')

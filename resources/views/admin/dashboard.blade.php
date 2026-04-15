@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/pages/dashboard.css') }}?v={{ filemtime(public_path('assets/css/pages/dashboard.css')) }}">
+@endpush
+
 @section('title', 'Dashboard')
 
 @section('content')
@@ -63,11 +67,12 @@
 
         {{-- Recent system logs --}}
         @if($recentLogs->isNotEmpty())
-        <div class="db-card">
+        <div class="db-card" id="logs-card">
             <div class="db-card__header">
                 <span class="db-card__title">Системні події</span>
+                <span class="db-card__count">{{ $recentLogs->total() }} подій</span>
             </div>
-            <ul class="db-timeline">
+            <ul class="db-timeline" id="logs-timeline">
                 @foreach($recentLogs as $log)
                 <li class="db-event db-event--{{ $log->level ?? 'info' }}">
                     <span class="db-event__dot"></span>
@@ -81,8 +86,8 @@
                 </li>
                 @endforeach
             </ul>
-            @if($recentLogs->total() > 50)
-            <div class="db-card__footer">
+            @if($recentLogs->hasPages())
+            <div class="db-card__footer" id="logs-pagination">
                 {{ $recentLogs->links() }}
             </div>
             @endif
@@ -142,7 +147,7 @@
                             {{ mb_strtoupper(mb_substr($site->name, 0, 1, 'UTF-8'), 'UTF-8') }}
                         </div>
                         <span class="db-quick-item__name">{{ $site->name }}</span>
-                        <span class="db-quick-item__dot" style="background:{{ $site->latestSyncLog?->status === 'success' ? 'var(--dot-ok)' : ($site->latestSyncLog ? 'var(--dot-off)' : 'var(--text-muted)') }}"></span>
+                        <span class="db-quick-item__dot" style="background:{{ $site->latestSyncLog?->status === 'success' ? 'var(--dot-ok)' : ($site->latestSyncLog ? 'var(--dot-off)' : '#4a5568') }}"></span>
                     </a>
                     <button class="db-fav-btn is-fav" title="Прибрати з улюблених" onclick="toggleFavorite(event, this, {{ $site->id }})">★</button>
                 </li>
@@ -168,7 +173,7 @@
                                 {{ mb_strtoupper(mb_substr($site->name, 0, 1, 'UTF-8'), 'UTF-8') }}
                             </div>
                             <span class="db-quick-item__name">{{ $site->name }}</span>
-                            <span class="db-quick-item__dot" style="background:{{ $site->latestSyncLog?->status === 'success' ? 'var(--dot-ok)' : ($site->latestSyncLog ? 'var(--dot-off)' : 'var(--text-muted)') }}"></span>
+                            <span class="db-quick-item__dot" style="background:{{ $site->latestSyncLog?->status === 'success' ? 'var(--dot-ok)' : ($site->latestSyncLog ? 'var(--dot-off)' : '#4a5568') }}"></span>
                         </a>
                         <button class="db-fav-btn {{ $isFav ? 'is-fav' : '' }}"
                                 title="{{ $isFav ? 'Прибрати з улюблених' : 'Додати до улюблених' }}"
@@ -182,5 +187,38 @@
     </aside>{{-- /db-side --}}
 
 </div>
+
+@push('scripts')
+<script>
+// AJAX pagination for system logs card — no full reload
+(function () {
+    var logsCard = document.getElementById('logs-card');
+    if (!logsCard) return;
+
+    logsCard.addEventListener('click', function (e) {
+        var link = e.target.closest('a[href]');
+        if (!link) return;
+        var href = link.getAttribute('href');
+        if (!href || !href.includes('logs_page')) return;
+
+        e.preventDefault();
+        logsCard.style.opacity = '0.6';
+
+        fetch(href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.text(); })
+            .then(function (html) {
+                var doc = new DOMParser().parseFromString(html, 'text/html');
+                var newCard = doc.getElementById('logs-card');
+                if (newCard) {
+                    logsCard.innerHTML = newCard.innerHTML;
+                    history.pushState(null, '', href);
+                }
+                logsCard.style.opacity = '1';
+            })
+            .catch(function () { logsCard.style.opacity = '1'; });
+    });
+})();
+</script>
+@endpush
 
 @endsection
