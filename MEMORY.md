@@ -6,27 +6,12 @@
 
 ## 📍 Поточний стан
 
-- **Версія:** 0.1.0-alpha (Laravel stack)
-- **Активна фаза:** Phase 0–1 (Foundation — Laravel migration)
-- **Активний спринт:** Sprint 01
+- **Версія:** 0.2.0-alpha (Laravel stack)
+- **Активна фаза:** Phase 1 (Foundation — завершено)
+- **Активний спринт:** Sprint 01 — ЗАВЕРШЕНО ✅
 - **Активна гілка:** `feature/task-l010-api-keys` (запушено)
-- **Наступна задача:** TASK-L011 — Site data (phones, prices, addresses, socials)
-- **Виконано:** TASK-L010 + UI fixes — CSS loading, API key sidebar, dashboard, site-groups grid
-
----
-
-## ✅ Виконано (ця сесія)
-
-| Дата | Задача | Гілка | Статус |
-|---|---|---|---|
-| 2026-04-08 | TASK-001: Obsidian Vault init | — | ✅ |
-| 2026-04-08 | TASK-002: Docker Setup | main | ✅ |
-| 2026-04-08 | TASK-003: Git init + remote | main | ✅ |
-| 2026-04-08 | TASK-004: PHP Directory Structure | feature/task-004-php-structure | ✅ |
-| 2026-04-08 | TASK-005: Database PDO singleton | feature/task-005-database | ✅ |
-| 2026-04-08 | TASK-006: Router + routes.php + index.php | feature/task-006-router | ✅ |
-| 2026-04-08 | TASK-007: CSRF + Logger | feature/task-007-csrf-session | ✅ |
-| 2026-04-08 | TASK-008: View.php + Layout.php + CrmRail + tokens/reset CSS + shell/components/drawer CSS + layout.js | feature/task-008-view-engine | ✅ |
+- **Наступна задача:** Sprint 02 — Sync Engine / Batch Edit / API endpoints
+- **Виконано:** TASK-L011 — Site data tabs (phones, prices, addresses, socials)
 
 ---
 
@@ -45,18 +30,22 @@
 | TASK-L009: Logs viewer (SystemLog + SyncLog, tabs, level/status filter, paginated) | feature/task-l009-logs | ✅ |
 | TASK-UI: UI Redesign (TG Dark, dashboard timeline, favorites, site/group/user redesign) | feature/task-ui-redesign | ✅ |
 | TASK-L010: API Keys (generate + revoke per site, sidebar block in sites/show) | feature/task-l010-api-keys | ✅ |
+| TASK-UI-2: UI Fixes (CSS @stack, pagination arrows, api-key icons, dashboard dot, groups grid) | feature/task-l010-api-keys | ✅ |
+| TASK-L011: Site data tabs (phones/prices/addresses/socials CRUD, 4 tests) | feature/task-l010-api-keys | ✅ |
 
-## 🔲 Наступні задачі
+## 🔲 Наступні задачі (Sprint 02)
 
-1. **TASK-L011** — Site data tabs (phones, prices, addresses, socials)
+1. **Sync Engine** — WP plugin → CRM API endpoint (`/api/v1/sync`)
+2. **Batch Edit** — масові зміни для сайтів (статус, група)
+3. **API endpoints** — REST для WP-плагінів
 
 ---
 
 ## 🌿 Git стан
 
 - **Remote:** `git@github.com:mzalisko/data-bridge-v2.git` ✅
-- **Активна гілка:** `feature/task-l010-api-keys` (запушено)
-- **Незлиті Laravel гілки:** task-l001..task-l010 (всі на GitHub, PR не відкриті)
+- **Активна гілка:** `feature/task-l010-api-keys` (запушено, містить L010 + UI-2 + L011)
+- **Незлиті Laravel гілки:** task-l001..task-l010-api-keys (всі на GitHub, PR не відкриті)
 - **Тестові дані:** 3 групи, 7 сайтів, 3 юзери (admin + manager + viewer)
 
 ---
@@ -66,15 +55,13 @@
 | Рішення | Значення | Дата |
 |---|---|---|
 | **PHP фреймворк** | **Laravel** (замість vanilla PHP) | 2026-04-08 |
-| Причина переходу | Складність CRM (ORM, RBAC, batch, API) виправдовує Laravel | 2026-04-08 |
 | Auth | Laravel вбудований + власні контролери (не Breeze UI) | 2026-04-08 |
-| Views | Blade templates + Blade components (`<x-stat-card>`, тощо) | 2026-04-08 |
-| CSS/JS | Без Tailwind/Bootstrap — наш Restrained Loft design system | 2026-04-08 |
+| Views | Blade templates + Blade components | 2026-04-08 |
+| CSS/JS | Без Tailwind/Bootstrap — Restrained Loft / TG Dark design system | 2026-04-08 |
 | CrmRail | Завжди темний (#111), незалежно від теми | 2026-04-08 |
-| Тема | Cookie `theme` = 'dark'/'light', default: dark | 2026-04-08 |
 | Drawer | 440px стандарт, 600px batch | 2026-04-08 |
-| API key | `dbapi_` + 32 hex = 38 символів; Hash::make() | 2026-04-08 |
-| DB | MySQL 8.0, Eloquent ORM + migrations | 2026-04-08 |
+| API key | `dbapi_` + 32 hex = 38 символів; Hash::make(); prefix = перші 12 символів | 2026-04-08 |
+| Tab routing | `?tab=phones\|prices\|addresses\|socials` — server-side, SiteController@show | 2026-04-15 |
 | Validation | Form Requests (не ручна валідація) | 2026-04-08 |
 | RBAC | Laravel Policies + Gates | 2026-04-08 |
 
@@ -89,9 +76,9 @@
 - Admin default: `admin@databridge.local` / `admin123` (з міграції)
 - Test users: `irina@databridge.local` / `pass123` (manager), `oleksiy@databridge.local` / `pass123` (viewer)
 - Docker: `docker-compose up -d --build` → http://localhost:8082
-- **ВАЖЛИВО:** При рестарті Docker — MySQL дані зберігаються у volume, але якщо volume скинувся — запустити `php artisan db:seed --class=AdminSeeder` та `php artisan db:seed --class=TestDataSeeder`
-- Cloudflare tunnel URL змінюється при кожному рестарті (trycloudflare.com — ефемерний). Для dev використовуй localhost:8082
+- **ВАЖЛИВО:** При рестарті Docker — якщо volume скинувся — запустити `php artisan db:seed --class=AdminSeeder` та `php artisan db:seed --class=TestDataSeeder`
+- Cloudflare tunnel URL змінюється при кожному рестарті (trycloudflare.com — ефемерний)
 
 ---
 
-*Оновлено: 2026-04-15 | Сесія: sprint-01-l010-api-keys*
+*Оновлено: 2026-04-15 | Сесія: sprint-01-l011-site-data*
