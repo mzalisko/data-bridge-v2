@@ -170,12 +170,13 @@ function geoToggle(prefix, mode) {
     if (wrap) {
         wrap.style.display = (mode === 'include' || mode === 'exclude') ? '' : 'none';
     }
-    // update active class on tiles
+    // update active class on tiles — use radio.value === mode
+    // (onchange fires after check, so radio.checked is already updated)
     var grid = document.getElementById('geo-grid-' + prefix);
     if (grid) {
         grid.querySelectorAll('.geo-option').forEach(function(opt) {
             var radio = opt.querySelector('input[type=radio]');
-            opt.classList.toggle('is-active', radio && radio.checked);
+            opt.classList.toggle('is-active', radio && radio.value === mode);
         });
     }
 }
@@ -194,14 +195,24 @@ function geoUpdateCountries(prefix) {
 
 // Favorites: toggle via AJAX
 function toggleFavorite(e, btn, siteId) {
-    const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
-    if (!csrf) {
-        console.error('CSRF token not found. Favorite toggle failed.');
-        return;
-    }
-
-    // Prevent row click
     if (e && e.stopPropagation) e.stopPropagation();
+
+    // Debounce: ignore if request already in flight
+    if (btn.dataset.pending) return;
+
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+    if (!csrf) return;
+
+    // Optimistic UI: flip immediately, before server responds
+    const wasFav = btn.classList.contains('is-fav');
+    btn.dataset.pending = '1';
+    if (wasFav) {
+        btn.classList.remove('is-fav');
+        btn.title = 'Додати до улюблених';
+    } else {
+        btn.classList.add('is-fav');
+        btn.title = 'Прибрати з улюблених';
+    }
 
     fetch('/sites/' + siteId + '/favorite', {
         method: 'POST',
@@ -211,18 +222,19 @@ function toggleFavorite(e, btn, siteId) {
         }
     })
     .then(r => {
-        if (!r.ok) throw new Error('Network response was not ok');
+        if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.json();
     })
     .then(data => {
+        // Sync exact server state
         if (data.favorite) {
             btn.classList.add('is-fav');
             btn.title = 'Прибрати з улюблених';
         } else {
             btn.classList.remove('is-fav');
             btn.title = 'Додати до улюблених';
-            
-            // Special case for dashboard Sidebar
+
+            // Dashboard favorites sidebar: animate-out the removed item
             const li = btn.closest('li');
             const title = btn.closest('.db-card')?.querySelector('.db-card__title')?.textContent;
             if (li && title && title.includes('Улюблені')) {
@@ -233,8 +245,18 @@ function toggleFavorite(e, btn, siteId) {
             }
         }
     })
-    .catch(err => {
-        console.error('Favorite toggle failed:', err);
+    .catch(() => {
+        // Revert on error
+        if (wasFav) {
+            btn.classList.add('is-fav');
+            btn.title = 'Прибрати з улюблених';
+        } else {
+            btn.classList.remove('is-fav');
+            btn.title = 'Додати до улюблених';
+        }
+    })
+    .finally(() => {
+        delete btn.dataset.pending;
     });
 }
 

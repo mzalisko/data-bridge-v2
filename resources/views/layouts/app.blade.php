@@ -140,7 +140,7 @@
     </div>
 </div>
 
-<script src="{{ asset('assets/js/layout.js') }}"></script>
+<script src="{{ asset('assets/js/layout.js') }}?v={{ filemtime(public_path('assets/js/layout.js')) }}"></script>
 @stack('scripts')
 </body>
 </html>
