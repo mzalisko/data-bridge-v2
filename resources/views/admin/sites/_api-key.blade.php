@@ -33,7 +33,8 @@
     @if($key)
         <div class="api-key-block__prefix-row">
             <code class="api-key-block__prefix {{ $key->isRevoked() ? 'api-key-block__prefix--revoked' : '' }}"
-                  id="api-key-prefix-val">{{ $key->key_prefix }}...</code>
+                  id="api-key-prefix-val"
+                  data-prefix="{{ $key->key_prefix }}">{{ $key->key_prefix }}...</code>
             @if($key->isActive())
             <button class="api-key-block__icon-btn" title="Скопіювати" onclick="copyApiKeyPrefix(this)">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -112,7 +113,8 @@
 
 <script>
 function copyApiKeyPrefix(btn) {
-    var val = document.getElementById('api-key-prefix-val').textContent.trim();
+    var el = document.getElementById('api-key-prefix-val');
+    var val = el.dataset.prefix || el.textContent.trim().replace(/\.+$/, '');
     navigator.clipboard.writeText(val).then(function() {
         var orig = btn.innerHTML;
         btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
