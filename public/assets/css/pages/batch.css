@@ -226,3 +226,30 @@
     margin-top: var(--space-lg);
     border-top: 1px solid var(--border-color);
 }
+
+/* ─── Mobile ─── */
+@media (max-width: 768px) {
+    .batch-action-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+        gap: var(--space-sm);
+        padding-bottom: 4px;
+    }
+    .batch-action-tabs::-webkit-scrollbar { display: none; }
+    .batch-tab { flex-shrink: 0; min-height: 40px; }
+
+    .batch-form-footer {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+    .batch-form-footer .btn-primary,
+    .batch-form-footer .btn-ghost,
+    .batch-form-footer .btn-danger {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .batch-status-grid { flex-direction: column; }
+    .batch-status-tile { min-height: 48px; }
+}

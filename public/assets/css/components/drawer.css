@@ -71,22 +71,55 @@
     min-height: 64px;
 }
 
-/* ─── Responsive Drawer ─── */
+/* ─── Responsive Drawer — bottom sheet on mobile ─── */
 @media (max-width: 768px) {
     .drawer {
+        top: auto;
+        left: 0;
+        right: 0;
+        bottom: 0;
         width: 100% !important;
+        max-height: 90dvh;
         border-left: none;
+        border-top: 1px solid var(--border-color);
+        border-radius: 20px 20px 0 0;
+        transform: translateY(100%);
+    }
+    .drawer.is-open {
+        transform: translateY(0);
+    }
+    /* drag handle */
+    .drawer__header::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 36px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border-color);
+    }
+    .drawer__header {
+        position: relative;
+        padding-top: 20px;
+    }
+    .drawer__body {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
     .drawer__footer {
         flex-direction: column-reverse;
         align-items: stretch;
+        padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
     }
-    .drawer__footer button, 
+    .drawer__footer button,
     .drawer__footer .btn-danger,
     .drawer__footer-left form {
         width: 100%;
         display: flex;
         justify-content: center;
+        min-height: 44px;
     }
     .drawer__footer-left {
         width: 100%;

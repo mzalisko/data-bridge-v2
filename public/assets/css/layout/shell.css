@@ -126,11 +126,23 @@
         flex-direction: column;
         padding-left: 0;
     }
-    
+
     .topbar { padding: 0 var(--space-md); }
+    .topbar__user-name { display: none; }
+
     .page-content { padding: var(--space-md); }
     .page-header { margin-bottom: var(--space-md); }
     .page-title { font-size: calc(var(--font-size-lg) * 0.9); }
+
+    /* Page toolbar: stack on narrow screens */
+    .page-toolbar {
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+    }
+    .page-toolbar h1 { flex: 1 1 100%; }
+
+    /* Alert: full-width, readable */
+    .alert { font-size: var(--font-size-sm); }
 }
 
 /* ─── Shared Components ─── */

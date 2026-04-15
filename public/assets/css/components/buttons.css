@@ -117,3 +117,15 @@
 .btn-group__btn:last-child { border-right: none; }
 .btn-group__btn:hover      { background: var(--bg-hover); color: var(--text-primary); }
 .btn-group__btn.is-active  { background: var(--accent); color: #fff; border-color: transparent; }
+
+/* ─── Mobile touch targets ─── */
+@media (max-width: 768px) {
+    .btn-primary, .btn-ghost, .btn-danger {
+        min-height: 44px;
+        padding: 0 var(--space-md);
+    }
+    .btn-primary--full {
+        width: 100%;
+        justify-content: center;
+    }
+}

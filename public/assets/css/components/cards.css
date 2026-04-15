@@ -108,3 +108,17 @@
     font-size: var(--font-size-xs);
     color: var(--text-muted);
 }
+
+/* ─── Mobile ─── */
+@media (max-width: 640px) {
+    .stat-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-sm);
+    }
+    .stat-card {
+        padding: var(--space-md);
+    }
+    .stat-card__value {
+        font-size: var(--font-size-lg);
+    }
+}

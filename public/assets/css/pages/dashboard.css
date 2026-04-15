@@ -369,4 +369,16 @@ a.db-event__site:hover { color: var(--accent); }
     .db-side {
         grid-template-columns: 1fr;
     }
+    .db-layout {
+        gap: var(--space-md);
+    }
+    /* Timeline feed: tighter on mobile */
+    .tl-item {
+        gap: var(--space-sm);
+    }
+    .tl-item__meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
 }
