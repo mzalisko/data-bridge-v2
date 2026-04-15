@@ -25,6 +25,14 @@
                 </svg>
             </button>
         </div>
+        <button id="btn-batch-toggle" class="btn-batch-toggle" title="Вибрати кілька" onclick="toggleBatchMode()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="5" width="4" height="4" rx="1"/><line x1="10" y1="7" x2="21" y2="7"/>
+                <rect x="3" y="11" width="4" height="4" rx="1"/><line x1="10" y1="13" x2="21" y2="13"/>
+                <rect x="3" y="17" width="4" height="4" rx="1"/><line x1="10" y1="19" x2="21" y2="19"/>
+            </svg>
+            Вибрати
+        </button>
         <button class="btn-primary" onclick="openDrawer('drawer-site-create')">+ Новий сайт</button>
     </div>
 </div>
@@ -231,11 +239,24 @@
     initViewToggle('sites-view', 'sites-list', 'btn-view-list', 'btn-view-grid');
     initClientSearch('site-search', '.site-card');
 
-    // Site card click: navigate unless in batch mode (checkbox clicked)
+    // Batch mode state
+    var batchMode = false;
+
+    function toggleBatchMode() {
+        batchMode = !batchMode;
+        var list = document.getElementById('sites-list');
+        var btn  = document.getElementById('btn-batch-toggle');
+        if (list) list.classList.toggle('is-batch-mode', batchMode);
+        if (btn)  btn.classList.toggle('is-active', batchMode);
+        if (!batchMode) {
+            document.querySelectorAll('.batch-cb').forEach(function(cb) { cb.checked = false; });
+            batchUpdateSelection();
+        }
+    }
+
+    // Site card click: navigate or toggle selection depending on batch mode
     function handleSiteCardClick(e, siteId, url) {
-        // If any checkbox is checked, clicking a card toggles its checkbox
-        var anyChecked = document.querySelectorAll('.batch-cb:checked').length > 0;
-        if (anyChecked) {
+        if (batchMode) {
             var cb = e.currentTarget.querySelector('.batch-cb');
             if (cb) { cb.checked = !cb.checked; batchUpdateSelection(); }
         } else {
@@ -298,8 +319,13 @@
     }
 
 
-    // Batch: clear selection
+    // Batch: clear selection and exit batch mode
     function batchClear() {
+        batchMode = false;
+        var list = document.getElementById('sites-list');
+        var btn  = document.getElementById('btn-batch-toggle');
+        if (list) list.classList.remove('is-batch-mode');
+        if (btn)  btn.classList.remove('is-active');
         document.querySelectorAll('.batch-cb').forEach(function(cb) { cb.checked = false; });
         batchUpdateSelection();
     }
