@@ -1,45 +1,37 @@
 <?php
-
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StorePriceRequest;
+use App\Http\Requests\Admin\UpdatePriceRequest;
 use App\Models\Site;
 use App\Models\SitePrice;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 class SitePriceController extends Controller
 {
-    public function store(Request $request, Site $site): RedirectResponse
+    public function store(StorePriceRequest $request, Site $site): RedirectResponse
     {
-        $data = $request->all();
-
-        $data['site_id']    = $site->id;
+        $data = $request->validated();
         $data['is_visible'] = $request->boolean('is_visible', true);
-
-        SitePrice::create($data);
-
-        return redirect()->route('sites.show', [$site, 'tab' => 'prices'])
+        $site->prices()->create($data);
+        return redirect(route('sites.show', $site) . '?tab=prices')
             ->with('success', 'Ціну додано');
     }
 
-    public function update(Request $request, Site $site, SitePrice $price): RedirectResponse
+    public function update(UpdatePriceRequest $request, Site $site, SitePrice $price): RedirectResponse
     {
-        $data = $request->all();
-
-        $data['is_visible'] = $request->boolean('is_visible');
-
+        $data = $request->validated();
+        $data['is_visible'] = $request->boolean('is_visible', true);
         $price->update($data);
-
-        return redirect()->route('sites.show', [$site, 'tab' => 'prices'])
+        return redirect(route('sites.show', $site) . '?tab=prices')
             ->with('success', 'Ціну оновлено');
     }
 
     public function destroy(Site $site, SitePrice $price): RedirectResponse
     {
         $price->delete();
-
-        return redirect()->route('sites.show', [$site, 'tab' => 'prices'])
+        return redirect(route('sites.show', $site) . '?tab=prices')
             ->with('success', 'Ціну видалено');
     }
 }

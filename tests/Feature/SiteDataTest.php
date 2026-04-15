@@ -42,4 +42,59 @@ class SiteDataTest extends TestCase
             'country_iso' => 'UA',
         ]);
     }
+
+    public function test_store_price_creates_record(): void
+    {
+        $this->actingAs($this->user)
+            ->post(route('prices.store', $this->site), [
+                'label'      => 'Базовий',
+                'amount'     => '1500.00',
+                'currency'   => 'UAH',
+                'period'     => 'month',
+                'is_visible' => '1',
+                'sort_order' => 0,
+            ]);
+
+        $this->assertDatabaseHas('site_prices', [
+            'site_id'  => $this->site->id,
+            'label'    => 'Базовий',
+            'currency' => 'UAH',
+        ]);
+    }
+
+    public function test_store_address_creates_record(): void
+    {
+        $this->actingAs($this->user)
+            ->post(route('addresses.store', $this->site), [
+                'label'       => 'Головний офіс',
+                'country_iso' => 'UA',
+                'city'        => 'Kyiv',
+                'street'      => 'Хрещатик',
+                'building'    => '1',
+                'is_primary'  => '1',
+                'sort_order'  => 0,
+            ]);
+
+        $this->assertDatabaseHas('site_addresses', [
+            'site_id' => $this->site->id,
+            'city'    => 'Kyiv',
+        ]);
+    }
+
+    public function test_store_social_creates_record(): void
+    {
+        $this->actingAs($this->user)
+            ->post(route('socials.store', $this->site), [
+                'platform'   => 'instagram',
+                'handle'     => 'test_handle',
+                'url'        => 'https://instagram.com/test_handle',
+                'sort_order' => 0,
+            ]);
+
+        $this->assertDatabaseHas('site_socials', [
+            'site_id'  => $this->site->id,
+            'platform' => 'instagram',
+            'handle'   => 'test_handle',
+        ]);
+    }
 }
