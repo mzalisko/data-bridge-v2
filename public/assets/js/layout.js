@@ -163,6 +163,19 @@ function initClientSearch(inputId, itemsSelector, searchAttr) {
     });
 }
 
+// Geo visibility: toggle countries input and active card
+function geoToggle(prefix, mode) {
+    var wrap = document.getElementById('geo-countries-' + prefix);
+    if (wrap) wrap.style.display = (mode === 'include' || mode === 'exclude') ? '' : 'none';
+    var grid = document.getElementById('geo-grid-' + prefix);
+    if (grid) {
+        grid.querySelectorAll('.geo-option').forEach(function(opt) {
+            var radio = opt.querySelector('input[type=radio]');
+            opt.classList.toggle('is-active', radio && radio.checked);
+        });
+    }
+}
+
 // Favorites: toggle via AJAX
 function toggleFavorite(e, btn, siteId) {
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content;

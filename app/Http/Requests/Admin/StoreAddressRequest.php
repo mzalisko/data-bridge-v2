@@ -17,8 +17,10 @@ class StoreAddressRequest extends FormRequest
             'postal_code' => ['nullable', 'string', 'max:20'],
             'latitude'    => ['nullable', 'numeric', 'between:-90,90'],
             'longitude'   => ['nullable', 'numeric', 'between:-180,180'],
-            'is_primary'  => ['nullable'],
-            'sort_order'  => ['nullable', 'integer', 'min:0'],
+            'is_primary'    => ['nullable'],
+            'sort_order'    => ['nullable', 'integer', 'min:0'],
+            'geo_mode'      => ['nullable', 'string', 'in:all,include,exclude'],
+            'geo_countries' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

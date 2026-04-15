@@ -17,6 +17,8 @@ class SitePrice extends Model
         'period',
         'is_visible',
         'sort_order',
+        'geo_mode',
+        'geo_countries',
     ];
 
     protected function casts(): array

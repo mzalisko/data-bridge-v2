@@ -14,8 +14,10 @@ class StorePhoneRequest extends FormRequest
             'country_iso' => ['required', 'string', 'size:2'],
             'dial_code'   => ['required', 'string', 'max:8'],
             'number'      => ['required', 'string', 'max:32'],
-            'is_primary'  => ['nullable'],
-            'sort_order'  => ['nullable', 'integer', 'min:0'],
+            'is_primary'    => ['nullable'],
+            'sort_order'    => ['nullable', 'integer', 'min:0'],
+            'geo_mode'      => ['nullable', 'string', 'in:all,include,exclude'],
+            'geo_countries' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

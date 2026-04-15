@@ -1,0 +1,90 @@
+{{--
+  Geo visibility section — include inside a form.
+  Variables: $geoPrefix (string, unique per drawer), $geoModel (model or null)
+--}}
+@php
+    $geoMode      = old('geo_mode',      isset($geoModel) ? $geoModel->geo_mode      : null);
+    $geoCountries = old('geo_countries', isset($geoModel) ? $geoModel->geo_countries  : '');
+    $showCountries = in_array($geoMode, ['include', 'exclude']) ? '' : 'display:none';
+@endphp
+<details class="form-details form-details--geo" {{ in_array($geoMode, ['include', 'exclude', 'all']) ? 'open' : '' }}>
+    <summary class="form-details__summary">
+        Геозалежність
+        @if($geoMode === null || $geoMode === '')
+            <span class="geo-badge geo-badge--hidden">Прихований</span>
+        @elseif($geoMode === 'all')
+            <span class="geo-badge geo-badge--all">Всі регіони</span>
+        @elseif($geoMode === 'include')
+            <span class="geo-badge geo-badge--include">Тільки: {{ $geoCountries ?: '…' }}</span>
+        @elseif($geoMode === 'exclude')
+            <span class="geo-badge geo-badge--exclude">Не: {{ $geoCountries ?: '…' }}</span>
+        @endif
+    </summary>
+    <div class="form-details__body">
+        <div class="geo-mode-grid" id="geo-grid-{{ $geoPrefix }}">
+
+            <label class="geo-option {{ ($geoMode === null || $geoMode === '') ? 'is-active' : '' }}">
+                <input type="radio" name="geo_mode" value=""
+                       {{ ($geoMode === null || $geoMode === '') ? 'checked' : '' }}
+                       onchange="geoToggle('{{ $geoPrefix }}', '')">
+                <span class="geo-option__icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </span>
+                <span class="geo-option__body">
+                    <span class="geo-option__label">Прихований</span>
+                    <span class="geo-option__hint">Не відображати нікому</span>
+                </span>
+            </label>
+
+            <label class="geo-option {{ $geoMode === 'all' ? 'is-active' : '' }}">
+                <input type="radio" name="geo_mode" value="all"
+                       {{ $geoMode === 'all' ? 'checked' : '' }}
+                       onchange="geoToggle('{{ $geoPrefix }}', 'all')">
+                <span class="geo-option__icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </span>
+                <span class="geo-option__body">
+                    <span class="geo-option__label">Всі регіони</span>
+                    <span class="geo-option__hint">Відображати всім</span>
+                </span>
+            </label>
+
+            <label class="geo-option {{ $geoMode === 'include' ? 'is-active' : '' }}">
+                <input type="radio" name="geo_mode" value="include"
+                       {{ $geoMode === 'include' ? 'checked' : '' }}
+                       onchange="geoToggle('{{ $geoPrefix }}', 'include')">
+                <span class="geo-option__icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </span>
+                <span class="geo-option__body">
+                    <span class="geo-option__label">Тільки для</span>
+                    <span class="geo-option__hint">Вибрані країни</span>
+                </span>
+            </label>
+
+            <label class="geo-option {{ $geoMode === 'exclude' ? 'is-active' : '' }}">
+                <input type="radio" name="geo_mode" value="exclude"
+                       {{ $geoMode === 'exclude' ? 'checked' : '' }}
+                       onchange="geoToggle('{{ $geoPrefix }}', 'exclude')">
+                <span class="geo-option__icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                </span>
+                <span class="geo-option__body">
+                    <span class="geo-option__label">Всі, крім</span>
+                    <span class="geo-option__hint">Виключити країни</span>
+                </span>
+            </label>
+
+        </div>
+        <div class="geo-countries-wrap" id="geo-countries-{{ $geoPrefix }}" style="{{ $showCountries }}">
+            <label class="form-label">Країни <span class="form-hint">(ISO коди через кому)</span></label>
+            <input type="text" name="geo_countries" class="form-input"
+                   id="geo-countries-input-{{ $geoPrefix }}"
+                   value="{{ $geoCountries }}"
+                   placeholder="UA, PL, DE, CZ"
+                   maxlength="255"
+                   autocomplete="off"
+                   oninput="this.value=this.value.toUpperCase()">
+        </div>
+    </div>
+</details>

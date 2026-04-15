@@ -26,6 +26,15 @@
                 @if(!$price->is_visible)
                     <span class="data-badge data-badge--hidden">Прихована</span>
                 @endif
+                @if($price->geo_mode === null || $price->geo_mode === '')
+                    <span class="geo-badge geo-badge--hidden geo-badge--sm">Прих.</span>
+                @elseif($price->geo_mode === 'all')
+                    <span class="geo-badge geo-badge--all geo-badge--sm">Всі</span>
+                @elseif($price->geo_mode === 'include')
+                    <span class="geo-badge geo-badge--include geo-badge--sm">{{ $price->geo_countries ?: '…' }}</span>
+                @elseif($price->geo_mode === 'exclude')
+                    <span class="geo-badge geo-badge--exclude geo-badge--sm">≠ {{ $price->geo_countries ?: '…' }}</span>
+                @endif
             </div>
             <div class="data-row__actions">
                 <button class="btn-icon" title="Редагувати" onclick="openDrawer('drawer-price-{{ $price->id }}')">
@@ -81,6 +90,7 @@
                     <input type="checkbox" name="is_visible" value="1" checked> Відображати
                 </label>
             </div>
+            @include('admin.sites._geo-visibility', ['geoPrefix' => 'price-create', 'geoModel' => null])
             <input type="hidden" name="sort_order" value="0">
         </form>
     </div>
@@ -99,6 +109,11 @@
         <button class="btn-icon" onclick="closeDrawer('drawer-price-{{ $price->id }}')">✕</button>
     </div>
     <div class="drawer__body">
+        <div class="drawer-id-chip">
+            <span style="color:var(--text-muted)">#{{ $price->id }}</span>
+            <span style="color:var(--border-color)">·</span>
+            <span>{{ $price->currency }}</span>
+        </div>
         <form method="POST" action="{{ route('prices.update', [$site, $price]) }}" class="form-stack" id="form-price-{{ $price->id }}">
             @csrf @method('PUT')
             <div class="form-group">
@@ -128,6 +143,7 @@
                     <input type="checkbox" name="is_visible" value="1" {{ old('is_visible', $price->is_visible) ? 'checked' : '' }}> Відображати
                 </label>
             </div>
+            @include('admin.sites._geo-visibility', ['geoPrefix' => 'price-' . $price->id, 'geoModel' => $price])
             <input type="hidden" name="sort_order" value="{{ $price->sort_order }}">
         </form>
     </div>

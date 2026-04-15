@@ -23,6 +23,15 @@
                         <span class="data-badge data-badge--primary">Primary</span>
                     @endif
                     <span class="phone-row__number">{{ ltrim($phone->number, '+') }}</span>
+                    @if($phone->geo_mode === null || $phone->geo_mode === '')
+                        <span class="geo-badge geo-badge--hidden geo-badge--sm">Прих.</span>
+                    @elseif($phone->geo_mode === 'all')
+                        <span class="geo-badge geo-badge--all geo-badge--sm">Всі</span>
+                    @elseif($phone->geo_mode === 'include')
+                        <span class="geo-badge geo-badge--include geo-badge--sm">{{ $phone->geo_countries ?: '…' }}</span>
+                    @elseif($phone->geo_mode === 'exclude')
+                        <span class="geo-badge geo-badge--exclude geo-badge--sm">≠ {{ $phone->geo_countries ?: '…' }}</span>
+                    @endif
                 </div>
                 <div class="phone-row__sub">
                     <span class="phone-row__id">#{{ $phone->id }}</span>
@@ -84,6 +93,7 @@
                     <input type="checkbox" name="is_primary" value="1"> Основний номер
                 </label>
             </div>
+            @include('admin.sites._geo-visibility', ['geoPrefix' => 'phone-create', 'geoModel' => null])
             <input type="hidden" name="sort_order" value="0">
         </form>
     </div>
@@ -124,7 +134,7 @@
             </div>
             {{-- Geo section --}}
             <details class="form-details">
-                <summary class="form-details__summary">Геодані</summary>
+                <summary class="form-details__summary">Геодані (ISO / код)</summary>
                 <div class="form-details__body">
                     <div class="form-row">
                         <div class="form-group">
@@ -146,6 +156,7 @@
                     <input type="checkbox" name="is_primary" value="1" {{ $phone->is_primary ? 'checked' : '' }}> Основний номер
                 </label>
             </div>
+            @include('admin.sites._geo-visibility', ['geoPrefix' => 'phone-' . $phone->id, 'geoModel' => $phone])
             <input type="hidden" name="sort_order" value="{{ $phone->sort_order }}">
         </form>
     </div>

@@ -13,8 +13,10 @@ class StorePriceRequest extends FormRequest
             'amount'     => ['required', 'numeric', 'min:0', 'max:999999999.99'],
             'currency'   => ['required', 'string', 'size:3'],
             'period'     => ['nullable', 'string', 'max:32'],
-            'is_visible' => ['nullable'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'is_visible'    => ['nullable'],
+            'sort_order'    => ['nullable', 'integer', 'min:0'],
+            'geo_mode'      => ['nullable', 'string', 'in:all,include,exclude'],
+            'geo_countries' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

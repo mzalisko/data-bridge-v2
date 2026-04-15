@@ -17,6 +17,8 @@ class SitePhone extends Model
         'number',
         'is_primary',
         'sort_order',
+        'geo_mode',
+        'geo_countries',
     ];
 
     protected function casts(): array

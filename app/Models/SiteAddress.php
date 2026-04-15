@@ -21,6 +21,8 @@ class SiteAddress extends Model
         'longitude',
         'is_primary',
         'sort_order',
+        'geo_mode',
+        'geo_countries',
     ];
 
     protected function casts(): array

@@ -26,6 +26,15 @@
                     <span class="data-row__label">{{ $address->label }}</span>
                 @endif
                 <span class="data-row__meta">{{ $address->country_iso }}{{ $address->postal_code ? ' '.$address->postal_code : '' }}</span>
+                @if($address->geo_mode === null || $address->geo_mode === '')
+                    <span class="geo-badge geo-badge--hidden geo-badge--sm">Прих.</span>
+                @elseif($address->geo_mode === 'all')
+                    <span class="geo-badge geo-badge--all geo-badge--sm">Всі</span>
+                @elseif($address->geo_mode === 'include')
+                    <span class="geo-badge geo-badge--include geo-badge--sm">{{ $address->geo_countries ?: '…' }}</span>
+                @elseif($address->geo_mode === 'exclude')
+                    <span class="geo-badge geo-badge--exclude geo-badge--sm">≠ {{ $address->geo_countries ?: '…' }}</span>
+                @endif
             </div>
             <div class="data-row__actions">
                 <button class="btn-icon" title="Редагувати" onclick="openDrawer('drawer-address-{{ $address->id }}')">
@@ -87,6 +96,7 @@
                     <input type="checkbox" name="is_primary" value="1"> Основна адреса
                 </label>
             </div>
+            @include('admin.sites._geo-visibility', ['geoPrefix' => 'address-create', 'geoModel' => null])
             <input type="hidden" name="sort_order" value="0">
         </form>
     </div>
@@ -105,6 +115,15 @@
         <button class="btn-icon" onclick="closeDrawer('drawer-address-{{ $address->id }}')">✕</button>
     </div>
     <div class="drawer__body">
+        <div class="drawer-id-chip">
+            <span style="color:var(--text-muted)">#{{ $address->id }}</span>
+            <span style="color:var(--border-color)">·</span>
+            <span>{{ $address->country_iso }}</span>
+            @if($address->is_primary)
+                <span style="color:var(--border-color)">·</span>
+                <span style="color:var(--accent)">primary</span>
+            @endif
+        </div>
         <form method="POST" action="{{ route('addresses.update', [$site, $address]) }}" class="form-stack" id="form-address-{{ $address->id }}">
             @csrf @method('PUT')
             <div class="form-group">
@@ -140,6 +159,7 @@
                     <input type="checkbox" name="is_primary" value="1" {{ old('is_primary', $address->is_primary) ? 'checked' : '' }}> Основна адреса
                 </label>
             </div>
+            @include('admin.sites._geo-visibility', ['geoPrefix' => 'address-' . $address->id, 'geoModel' => $address])
             <input type="hidden" name="sort_order" value="{{ $address->sort_order }}">
         </form>
     </div>

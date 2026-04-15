@@ -15,6 +15,8 @@ class SiteSocial extends Model
         'handle',
         'url',
         'sort_order',
+        'geo_mode',
+        'geo_countries',
     ];
 
     public function site(): BelongsTo

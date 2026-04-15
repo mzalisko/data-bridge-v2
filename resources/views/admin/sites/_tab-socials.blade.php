@@ -29,6 +29,15 @@ $platformLabels = [
                 <span class="data-badge data-badge--platform">{{ $platformLabels[$social->platform] ?? $social->platform }}</span>
                 <span class="data-row__val">{{ $social->handle }}</span>
                 <a href="{{ $social->url }}" target="_blank" class="data-row__link" title="Відкрити">↗</a>
+                @if($social->geo_mode === null || $social->geo_mode === '')
+                    <span class="geo-badge geo-badge--hidden geo-badge--sm">Прих.</span>
+                @elseif($social->geo_mode === 'all')
+                    <span class="geo-badge geo-badge--all geo-badge--sm">Всі</span>
+                @elseif($social->geo_mode === 'include')
+                    <span class="geo-badge geo-badge--include geo-badge--sm">{{ $social->geo_countries ?: '…' }}</span>
+                @elseif($social->geo_mode === 'exclude')
+                    <span class="geo-badge geo-badge--exclude geo-badge--sm">≠ {{ $social->geo_countries ?: '…' }}</span>
+                @endif
             </div>
             <div class="data-row__actions">
                 <button class="btn-icon" title="Редагувати" onclick="openDrawer('drawer-social-{{ $social->id }}')">
@@ -73,6 +82,7 @@ $platformLabels = [
                 <label class="form-label">URL</label>
                 <input type="url" name="url" class="form-input" placeholder="https://instagram.com/mycompany" maxlength="512" required>
             </div>
+            @include('admin.sites._geo-visibility', ['geoPrefix' => 'social-create', 'geoModel' => null])
             <input type="hidden" name="sort_order" value="0">
         </form>
     </div>
@@ -91,6 +101,11 @@ $platformLabels = [
         <button class="btn-icon" onclick="closeDrawer('drawer-social-{{ $social->id }}')">✕</button>
     </div>
     <div class="drawer__body">
+        <div class="drawer-id-chip">
+            <span style="color:var(--text-muted)">#{{ $social->id }}</span>
+            <span style="color:var(--border-color)">·</span>
+            <span>{{ $social->handle }}</span>
+        </div>
         <form method="POST" action="{{ route('socials.update', [$site, $social]) }}" class="form-stack" id="form-social-{{ $social->id }}">
             @csrf @method('PUT')
             <div class="form-group">
@@ -109,6 +124,7 @@ $platformLabels = [
                 <label class="form-label">URL</label>
                 <input type="url" name="url" class="form-input" value="{{ old('url', $social->url) }}" maxlength="512" required>
             </div>
+            @include('admin.sites._geo-visibility', ['geoPrefix' => 'social-' . $social->id, 'geoModel' => $social])
             <input type="hidden" name="sort_order" value="{{ $social->sort_order }}">
         </form>
     </div>
