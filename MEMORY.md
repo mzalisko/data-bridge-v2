@@ -11,7 +11,7 @@
 - **Активний спринт:** Sprint 01
 - **Активна гілка:** `feature/task-l010-api-keys` (запушено)
 - **Наступна задача:** TASK-L011 — Site data (phones, prices, addresses, socials)
-- **Виконано:** TASK-L010 — API Keys (generate + revoke + sidebar block у sites/show)
+- **Виконано:** TASK-L010 + UI fixes — CSS loading, API key sidebar, dashboard, site-groups grid
 
 ---
 
