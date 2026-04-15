@@ -1,37 +1,32 @@
 <?php
-
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StorePhoneRequest;
+use App\Http\Requests\Admin\UpdatePhoneRequest;
 use App\Models\Site;
 use App\Models\SitePhone;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 class SitePhoneController extends Controller
 {
-    public function store(Request $request, Site $site): RedirectResponse
+    public function store(StorePhoneRequest $request, Site $site): RedirectResponse
     {
-        $data = $request->all();
-
-        $data['site_id']    = $site->id;
+        $data = $request->validated();
         $data['is_primary'] = $request->boolean('is_primary');
+        $site->phones()->create($data);
 
-        SitePhone::create($data);
-
-        return redirect()->route('sites.show', [$site, 'tab' => 'phones'])
+        return redirect(route('sites.show', $site) . '?tab=phones')
             ->with('success', 'Телефон додано');
     }
 
-    public function update(Request $request, Site $site, SitePhone $phone): RedirectResponse
+    public function update(UpdatePhoneRequest $request, Site $site, SitePhone $phone): RedirectResponse
     {
-        $data = $request->all();
-
+        $data = $request->validated();
         $data['is_primary'] = $request->boolean('is_primary');
-
         $phone->update($data);
 
-        return redirect()->route('sites.show', [$site, 'tab' => 'phones'])
+        return redirect(route('sites.show', $site) . '?tab=phones')
             ->with('success', 'Телефон оновлено');
     }
 
@@ -39,7 +34,7 @@ class SitePhoneController extends Controller
     {
         $phone->delete();
 
-        return redirect()->route('sites.show', [$site, 'tab' => 'phones'])
+        return redirect(route('sites.show', $site) . '?tab=phones')
             ->with('success', 'Телефон видалено');
     }
 }
