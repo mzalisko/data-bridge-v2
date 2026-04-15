@@ -324,8 +324,14 @@
     gap: 4px;
     flex-shrink: 0;
     width: 200px;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
 }
+
+.group-row__sites::-webkit-scrollbar { display: none; }
+
+.group-row__site-chip { flex-shrink: 0; }
 
 .group-row__site-chip {
     font-size: 9px;
