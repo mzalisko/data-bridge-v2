@@ -18,6 +18,7 @@ class Site extends Model
         'description',
         'logo',
         'is_active',
+        'site_countries',
     ];
 
     protected function casts(): array

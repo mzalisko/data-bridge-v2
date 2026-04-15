@@ -17,8 +17,9 @@ class UpdateSiteRequest extends FormRequest
             'group_id'    => ['required', 'integer', 'exists:site_groups,id'],
             'name'        => ['required', 'string', 'max:255'],
             'url'         => ['required', 'url', 'max:512'],
-            'description' => ['nullable', 'string', 'max:2000'],
-            'is_active'   => ['boolean'],
+            'description'     => ['nullable', 'string', 'max:2000'],
+            'is_active'       => ['boolean'],
+            'site_countries'  => ['nullable', 'string', 'max:2000'],
         ];
     }
 }
