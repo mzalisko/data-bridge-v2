@@ -35,6 +35,7 @@
 | TASK-DATA-BROWSER: /data page — крос-сайтовий пошук, bulk edit/delete/copy | feature/task-data-browser | ✅ |
 | TASK-SEED: SiteDataSeeder (3 groups Alpha/Beta/Gamma, 8 sites Site1–Site8 + повні дані) | feature/task-data-browser | ✅ |
 | TASK-MOBILE: Drawer bottom-sheet, 44px touch targets, batch tabs scroll, stat grid | feature/task-data-browser | ✅ |
+| TASK-UI-3: Batch mode toggle (Вибрати button), data-row table-style layout, sticky sidebar, right-align col3, preview system | feature/task-data-browser | ✅ |
 
 ## 🔲 Наступні задачі (Sprint 03)
 
@@ -70,6 +71,9 @@
 | Validation | Form Requests (не ручна валідація) | 2026-04-08 |
 | RBAC | Laravel Policies + Gates | 2026-04-08 |
 | Mobile checkboxes | appearance:none, custom border+fill, indeterminate dash | 2026-04-15 |
+| data-row layout | Table-style: data-list = card container (no border-radius), rows use border-bottom separators, col3 right-aligned | 2026-04-16 |
+| site-show sticky sidebar | overflow:clip on .site-show (not hidden) + position:sticky on sidebar | 2026-04-16 |
+| Preview system | public/preview/*.html — links real CSS files, full shell structure, open at localhost:8082/preview/*.html | 2026-04-16 |
 
 ---
 
@@ -90,4 +94,4 @@
 
 ---
 
-*Оновлено: 2026-04-15 | Сесія: sprint-02-data-browser-mobile*
+*Оновлено: 2026-04-16 | Сесія: sprint-02-ui-polish-data-row*
