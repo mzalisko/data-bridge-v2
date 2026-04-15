@@ -16,10 +16,10 @@
     <div class="geo-section__label">Геозалежність</div>
     <div class="geo-mode-grid" id="geo-grid-{{ $geoPrefix }}">
 
-        <label class="geo-option {{ ($geoMode === null || $geoMode === '') ? 'is-active' : '' }}">
+        <label class="geo-option {{ ($geoMode === null || $geoMode === '') ? 'is-active' : '' }}"
+               onclick="geoToggle('{{ $geoPrefix }}', '')">
             <input type="radio" name="geo_mode" value=""
-                   {{ ($geoMode === null || $geoMode === '') ? 'checked' : '' }}
-                   onclick="geoToggle('{{ $geoPrefix }}', '')">
+                   {{ ($geoMode === null || $geoMode === '') ? 'checked' : '' }}>
             <span class="geo-option__icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </span>
@@ -29,10 +29,10 @@
             </span>
         </label>
 
-        <label class="geo-option {{ $geoMode === 'all' ? 'is-active' : '' }}">
+        <label class="geo-option {{ $geoMode === 'all' ? 'is-active' : '' }}"
+               onclick="geoToggle('{{ $geoPrefix }}', 'all')">
             <input type="radio" name="geo_mode" value="all"
-                   {{ $geoMode === 'all' ? 'checked' : '' }}
-                   onclick="geoToggle('{{ $geoPrefix }}', 'all')">
+                   {{ $geoMode === 'all' ? 'checked' : '' }}>
             <span class="geo-option__icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
             </span>
@@ -42,10 +42,10 @@
             </span>
         </label>
 
-        <label class="geo-option {{ $geoMode === 'include' ? 'is-active' : '' }}">
+        <label class="geo-option {{ $geoMode === 'include' ? 'is-active' : '' }}"
+               onclick="geoToggle('{{ $geoPrefix }}', 'include')">
             <input type="radio" name="geo_mode" value="include"
-                   {{ $geoMode === 'include' ? 'checked' : '' }}
-                   onclick="geoToggle('{{ $geoPrefix }}', 'include')">
+                   {{ $geoMode === 'include' ? 'checked' : '' }}>
             <span class="geo-option__icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             </span>
@@ -55,10 +55,10 @@
             </span>
         </label>
 
-        <label class="geo-option {{ $geoMode === 'exclude' ? 'is-active' : '' }}">
+        <label class="geo-option {{ $geoMode === 'exclude' ? 'is-active' : '' }}"
+               onclick="geoToggle('{{ $geoPrefix }}', 'exclude')">
             <input type="radio" name="geo_mode" value="exclude"
-                   {{ $geoMode === 'exclude' ? 'checked' : '' }}
-                   onclick="geoToggle('{{ $geoPrefix }}', 'exclude')">
+                   {{ $geoMode === 'exclude' ? 'checked' : '' }}>
             <span class="geo-option__icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
             </span>
