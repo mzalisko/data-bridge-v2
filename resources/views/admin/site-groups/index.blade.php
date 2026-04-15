@@ -60,6 +60,7 @@
             $letter = mb_strtoupper(mb_substr($group->name, 0, 1, 'UTF-8'), 'UTF-8');
         @endphp
         <div class="group-row"
+             style="--group-color:{{ $colorHex }}"
              data-searchable="{{ $group->name }} {{ $group->description }}"
              onclick="window.location='{{ route('site-groups.show', $group) }}'">
             <div class="group-row__icon"
@@ -80,8 +81,10 @@
                     <span class="group-row__site-chip">+{{ $extra }}</span>
                 @endif
             </div>
-            <span class="group-row__count">{{ $group->sites_count }}</span>
-            <div class="group-row__actions" onclick="event.stopPropagation()">
+
+
+            <div class="group-row__end" onclick="event.stopPropagation()">
+                <span class="group-row__count">{{ $group->sites_count }}</span>
                 <button class="btn-icon" title="Редагувати"
                         onclick="openDrawer('drawer-group-{{ $group->id }}')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
