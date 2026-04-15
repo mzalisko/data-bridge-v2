@@ -111,7 +111,7 @@
 .sites-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-sm);
+    gap: var(--space-md);
     margin-bottom: var(--space-lg);
 }
 
@@ -241,14 +241,11 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 2px;
+    gap: 4px;
     flex-shrink: 0;
     width: 60px;
-    opacity: 0;
-    transition: opacity var(--duration-fast) var(--ease-ui);
+    opacity: 1;
 }
-
-.site-card:hover .site-card__actions { opacity: 1; }
 
 /* Grid mode */
 .sites-list--grid .site-card {

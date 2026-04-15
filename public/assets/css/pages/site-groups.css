@@ -4,7 +4,7 @@
 .page-controls {
     display: flex;
     flex-direction: column;
-    gap: var(--space-sm);
+    gap: 25px;
     margin-bottom: var(--space-md);
 }
 
