@@ -22,7 +22,7 @@
                     @if($phone->is_primary)
                         <span class="data-badge data-badge--primary">Primary</span>
                     @endif
-                    <span class="phone-row__number">+{{ $phone->dial_code }} {{ ltrim($phone->number, '+') }}</span>
+                    <span class="phone-row__number">{{ ltrim($phone->number, '+') }}</span>
                 </div>
                 <div class="phone-row__sub">
                     <span class="phone-row__id">#{{ $phone->id }}</span>
