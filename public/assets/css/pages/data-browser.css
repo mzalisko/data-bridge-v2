@@ -100,7 +100,7 @@
 }
 
 .db-table th {
-    padding: 10px var(--space-md);
+    padding: 12px var(--space-md);
     text-align: left;
     font-size: var(--font-size-xs);
     font-weight: 700;
@@ -118,7 +118,7 @@
 }
 
 .db-table td {
-    padding: 10px var(--space-md);
+    padding: 13px var(--space-md);
     font-size: var(--font-size-sm);
     color: var(--text-primary);
     border-bottom: 1px solid var(--border-color);
@@ -137,10 +137,51 @@
 }
 
 .db-cb {
-    width: 15px;
-    height: 15px;
-    accent-color: var(--accent);
+    width: 16px;
+    height: 16px;
     cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1.5px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-page);
+    position: relative;
+    flex-shrink: 0;
+    transition: background var(--duration-fast), border-color var(--duration-fast);
+    vertical-align: middle;
+}
+.db-cb:hover {
+    border-color: var(--accent);
+}
+.db-cb:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+.db-cb:checked::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 5px;
+    height: 9px;
+    border: 2px solid #fff;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg);
+}
+.db-cb:indeterminate {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+.db-cb:indeterminate::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 6px;
+    width: 8px;
+    height: 2px;
+    background: #fff;
+    border-radius: 1px;
 }
 
 /* Site name cell */
