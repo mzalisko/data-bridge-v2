@@ -291,7 +291,82 @@
 .db-site-picker-item:hover { background: var(--bg-hover, rgba(255,255,255,.04)); }
 .db-site-picker-item input[type=checkbox] { accent-color: var(--accent); }
 
-@media (max-width: 600px) {
-    .db-action-bar { min-width: calc(100vw - 32px); flex-wrap: wrap; }
-    .db-type-tabs { overflow-x: auto; }
+/* ─── Mobile ─── */
+@media (max-width: 768px) {
+    /* Search bar: stack vertically */
+    .db-search-bar {
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+    }
+    .db-search-wrap {
+        max-width: 100%;
+        flex: 1 1 100%;
+    }
+    .db-result-count {
+        order: 3;
+        width: 100%;
+        padding-left: 2px;
+    }
+
+    /* Table: horizontal scroll */
+    .db-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .db-table {
+        min-width: 480px;
+    }
+
+    /* Hide optional columns on narrow screens */
+    .db-col-optional { display: none; }
+
+    /* Site name: allow more room */
+    .db-site-name { max-width: 120px; }
+
+    /* Type tabs: scrollable */
+    .db-type-tabs {
+        overflow-x: auto;
+        max-width: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+    .db-type-tab {
+        flex-shrink: 0;
+    }
+
+    /* Action bar: full width, two rows */
+    .db-action-bar {
+        left: var(--space-sm);
+        right: var(--space-sm);
+        transform: none;
+        min-width: unset;
+        width: calc(100vw - var(--space-sm) * 2);
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+        bottom: -120px;
+        padding: 10px var(--space-sm);
+    }
+    .db-action-bar.is-visible { bottom: 16px; }
+    .db-action-bar__count { width: 100%; }
+    .db-action-bar__btns {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+    .db-action-bar__btns .btn-primary,
+    .db-action-bar__btns .btn-ghost,
+    .db-action-bar__btns .btn-danger {
+        flex: 1 1 auto;
+        justify-content: center;
+        font-size: 12px;
+        padding: 7px 10px;
+    }
+
+    /* Inline panels: full-width bottom sheet */
+    .db-inline-panel {
+        left: var(--space-sm);
+        right: var(--space-sm);
+        width: auto;
+        transform: none;
+        bottom: -500px;
+    }
+    .db-inline-panel.is-visible { bottom: 100px; }
 }

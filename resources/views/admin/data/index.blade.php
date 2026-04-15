@@ -77,22 +77,22 @@
                     @if($type === 'phones')
                         <th>Номер</th>
                         <th>Країна</th>
-                        <th>Мітка</th>
-                        <th>Primary</th>
+                        <th class="db-col-optional">Мітка</th>
+                        <th class="db-col-optional">Primary</th>
                     @elseif($type === 'prices')
                         <th>Ціна</th>
                         <th>Валюта</th>
-                        <th>Мітка</th>
-                        <th>Видимість</th>
+                        <th class="db-col-optional">Мітка</th>
+                        <th class="db-col-optional">Видимість</th>
                     @elseif($type === 'addresses')
                         <th>Місто</th>
                         <th>Країна</th>
-                        <th>Вулиця</th>
-                        <th>Мітка</th>
+                        <th class="db-col-optional">Вулиця</th>
+                        <th class="db-col-optional">Мітка</th>
                     @elseif($type === 'socials')
                         <th>Платформа</th>
                         <th>URL / Handle</th>
-                        <th>Мітка</th>
+                        <th class="db-col-optional">Мітка</th>
                     @endif
                 </tr>
             </thead>
@@ -110,22 +110,22 @@
                     @if($type === 'phones')
                         <td><span class="db-val-main">{{ $row->number }}</span></td>
                         <td><span class="db-badge">{{ $row->country_iso }} +{{ $row->dial_code }}</span></td>
-                        <td><span class="db-val-sub">{{ $row->label ?: '—' }}</span></td>
-                        <td>{{ $row->is_primary ? '✓' : '' }}</td>
+                        <td class="db-col-optional"><span class="db-val-sub">{{ $row->label ?: '—' }}</span></td>
+                        <td class="db-col-optional">{{ $row->is_primary ? '✓' : '' }}</td>
                     @elseif($type === 'prices')
                         <td><span class="db-val-main">{{ number_format($row->amount, 2) }}</span></td>
                         <td><span class="db-badge db-badge--currency">{{ $row->currency }}</span></td>
-                        <td><span class="db-val-sub">{{ $row->label ?: '—' }}</span></td>
-                        <td>{{ $row->is_visible ? 'Видима' : 'Прихована' }}</td>
+                        <td class="db-col-optional"><span class="db-val-sub">{{ $row->label ?: '—' }}</span></td>
+                        <td class="db-col-optional">{{ $row->is_visible ? 'Видима' : 'Прихована' }}</td>
                     @elseif($type === 'addresses')
                         <td><span class="db-val-main">{{ $row->city }}</span></td>
                         <td><span class="db-badge">{{ $row->country_iso }}</span></td>
-                        <td><span class="db-val-sub">{{ $row->street ?: '—' }}</span></td>
-                        <td><span class="db-val-sub">{{ $row->label ?: '—' }}</span></td>
+                        <td class="db-col-optional"><span class="db-val-sub">{{ $row->street ?: '—' }}</span></td>
+                        <td class="db-col-optional"><span class="db-val-sub">{{ $row->label ?: '—' }}</span></td>
                     @elseif($type === 'socials')
                         <td><span class="db-badge db-badge--platform">{{ $row->platform }}</span></td>
                         <td><span class="db-val-sub" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;display:block;white-space:nowrap;">{{ $row->url }}</span></td>
-                        <td><span class="db-val-sub">{{ $row->handle ?: '—' }}</span></td>
+                        <td class="db-col-optional"><span class="db-val-sub">{{ $row->handle ?: '—' }}</span></td>
                     @endif
                 </tr>
                 @endforeach
