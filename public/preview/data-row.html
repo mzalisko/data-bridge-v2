@@ -1,284 +1,231 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="uk" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Preview — data-row</title>
-<style>
-/* ── TG Dark tokens ─────────────────────────────────────── */
-:root {
-    --bg-page:      #0f0f10;
-    --bg-card:      #1c1c1e;
-    --bg-hover:     rgba(255,255,255,.035);
-    --bg-muted:     #2a2a2e;
-    --text-primary: #f2f2f7;
-    --text-secondary:#ebebf5cc;
-    --text-muted:   #ebebf599;
-    --border-color: rgba(255,255,255,.09);
-    --accent:       #6366f1;
-    --shadow-card:  0 2px 12px rgba(0,0,0,.35);
-    --radius-card:  16px;
-    --radius-item:  10px;
-    --font-size-xs: 11px;
-    --font-size-sm: 13px;
-    --font-size-md: 15px;
-    --space-sm:     8px;
-    --space-md:     16px;
-    --space-xl:     40px;
-    --duration-fast:.15s;
-    --ease-ui:      cubic-bezier(.4,0,.2,1);
-}
-body {
-    margin: 0;
-    background: var(--bg-page);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    color: var(--text-primary);
-    padding: 32px;
-}
-h3 {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin: 0 0 10px;
-}
-.section { margin-bottom: 40px; }
-
-/* ── data-tab-header ─────────────────────────────────── */
-.data-tab-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--space-md);
-}
-.data-tab__title {
-    font-size: var(--font-size-md);
-    font-weight: 700;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    margin: 0;
-}
-.data-tab__count {
-    font-size: var(--font-size-xs);
-    font-weight: 500;
-    color: var(--text-muted);
-    background: var(--bg-page);
-    border-radius: 8px;
-    padding: 2px 8px;
-    border: 1px solid var(--border-color);
-}
-
-/* ── data-list / data-row ────────────────────────────── */
-.data-list {
-    list-style: none;
-    margin: 0; padding: 0;
-    display: flex;
-    flex-direction: column;
-    background: var(--bg-card);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
-    overflow: hidden;
-}
-.data-row {
-    display: grid;
-    grid-template-columns: 96px 1fr minmax(0, 220px) 56px;
-    align-items: center;
-    gap: 0 var(--space-md);
-    padding: 12px var(--space-md);
-    border-radius: 0;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--border-color);
-    transition: background var(--duration-fast) var(--ease-ui);
-}
-.data-row:last-child { border-bottom: none; }
-.data-row:hover { background: var(--bg-hover); }
-.data-row__indicator { display: flex; align-items: center; gap: 5px; min-width: 0; }
-.data-row__main { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.data-row__secondary { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; }
-.data-row__val {
-    font-size: var(--font-size-sm); font-weight: 600; color: var(--text-primary);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
-}
-.data-row__label { font-size: var(--font-size-xs); color: var(--text-secondary); white-space: nowrap; }
-.data-row__actions {
-    display: flex; align-items: center; justify-content: flex-end; gap: 2px;
-    opacity: 0; transition: opacity var(--duration-fast) var(--ease-ui);
-}
-.data-row:hover .data-row__actions { opacity: 1; }
-
-/* ── badges ──────────────────────────────────────────── */
-.data-badge {
-    font-size: 9px; font-weight: 700; padding: 2px 7px;
-    border-radius: 6px; flex-shrink: 0;
-    text-transform: uppercase; letter-spacing: .04em;
-    background: var(--bg-muted); color: var(--text-secondary);
-}
-.data-badge--primary { background: rgba(99,102,241,.15); color: #818cf8; }
-.data-badge--platform { background: rgba(99,179,237,.12); color: #63b3ed; }
-.data-badge--currency { background: rgba(72,187,120,.12); color: #48bb78; }
-.geo-badge {
-    display: inline-flex; align-items: center; padding: 1px 6px;
-    border-radius: 100px; font-size: 10px; font-weight: 600; white-space: nowrap;
-}
-.geo-badge--hidden { background: var(--bg-muted); color: var(--text-muted); }
-.geo-badge--all    { background: rgba(72,187,120,.15); color: #48bb78; }
-.geo-badge--include { background: rgba(99,179,237,.15); color: #63b3ed; }
-.geo-badge--exclude { background: rgba(237,137,54,.15); color: #ed8936; }
-
-/* ── btn-icon ────────────────────────────────────────── */
-.btn-icon {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 28px; height: 28px; border-radius: 8px; border: none;
-    background: transparent; color: var(--text-muted); cursor: pointer;
-    transition: background var(--duration-fast), color var(--duration-fast);
-}
-.btn-icon:hover { background: var(--bg-muted); color: var(--text-primary); }
-.btn-icon--danger:hover { background: rgba(245,101,101,.12); color: #f56565; }
-.btn-primary {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 14px; border-radius: var(--radius-item);
-    background: var(--accent); color: #fff; border: none;
-    font-size: var(--font-size-sm); font-weight: 600; cursor: pointer;
-}
-
-/* ── data-tab__empty ─────────────────────────────────── */
-.data-tab__empty {
-    display: flex; flex-direction: column; align-items: center;
-    gap: var(--space-sm); padding: var(--space-xl) var(--space-md);
-    color: var(--text-muted); font-size: var(--font-size-sm);
-    background: var(--bg-card); border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
-}
-</style>
+<title>Preview — data-row · DataBridge CRM</title>
+<link rel="stylesheet" href="../assets/css/app.css">
+<link rel="stylesheet" href="../assets/css/pages/sites.css">
 </head>
 <body>
 
-<!-- ─── Phones ─────────────────────────────────────────── -->
-<div class="section">
-<h3>Phones</h3>
-<div class="data-tab-header">
-    <h2 class="data-tab__title">Телефони <span class="data-tab__count">4</span></h2>
-    <button class="btn-primary">+ Додати</button>
-</div>
-<ul class="data-list">
-    <li class="data-row">
-        <div class="data-row__indicator"><span class="data-badge">UA +380</span></div>
-        <div class="data-row__main"><span class="data-row__val">(073) 900-80-01</span></div>
-        <div class="data-row__secondary">
-            <span class="data-badge data-badge--primary">Primary</span>
-            <span class="data-row__label">Основний</span>
-            <span class="geo-badge geo-badge--all">Всі</span>
-        </div>
-        <div class="data-row__actions">
-            <button class="btn-icon">✏</button>
-            <button class="btn-icon btn-icon--danger">🗑</button>
-        </div>
-    </li>
-    <li class="data-row">
-        <div class="data-row__indicator"><span class="data-badge">DE +49</span></div>
-        <div class="data-row__main"><span class="data-row__val">30 1234-5678</span></div>
-        <div class="data-row__secondary">
-            <span class="data-row__label">WhatsApp</span>
-            <span class="geo-badge geo-badge--include">DE, AT</span>
-        </div>
-        <div class="data-row__actions">
-            <button class="btn-icon">✏</button>
-            <button class="btn-icon btn-icon--danger">🗑</button>
-        </div>
-    </li>
-    <li class="data-row">
-        <div class="data-row__indicator"><span class="data-badge">PL +48</span></div>
-        <div class="data-row__main"><span class="data-row__val">22 123-45-67</span></div>
-        <div class="data-row__secondary">
-            <span class="geo-badge geo-badge--exclude">≠ UA</span>
-        </div>
-        <div class="data-row__actions">
-            <button class="btn-icon">✏</button>
-            <button class="btn-icon btn-icon--danger">🗑</button>
-        </div>
-    </li>
-    <li class="data-row">
-        <div class="data-row__indicator"><span class="data-badge">US +1</span></div>
-        <div class="data-row__main"><span class="data-row__val">(212) 555-0100</span></div>
-        <div class="data-row__secondary">
-            <span class="geo-badge geo-badge--hidden">Прих.</span>
-        </div>
-        <div class="data-row__actions">
-            <button class="btn-icon">✏</button>
-            <button class="btn-icon btn-icon--danger">🗑</button>
-        </div>
-    </li>
-</ul>
-</div>
+<div class="shell">
 
-<!-- ─── Prices ─────────────────────────────────────────── -->
-<div class="section">
-<h3>Prices</h3>
-<div class="data-tab-header">
-    <h2 class="data-tab__title">Ціни <span class="data-tab__count">3</span></h2>
-    <button class="btn-primary">+ Додати</button>
-</div>
-<ul class="data-list">
-    <li class="data-row">
-        <div class="data-row__indicator"><span class="data-badge data-badge--currency">USD</span></div>
-        <div class="data-row__main"><span class="data-row__val">299.00</span></div>
-        <div class="data-row__secondary">
-            <span class="data-badge data-badge--primary">Primary</span>
-            <span class="data-row__label">Місяць</span>
-            <span class="geo-badge geo-badge--all">Всі</span>
+    <!-- Rail (мінімальний) -->
+    <nav class="crm-rail">
+        <div class="crm-rail__logo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+                <path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/>
+            </svg>
         </div>
-        <div class="data-row__actions">
-            <button class="btn-icon">✏</button>
-            <button class="btn-icon btn-icon--danger">🗑</button>
-        </div>
-    </li>
-    <li class="data-row">
-        <div class="data-row__indicator"><span class="data-badge data-badge--currency">EUR</span></div>
-        <div class="data-row__main"><span class="data-row__val">249.00</span></div>
-        <div class="data-row__secondary">
-            <span class="data-row__label">Рік</span>
-            <span class="geo-badge geo-badge--include">DE, AT, CH</span>
-        </div>
-        <div class="data-row__actions">
-            <button class="btn-icon">✏</button>
-            <button class="btn-icon btn-icon--danger">🗑</button>
-        </div>
-    </li>
-    <li class="data-row">
-        <div class="data-row__indicator"><span class="data-badge data-badge--currency">UAH</span></div>
-        <div class="data-row__main"><span class="data-row__val">11500.00</span></div>
-        <div class="data-row__secondary">
-            <span class="data-row__label">Рік</span>
-            <span class="geo-badge geo-badge--include">UA</span>
-        </div>
-        <div class="data-row__actions">
-            <button class="btn-icon">✏</button>
-            <button class="btn-icon btn-icon--danger">🗑</button>
-        </div>
-    </li>
-</ul>
-</div>
+        <ul class="crm-rail__nav">
+            <li><a href="#" class="crm-rail__item" title="Dashboard">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                </svg>
+            </a></li>
+            <li><a href="#" class="crm-rail__item is-active" title="Сайти">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+            </a></li>
+        </ul>
+    </nav>
 
-<!-- ─── Empty state ─────────────────────────────────────── -->
-<div class="section">
-<h3>Empty state</h3>
-<div class="data-tab-header">
-    <h2 class="data-tab__title">Соцмережі <span class="data-tab__count">0</span></h2>
-    <button class="btn-primary">+ Додати</button>
-</div>
-<div class="data-tab__empty">
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-    </svg>
-    <p style="margin:0">Соцмереж ще немає</p>
-</div>
-</div>
+    <!-- Shell body -->
+    <div class="shell-body">
+
+        <!-- Topbar -->
+        <header class="topbar">
+            <span class="topbar__title">DataBridge CRM</span>
+            <div class="topbar__user">
+                <div class="topbar__user-avatar">
+                    A
+                    <span class="topbar__user-status"></span>
+                </div>
+                <span class="topbar__user-name">Admin</span>
+            </div>
+        </header>
+
+        <!-- Page content -->
+        <div class="page-content">
+
+            <!-- Toolbar -->
+            <div class="page-toolbar">
+                <div style="display:flex;align-items:center;gap:var(--space-md);">
+                    <a href="#" class="btn-ghost">← Сайти</a>
+                    <span class="status-dot status-dot--ok"></span>
+                    <h1 class="page-title">Site Alpha</h1>
+                </div>
+                <div style="display:flex;gap:var(--space-sm);">
+                    <a href="#" class="btn-ghost">↗ Відкрити</a>
+                    <button class="btn-primary">Редагувати</button>
+                </div>
+            </div>
+
+            <!-- Site show layout -->
+            <div class="site-show">
+
+                <!-- Sidebar -->
+                <div class="site-show__sidebar">
+                    <div class="site-show__favicon" style="background:#6366f126;color:#6366f1;">A</div>
+                    <div>
+                        <div class="site-show__name">Site Alpha</div>
+                        <div class="site-show__url">https://alpha.example.com</div>
+                    </div>
+
+                    <div class="site-show__info">
+                        <div class="site-show__info-row">
+                            <span class="site-show__info-label">Статус</span>
+                            <span class="site-show__info-val" style="color:var(--dot-ok)">● Active</span>
+                        </div>
+                        <div class="site-show__info-row">
+                            <span class="site-show__info-label">Група</span>
+                            <span class="site-show__info-val">Group Alpha</span>
+                        </div>
+                        <div class="site-show__info-row">
+                            <span class="site-show__info-label">Sync</span>
+                            <span class="site-show__info-val" style="color:var(--dot-ok)">2 хв тому</span>
+                        </div>
+                        <div class="site-show__info-row">
+                            <span class="site-show__info-label">Додано</span>
+                            <span class="site-show__info-val">12.04.2026</span>
+                        </div>
+                    </div>
+
+                    <nav class="site-show__nav">
+                        <a class="site-show__nav-item is-active" href="#">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l.72-.72a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.5 16a2 2 0 0 1 .42.92z"/>
+                            </svg>
+                            Телефони <span class="site-show__nav-count">4</span>
+                        </a>
+                        <a class="site-show__nav-item" href="#">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="1" x2="12" y2="23"/>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                            </svg>
+                            Ціни <span class="site-show__nav-count">3</span>
+                        </a>
+                        <a class="site-show__nav-item" href="#">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            Адреси <span class="site-show__nav-count">2</span>
+                        </a>
+                        <a class="site-show__nav-item" href="#">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                            </svg>
+                            Соцмережі <span class="site-show__nav-count">—</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- Content (Phones tab) -->
+                <div class="site-show__content">
+
+                    <div class="data-tab-header">
+                        <h2 class="data-tab__title">Телефони <span class="data-tab__count">4</span></h2>
+                        <button class="btn-primary">+ Додати</button>
+                    </div>
+
+                    <ul class="data-list">
+                        <li class="data-row">
+                            <div class="data-row__indicator">
+                                <span class="data-badge">UA +380</span>
+                            </div>
+                            <div class="data-row__main">
+                                <span class="data-row__val">(073) 900-80-01</span>
+                            </div>
+                            <div class="data-row__secondary">
+                                <span class="data-badge data-badge--primary">Primary</span>
+                                <span class="data-row__label">Основний</span>
+                                <span class="geo-badge geo-badge--all geo-badge--sm">Всі</span>
+                            </div>
+                            <div class="data-row__actions">
+                                <button class="btn-icon" title="Редагувати">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </button>
+                                <button class="btn-icon btn-icon--danger" title="Видалити">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                </button>
+                            </div>
+                        </li>
+                        <li class="data-row">
+                            <div class="data-row__indicator">
+                                <span class="data-badge">DE +49</span>
+                            </div>
+                            <div class="data-row__main">
+                                <span class="data-row__val">30 1234-5678</span>
+                            </div>
+                            <div class="data-row__secondary">
+                                <span class="data-row__label">WhatsApp</span>
+                                <span class="geo-badge geo-badge--include geo-badge--sm">DE, AT</span>
+                            </div>
+                            <div class="data-row__actions">
+                                <button class="btn-icon" title="Редагувати">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </button>
+                                <button class="btn-icon btn-icon--danger" title="Видалити">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                </button>
+                            </div>
+                        </li>
+                        <li class="data-row">
+                            <div class="data-row__indicator">
+                                <span class="data-badge">PL +48</span>
+                            </div>
+                            <div class="data-row__main">
+                                <span class="data-row__val">22 123-45-67</span>
+                            </div>
+                            <div class="data-row__secondary">
+                                <span class="geo-badge geo-badge--exclude geo-badge--sm">≠ UA</span>
+                            </div>
+                            <div class="data-row__actions">
+                                <button class="btn-icon" title="Редагувати">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </button>
+                                <button class="btn-icon btn-icon--danger" title="Видалити">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                </button>
+                            </div>
+                        </li>
+                        <li class="data-row">
+                            <div class="data-row__indicator">
+                                <span class="data-badge">US +1</span>
+                            </div>
+                            <div class="data-row__main">
+                                <span class="data-row__val">(212) 555-0100</span>
+                            </div>
+                            <div class="data-row__secondary">
+                                <span class="data-row__label">Офіс</span>
+                                <span class="geo-badge geo-badge--hidden geo-badge--sm">Прих.</span>
+                            </div>
+                            <div class="data-row__actions">
+                                <button class="btn-icon" title="Редагувати">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </button>
+                                <button class="btn-icon btn-icon--danger" title="Видалити">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                </button>
+                            </div>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+
+        </div><!-- /.page-content -->
+    </div><!-- /.shell-body -->
+</div><!-- /.shell -->
 
 </body>
 </html>
