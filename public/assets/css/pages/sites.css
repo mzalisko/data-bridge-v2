@@ -1116,7 +1116,7 @@
     letter-spacing: 0.01em;
 }
 .geo-badge--sm { font-size: 10px; padding: 1px 6px; }
-.geo-badge--hidden { background: var(--bg-muted, #2a2a2e); color: var(--text-muted); }
+.geo-badge--hidden { background: var(--bg-muted, #2a2a2e); color: var(--text-muted); border: 1px solid var(--border-color); }
 .geo-badge--all    { background: rgba(72,187,120,0.15); color: #48bb78; }
 .geo-badge--include { background: rgba(99,179,237,0.15); color: #63b3ed; }
 .geo-badge--exclude { background: rgba(237,137,54,0.15); color: #ed8936; }
@@ -1276,7 +1276,8 @@
     border-color: var(--accent);
     color: var(--text-primary);
 }
-.geo-country-tag.is-selected {
+.geo-country-tag.is-selected,
+.geo-country-tag:has(input:checked) {
     border-color: var(--accent);
     background: rgba(var(--accent-rgb, 99,102,241), 0.12);
     color: var(--accent);
