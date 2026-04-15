@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\SitePriceController;
 use App\Http\Controllers\Admin\SiteAddressController;
 use App\Http\Controllers\Admin\SiteSocialController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\BatchController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +33,10 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('site-groups', SiteGroupController::class)
         ->only(['index', 'store', 'update', 'destroy', 'show']);
+
+    // Batch routes must be before resource to avoid {site}='batch' conflict
+    Route::get( 'sites/batch', [BatchController::class, 'show'])->name('sites.batch.show');
+    Route::post('sites/batch', [BatchController::class, 'apply'])->name('sites.batch');
 
     Route::resource('sites', SiteController::class)
         ->only(['index', 'store', 'update', 'destroy', 'show']);

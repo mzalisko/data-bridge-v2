@@ -99,7 +99,15 @@
         @endphp
         <div class="site-card {{ !$site->is_active ? 'site-card--disabled' : '' }}"
              data-searchable="{{ $site->name }} {{ $site->url }} {{ $site->siteGroup?->name }}"
-             onclick="window.location='{{ route('sites.show', $site) }}'">
+             data-site-id="{{ $site->id }}"
+             onclick="handleSiteCardClick(event, {{ $site->id }}, '{{ route('sites.show', $site) }}')">
+
+            {{-- Batch checkbox --}}
+            <div class="site-card__check" onclick="event.stopPropagation()">
+                <input type="checkbox" class="batch-cb" value="{{ $site->id }}"
+                       onchange="batchUpdateSelection()">
+            </div>
+
             <div class="site-card__favicon"
                  style="background:{{ $color }}26;color:{{ $color }};">
                 {{ $letter }}
@@ -132,9 +140,9 @@
             <span class="site-card__date">{{ $site->created_at->format('d.m.Y') }}</span>
             <div class="site-card__actions" onclick="event.stopPropagation()">
                 @php $isFav = in_array($site->id, $favoriteIds); @endphp
-                <button class="db-fav-btn {{ $isFav ? 'is-fav' : '' }}" 
+                <button class="db-fav-btn {{ $isFav ? 'is-fav' : '' }}"
                         style="font-size: 18px; margin-right: 4px;"
-                        title="{{ $isFav ? 'Прибрати з улюблених' : 'Додати до улюблених' }}" 
+                        title="{{ $isFav ? 'Прибрати з улюблених' : 'Додати до улюблених' }}"
                         onclick="toggleFavorite(event, this, {{ $site->id }})">★</button>
                 <a href="{{ $site->url }}" target="_blank" class="btn-icon" title="Відкрити">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -155,6 +163,23 @@
     </div>
     <div class="pagination-wrap">{{ $sites->links() }}</div>
 @endif
+
+{{-- Batch floating bar --}}
+<div class="batch-bar" id="batch-bar">
+    <span class="batch-bar__count" id="batch-count">0 обрано</span>
+    <div class="batch-bar__actions">
+        <form method="GET" action="{{ route('sites.batch.show') }}" id="form-batch-nav">
+            <div id="batch-ids-container"></div>
+            <button type="submit" class="btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+                Batch дії
+            </button>
+        </form>
+        <button class="btn-ghost" onclick="batchClear()">Скасувати</button>
+    </div>
+</div>
 
 {{-- Create drawer --}}
 <div class="drawer-overlay" id="drawer-site-create-overlay" onclick="closeDrawer('drawer-site-create')"></div>
@@ -205,6 +230,85 @@
 <script>
     initViewToggle('sites-view', 'sites-list', 'btn-view-list', 'btn-view-grid');
     initClientSearch('site-search', '.site-card');
+
+    // Site card click: navigate unless in batch mode (checkbox clicked)
+    function handleSiteCardClick(e, siteId, url) {
+        // If any checkbox is checked, clicking a card toggles its checkbox
+        var anyChecked = document.querySelectorAll('.batch-cb:checked').length > 0;
+        if (anyChecked) {
+            var cb = e.currentTarget.querySelector('.batch-cb');
+            if (cb) { cb.checked = !cb.checked; batchUpdateSelection(); }
+        } else {
+            window.location = url;
+        }
+    }
+
+    // Batch: update count, show/hide bar, sync drawer
+    function batchUpdateSelection() {
+        var checked = document.querySelectorAll('.batch-cb:checked');
+        var count = checked.length;
+
+        // Bar
+        var bar = document.getElementById('batch-bar');
+        var countEl = document.getElementById('batch-count');
+        if (bar) bar.classList.toggle('is-visible', count > 0);
+        if (countEl) countEl.textContent = count + ' ' + pluralSites(count);
+
+        // Drawer counter
+        var dc = document.getElementById('drawer-batch-count');
+        if (dc) dc.textContent = count;
+
+        // Submit label
+        var btn = document.getElementById('batch-submit-btn');
+        if (btn) btn.textContent = 'Застосувати до ' + count + ' ' + pluralSites(count);
+
+        // Hidden inputs
+        var container = document.getElementById('batch-ids-container');
+        if (container) {
+            container.innerHTML = '';
+            checked.forEach(function(cb) {
+                var inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = 'ids[]';
+                inp.value = cb.value;
+                container.appendChild(inp);
+            });
+        }
+
+        // Sites preview
+        var preview = document.getElementById('batch-sites-preview');
+        if (preview) {
+            preview.innerHTML = '';
+            checked.forEach(function(cb) {
+                var card = cb.closest('.site-card');
+                if (!card) return;
+                var name = card.querySelector('.site-card__name')?.textContent?.trim() || '#' + cb.value;
+                var chip = document.createElement('span');
+                chip.className = 'batch-site-chip';
+                chip.textContent = name;
+                preview.appendChild(chip);
+            });
+        }
+
+        // Highlight checked cards
+        document.querySelectorAll('.site-card').forEach(function(card) {
+            var cb = card.querySelector('.batch-cb');
+            card.classList.toggle('is-batch-selected', cb && cb.checked);
+        });
+    }
+
+
+    // Batch: clear selection
+    function batchClear() {
+        document.querySelectorAll('.batch-cb').forEach(function(cb) { cb.checked = false; });
+        batchUpdateSelection();
+    }
+
+    function pluralSites(n) {
+        if (n % 10 === 1 && n % 100 !== 11) return 'сайт';
+        if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return 'сайти';
+        return 'сайтів';
+    }
 </script>
 @endpush
 

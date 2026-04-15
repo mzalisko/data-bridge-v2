@@ -193,6 +193,60 @@ function geoUpdateCountries(prefix) {
     hidden.value = checked.join(', ');
 }
 
+// Batch selection on sites index
+function batchUpdateSelection() {
+    var checked = document.querySelectorAll('.batch-cb:checked');
+    var count   = checked.length;
+
+    // Floating bar
+    var bar = document.getElementById('batch-bar');
+    if (bar) bar.classList.toggle('is-visible', count > 0);
+
+    var countEl = document.getElementById('batch-count');
+    if (countEl) countEl.textContent = count + ' ' + _pluralSites(count) + ' обрано';
+
+    // Rebuild hidden ids[] in the nav form
+    var container = document.getElementById('batch-ids-container');
+    if (container) {
+        container.innerHTML = '';
+        checked.forEach(function(cb) {
+            var inp = document.createElement('input');
+            inp.type  = 'hidden';
+            inp.name  = 'ids[]';
+            inp.value = cb.value;
+            container.appendChild(inp);
+        });
+    }
+
+    // Highlight cards
+    document.querySelectorAll('.site-card').forEach(function(card) {
+        var cb = card.querySelector('.batch-cb');
+        card.classList.toggle('is-batch-selected', !!(cb && cb.checked));
+    });
+}
+
+function batchClear() {
+    document.querySelectorAll('.batch-cb').forEach(function(cb) { cb.checked = false; });
+    batchUpdateSelection();
+}
+
+// Site card click: navigate OR toggle checkbox when in batch mode
+function handleSiteCardClick(e, siteId, url) {
+    var anyChecked = document.querySelectorAll('.batch-cb:checked').length > 0;
+    if (anyChecked) {
+        var cb = e.currentTarget.querySelector('.batch-cb');
+        if (cb) { cb.checked = !cb.checked; batchUpdateSelection(); }
+    } else {
+        window.location = url;
+    }
+}
+
+function _pluralSites(n) {
+    if (n % 10 === 1 && n % 100 !== 11) return 'сайт';
+    if ([2,3,4].includes(n % 10) && ![12,13,14].includes(n % 100)) return 'сайти';
+    return 'сайтів';
+}
+
 // Favorites: toggle via AJAX
 function toggleFavorite(e, btn, siteId) {
     if (e && e.stopPropagation) e.stopPropagation();
