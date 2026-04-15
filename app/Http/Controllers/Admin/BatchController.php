@@ -33,7 +33,7 @@ class BatchController extends Controller
         $data = $request->validate([
             'ids'    => ['required', 'array', 'min:1'],
             'ids.*'  => ['integer', 'exists:sites,id'],
-            'action' => ['required', 'in:status,group,phone,price,address,social'],
+            'action' => ['required', 'in:status,group,phone,price,address,social,delete'],
         ]);
 
         $ids    = $data['ids'];
@@ -132,6 +132,11 @@ class BatchController extends Controller
                 }
                 return redirect()->route('sites.index')
                     ->with('success', "Batch: соцмережу додано до {$count} сайтів");
+
+            case 'delete':
+                Site::whereIn('id', $ids)->delete();
+                return redirect()->route('sites.index')
+                    ->with('success', "Видалено {$count} сайтів");
         }
 
         return redirect()->route('sites.index');

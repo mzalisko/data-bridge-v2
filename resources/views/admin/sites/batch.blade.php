@@ -80,6 +80,10 @@
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                     Соцмережа
                 </button>
+                <button type="button" class="batch-tab batch-tab--danger" data-action="delete" onclick="batchTab('delete')">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                    Видалити
+                </button>
             </div>
 
             <input type="hidden" name="action" id="batch-action-input" value="status">
@@ -221,6 +225,18 @@
                 </div>
             </div>
 
+            {{-- Panel: Delete --}}
+            <div class="batch-panel" id="panel-delete" style="display:none">
+                <div class="batch-delete-confirm">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--dot-off)" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <p>Буде <strong>безповоротно видалено</strong> {{ $sites->count() }} {{ $sites->count() === 1 ? 'сайт' : ($sites->count() < 5 ? 'сайти' : 'сайтів') }} разом із усіма їхніми даними.</p>
+                </div>
+            </div>
+
             <div class="batch-form-footer">
                 <a href="{{ route('sites.index') }}" class="btn-ghost">Скасувати</a>
                 <button type="submit" class="btn-primary" id="batch-submit-btn">
@@ -234,25 +250,35 @@
 
 @push('scripts')
 <script>
-var batchPanels = ['status','group','phone','price','address','social'];
+var batchPanels = ['status','group','phone','price','address','social','delete'];
 
 function batchTab(action) {
-    // Update hidden action input
     document.getElementById('batch-action-input').value = action;
 
-    // Switch panels
     batchPanels.forEach(function(a) {
         document.getElementById('panel-' + a).style.display = a === action ? '' : 'none';
     });
 
-    // Switch active tab
     document.querySelectorAll('.batch-tab').forEach(function(tab) {
         tab.classList.toggle('batch-tab--active', tab.dataset.action === action);
     });
 
-    // Toggle group select disabled state
     var groupSel = document.getElementById('batch-group-sel');
     if (groupSel) groupSel.disabled = action !== 'group';
+
+    // Submit button: danger style for delete
+    var btn = document.getElementById('batch-submit-btn');
+    if (action === 'delete') {
+        btn.className = 'btn-danger';
+        btn.textContent = 'Видалити {{ $sites->count() }} сайтів';
+        btn.onclick = function(e) {
+            if (!confirm('Видалити {{ $sites->count() }} сайтів? Це незворотно.')) e.preventDefault();
+        };
+    } else {
+        btn.className = 'btn-primary';
+        btn.textContent = 'Застосувати до {{ $sites->count() }} сайтів';
+        btn.onclick = null;
+    }
 }
 
 function batchStatusSync(input) {

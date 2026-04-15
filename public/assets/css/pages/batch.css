@@ -147,6 +147,34 @@
     border-color: rgba(var(--accent-rgb, 99,102,241), 0.3);
     color: var(--accent);
 }
+.batch-tab--danger {
+    color: var(--dot-off, #f56565);
+    border-color: rgba(245, 101, 101, 0.25);
+}
+.batch-tab--danger:hover {
+    background: rgba(245, 101, 101, 0.08);
+    color: var(--dot-off, #f56565);
+}
+.batch-tab--danger.batch-tab--active {
+    background: rgba(245, 101, 101, 0.1);
+    border-color: rgba(245, 101, 101, 0.4);
+    color: var(--dot-off, #f56565);
+}
+
+/* ─── Delete confirmation panel ─── */
+.batch-delete-confirm {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: rgba(245, 101, 101, 0.06);
+    border: 1px solid rgba(245, 101, 101, 0.2);
+    border-radius: var(--radius-item);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+}
+.batch-delete-confirm svg { flex-shrink: 0; margin-top: 2px; }
 
 /* ─── Status tiles ─── */
 .batch-status-grid {
