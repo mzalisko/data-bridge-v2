@@ -270,18 +270,15 @@
     align-items: center;
     gap: var(--space-md);
     background: var(--bg-card);
-    border-radius: var(--radius-item);
-    padding: 10px var(--space-md);
+    border-radius: var(--radius-pill);
+    padding: var(--space-sm) var(--space-md);
     box-shadow: var(--shadow-card);
     cursor: pointer;
-    border-left: 3px solid var(--group-color, var(--accent));
-    transition: background var(--duration-fast) var(--ease-ui),
-                box-shadow var(--duration-fast) var(--ease-ui);
+    transition: box-shadow var(--duration-fast) var(--ease-ui);
 }
 
 .group-row:hover {
-    background: var(--bg-hover);
-    box-shadow: var(--shadow-card), 0 0 0 1px color-mix(in srgb, var(--group-color, var(--accent)) 40%, transparent);
+    box-shadow: var(--shadow-card), 0 0 0 1px var(--accent);
 }
 
 .group-row__icon {
@@ -354,13 +351,9 @@
 }
 
 .group-row__count {
-    font-size: var(--font-size-xs);
-    font-weight: 700;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
     color: var(--text-muted);
-    background: var(--bg-page);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1px 8px;
     white-space: nowrap;
 }
 

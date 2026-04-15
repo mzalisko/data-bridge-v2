@@ -60,7 +60,6 @@
             $letter = mb_strtoupper(mb_substr($group->name, 0, 1, 'UTF-8'), 'UTF-8');
         @endphp
         <div class="group-row"
-             style="--group-color:{{ $colorHex }}"
              data-searchable="{{ $group->name }} {{ $group->description }}"
              onclick="window.location='{{ route('site-groups.show', $group) }}'">
             <div class="group-row__icon"
