@@ -113,13 +113,13 @@
     {{-- Content --}}
     <div class="site-show__content">
         @if($tab === 'phones')
-            @include('admin.sites._tab-phones', ['site' => $site, 'phones' => $site->phones, 'countries' => $countries])
+            @include('admin.sites._tab-phones',    ['site' => $site, 'phones'    => $site->phones,    'countries' => $countries])
         @elseif($tab === 'prices')
-            @include('admin.sites._tab-prices', ['site' => $site, 'prices' => $site->prices])
+            @include('admin.sites._tab-prices',    ['site' => $site, 'prices'    => $site->prices,    'countries' => $countries])
         @elseif($tab === 'addresses')
-            @include('admin.sites._tab-addresses', ['site' => $site, 'addresses' => $site->addresses])
+            @include('admin.sites._tab-addresses', ['site' => $site, 'addresses' => $site->addresses, 'countries' => $countries])
         @elseif($tab === 'socials')
-            @include('admin.sites._tab-socials', ['site' => $site, 'socials' => $site->socials])
+            @include('admin.sites._tab-socials',   ['site' => $site, 'socials'   => $site->socials,   'countries' => $countries])
         @endif
     </div>
 </div>

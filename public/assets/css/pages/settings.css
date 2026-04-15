@@ -1,39 +1,111 @@
 /* DataBridge CRM — Settings page */
 
 .settings-layout {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: var(--space-lg);
+    align-items: start;
+}
+
+@media (max-width: 700px) {
+    .settings-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ─── Sidebar nav ─── */
+.settings-nav {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    position: sticky;
+    top: var(--space-md);
+}
+
+@media (max-width: 700px) {
+    .settings-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        position: static;
+    }
+}
+
+.settings-nav__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-item);
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: background 0.12s, color 0.12s;
+}
+.settings-nav__item:hover { background: var(--bg-hover, rgba(255,255,255,0.04)); color: var(--text-primary); }
+.settings-nav__item.is-active { background: rgba(var(--accent-rgb, 99,102,241), 0.1); color: var(--accent); }
+.settings-nav__item svg { flex-shrink: 0; }
+
+/* ─── Content ─── */
+.settings-content {
     display: flex;
     flex-direction: column;
     gap: var(--space-lg);
-    max-width: 760px;
+    max-width: 680px;
 }
 
-.settings-card {
+/* ─── Section card ─── */
+.settings-section {
     background: var(--bg-card);
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-card);
     padding: var(--space-lg);
 }
 
-.settings-card__header {
+.settings-section__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-md);
     margin-bottom: var(--space-lg);
 }
 
-.settings-card__title {
+.settings-section__title {
     font-size: var(--font-size-md);
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 4px;
 }
 
-.settings-card__desc {
+.settings-section__desc {
     font-size: var(--font-size-sm);
     color: var(--text-muted);
     line-height: 1.5;
 }
 
-/* Add form */
+.settings-section__count {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 100px;
+    background: var(--bg-muted, rgba(255,255,255,0.06));
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+/* ─── Add form ─── */
 .settings-add-form {
     margin-bottom: var(--space-md);
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .settings-add-row {
@@ -53,7 +125,7 @@
     gap: 4px;
 }
 
-/* Countries list */
+/* ─── Countries list ─── */
 .countries-list {
     list-style: none;
     border: 1px solid var(--border-color);
@@ -65,10 +137,9 @@
     display: flex;
     align-items: center;
     gap: var(--space-md);
-    padding: 10px var(--space-md);
+    padding: 9px var(--space-md);
     border-bottom: 1px solid var(--border-color);
 }
-
 .countries-row:last-child { border-bottom: none; }
 .countries-row:hover { background: var(--bg-hover, rgba(255,255,255,0.03)); }
 
@@ -79,20 +150,15 @@
     color: var(--accent);
     letter-spacing: 0.05em;
 }
-
 .country-dial {
     width: 60px;
     font-size: var(--font-size-sm);
     color: var(--text-primary);
     font-variant-numeric: tabular-nums;
 }
-
 .country-name {
     flex: 1;
     font-size: var(--font-size-sm);
     color: var(--text-muted);
 }
-
-.countries-row__del {
-    margin-left: auto;
-}
+.countries-row__del { margin-left: auto; }

@@ -163,10 +163,14 @@ function initClientSearch(inputId, itemsSelector, searchAttr) {
     });
 }
 
-// Geo visibility: toggle countries input and active card
+// Geo visibility: toggle countries chips and active card
 function geoToggle(prefix, mode) {
+    // show/hide countries wrap
     var wrap = document.getElementById('geo-countries-' + prefix);
-    if (wrap) wrap.style.display = (mode === 'include' || mode === 'exclude') ? '' : 'none';
+    if (wrap) {
+        wrap.style.display = (mode === 'include' || mode === 'exclude') ? '' : 'none';
+    }
+    // update active class on tiles
     var grid = document.getElementById('geo-grid-' + prefix);
     if (grid) {
         grid.querySelectorAll('.geo-option').forEach(function(opt) {
@@ -174,6 +178,18 @@ function geoToggle(prefix, mode) {
             opt.classList.toggle('is-active', radio && radio.checked);
         });
     }
+}
+
+// Geo: rebuild hidden field from checked chip-checkboxes
+function geoUpdateCountries(prefix) {
+    var chips = document.getElementById('geo-chips-' + prefix);
+    var hidden = document.getElementById('geo-countries-input-' + prefix);
+    if (!chips || !hidden) return;
+    var checked = [];
+    chips.querySelectorAll('.geo-chip-cb:checked').forEach(function(cb) {
+        checked.push(cb.value);
+    });
+    hidden.value = checked.join(', ');
 }
 
 // Favorites: toggle via AJAX
