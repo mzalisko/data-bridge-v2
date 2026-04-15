@@ -900,3 +900,130 @@
 }
 
 .btn-icon--danger:hover { opacity: 1; }
+
+/* ─── site-show mobile ─── */
+@media (max-width: 768px) {
+    .site-show {
+        flex-direction: column;
+        min-height: unset;
+    }
+
+    .site-show__sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: var(--space-md);
+    }
+
+    .site-show__nav {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        margin-top: 0;
+        padding-top: var(--space-sm);
+        gap: 4px;
+    }
+
+    .site-show__nav::-webkit-scrollbar { display: none; }
+
+    .site-show__nav-item {
+        flex-shrink: 0;
+        padding: 6px 10px;
+        font-size: var(--font-size-xs);
+        white-space: nowrap;
+    }
+
+    .site-show__nav-count {
+        display: none;
+    }
+
+    .site-show__content {
+        padding: var(--space-md);
+    }
+}
+
+/* ─── Phone row — two-line layout ─── */
+.phone-row__number {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.phone-row__sub {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+    flex-wrap: wrap;
+}
+
+.phone-row__id {
+    font-size: 9px;
+    color: var(--text-muted);
+    font-family: monospace;
+}
+
+.phone-row__label {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+.phone-row__geo {
+    font-size: 9px;
+    color: var(--text-muted);
+    background: rgba(255,255,255,.05);
+    border-radius: 4px;
+    padding: 1px 5px;
+    border: 1px solid var(--border-color);
+}
+
+/* drawer ID chip */
+.drawer-id-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    background: var(--bg-page);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-item);
+    padding: 4px 10px;
+    margin-bottom: var(--space-sm);
+    font-family: monospace;
+}
+
+/* ─── Drawer collapsible geo section ─── */
+.form-details {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-item);
+    overflow: hidden;
+}
+
+.form-details__summary {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-details__summary::before {
+    content: '▶';
+    font-size: 8px;
+    transition: transform 0.15s;
+}
+
+.form-details[open] .form-details__summary::before {
+    transform: rotate(90deg);
+}
+
+.form-details__body {
+    padding: var(--space-sm) var(--space-md) var(--space-md);
+    border-top: 1px solid var(--border-color);
+}

@@ -17,15 +17,20 @@
     <ul class="data-list">
         @foreach($phones as $phone)
         <li class="data-row">
-            <div class="data-row__main">
-                @if($phone->is_primary)
-                    <span class="data-badge data-badge--primary">Primary</span>
-                @endif
-                <span class="data-row__val">+{{ $phone->dial_code }} {{ $phone->number }}</span>
-                @if($phone->label)
-                    <span class="data-row__label">{{ $phone->label }}</span>
-                @endif
-                <span class="data-row__meta">{{ $phone->country_iso }}</span>
+            <div class="data-row__main" style="flex-direction:column;align-items:flex-start;gap:3px;">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    @if($phone->is_primary)
+                        <span class="data-badge data-badge--primary">Primary</span>
+                    @endif
+                    <span class="phone-row__number">+{{ $phone->dial_code }} {{ ltrim($phone->number, '+') }}</span>
+                </div>
+                <div class="phone-row__sub">
+                    <span class="phone-row__id">#{{ $phone->id }}</span>
+                    @if($phone->label)
+                        <span class="phone-row__label">{{ $phone->label }}</span>
+                    @endif
+                    <span class="phone-row__geo">{{ $phone->country_iso }} +{{ $phone->dial_code }}</span>
+                </div>
             </div>
             <div class="data-row__actions">
                 <button class="btn-icon" title="Редагувати"
@@ -57,21 +62,22 @@
             @csrf
             <div class="form-group">
                 <label class="form-label">Мітка <span class="form-hint">(необов'язково)</span></label>
-                <input type="text" name="label" class="form-input" placeholder="Основний, Офіс…" maxlength="100">
+                <input type="text" name="label" class="form-input" placeholder="Основний, WhatsApp, Офіс…" maxlength="100">
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Код країни</label>
-                    <input type="text" name="country_iso" class="form-input" placeholder="UA" maxlength="2" style="text-transform:uppercase" required>
+                    <label class="form-label">Країна (ISO)</label>
+                    <input type="text" name="country_iso" class="form-input" placeholder="UA" maxlength="2"
+                           style="text-transform:uppercase" oninput="syncDialCode(this)" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Dial code</label>
-                    <input type="text" name="dial_code" class="form-input" placeholder="380" maxlength="8" required>
+                    <label class="form-label">Код (+)</label>
+                    <input type="text" name="dial_code" class="form-input" placeholder="380" maxlength="8" id="dial-code-create" required>
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label">Номер</label>
-                <input type="text" name="number" class="form-input" placeholder="671234567" maxlength="32" required>
+                <label class="form-label">Номер <span class="form-hint">(без коду країни)</span></label>
+                <input type="text" name="number" class="form-input" placeholder="(073) 900-80-01" maxlength="32" required>
             </div>
             <div class="form-group">
                 <label class="form-label form-label--checkbox">
@@ -92,30 +98,49 @@
 <div class="drawer-overlay" id="drawer-phone-{{ $phone->id }}-overlay" onclick="closeDrawer('drawer-phone-{{ $phone->id }}')"></div>
 <div class="drawer" id="drawer-phone-{{ $phone->id }}">
     <div class="drawer__header">
-        <span class="drawer__title">+{{ $phone->dial_code }} {{ $phone->number }}</span>
+        <span class="drawer__title">{{ $phone->label ?: '+' . $phone->dial_code . ' ' . ltrim($phone->number, '+') }}</span>
         <button class="btn-icon" onclick="closeDrawer('drawer-phone-{{ $phone->id }}')">✕</button>
     </div>
     <div class="drawer__body">
+        {{-- Info chip: ID + geo --}}
+        <div class="drawer-id-chip">
+            <span style="color:var(--text-muted)">#{{ $phone->id }}</span>
+            <span style="color:var(--border-color)">·</span>
+            <span>{{ $phone->country_iso }} +{{ $phone->dial_code }}</span>
+            @if($phone->is_primary)
+                <span style="color:var(--border-color)">·</span>
+                <span style="color:var(--accent)">primary</span>
+            @endif
+        </div>
         <form method="POST" action="{{ route('phones.update', [$site, $phone]) }}" class="form-stack" id="form-phone-{{ $phone->id }}">
             @csrf @method('PUT')
             <div class="form-group">
                 <label class="form-label">Мітка</label>
                 <input type="text" name="label" class="form-input" value="{{ old('label', $phone->label) }}" maxlength="100">
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Код країни</label>
-                    <input type="text" name="country_iso" class="form-input" value="{{ old('country_iso', $phone->country_iso) }}" maxlength="2" style="text-transform:uppercase" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Dial code</label>
-                    <input type="text" name="dial_code" class="form-input" value="{{ old('dial_code', $phone->dial_code) }}" maxlength="8" required>
-                </div>
-            </div>
             <div class="form-group">
-                <label class="form-label">Номер</label>
-                <input type="text" name="number" class="form-input" value="{{ old('number', $phone->number) }}" maxlength="32" required>
+                <label class="form-label">Номер <span class="form-hint">(без коду країни)</span></label>
+                <input type="text" name="number" class="form-input" value="{{ old('number', ltrim($phone->number, '+')) }}" maxlength="32" required>
             </div>
+            {{-- Geo section --}}
+            <details class="form-details">
+                <summary class="form-details__summary">Геодані</summary>
+                <div class="form-details__body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Країна (ISO)</label>
+                            <input type="text" name="country_iso" class="form-input"
+                                   value="{{ old('country_iso', $phone->country_iso) }}" maxlength="2"
+                                   style="text-transform:uppercase" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Код (+)</label>
+                            <input type="text" name="dial_code" class="form-input"
+                                   value="{{ old('dial_code', $phone->dial_code) }}" maxlength="8" required>
+                        </div>
+                    </div>
+                </div>
+            </details>
             <div class="form-group">
                 <label class="form-label form-label--checkbox">
                     <input type="checkbox" name="is_primary" value="1" {{ $phone->is_primary ? 'checked' : '' }}> Основний номер
@@ -130,3 +155,17 @@
     </div>
 </div>
 @endforeach
+
+<script>
+// Auto-fill dial code from country ISO (common ones)
+var dialCodes = {
+    'UA': '380', 'PL': '48', 'DE': '49', 'US': '1', 'GB': '44',
+    'FR': '33', 'IT': '39', 'ES': '34', 'CZ': '420', 'RO': '40',
+    'SK': '421', 'HU': '36', 'BY': '375', 'MD': '373', 'GE': '995',
+};
+function syncDialCode(input) {
+    var iso = input.value.toUpperCase();
+    var codeEl = document.getElementById('dial-code-create');
+    if (codeEl && dialCodes[iso]) codeEl.value = dialCodes[iso];
+}
+</script>
