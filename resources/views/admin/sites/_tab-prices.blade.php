@@ -17,14 +17,24 @@
     <ul class="data-list">
         @foreach($prices as $price)
         <li class="data-row {{ !$price->is_visible ? 'data-row--muted' : '' }}">
+            {{-- Col 1: currency badge --}}
+            <div class="data-row__indicator">
+                <span class="data-badge data-badge--currency">{{ $price->currency }}</span>
+                @if(!$price->is_visible)
+                    <span class="data-badge data-badge--hidden">Прих.</span>
+                @endif
+            </div>
+            {{-- Col 2: amount --}}
             <div class="data-row__main">
-                <span class="data-row__val">{{ number_format($price->amount, 2) }} {{ $price->currency }}</span>
-                <span class="data-row__label">{{ $price->label }}</span>
+                <span class="data-row__val">{{ number_format($price->amount, 2) }}</span>
+            </div>
+            {{-- Col 3: label + period + geo --}}
+            <div class="data-row__secondary">
+                @if($price->label)
+                    <span class="data-row__label">{{ $price->label }}</span>
+                @endif
                 @if($price->period)
                     <span class="data-row__meta">/ {{ $price->period }}</span>
-                @endif
-                @if(!$price->is_visible)
-                    <span class="data-badge data-badge--hidden">Прихована</span>
                 @endif
                 @if($price->geo_mode === null || $price->geo_mode === '')
                     <span class="geo-badge geo-badge--hidden geo-badge--sm">Прих.</span>

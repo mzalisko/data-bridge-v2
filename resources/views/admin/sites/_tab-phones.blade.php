@@ -17,29 +17,31 @@
     <ul class="data-list">
         @foreach($phones as $phone)
         <li class="data-row">
-            <div class="data-row__main" style="flex-direction:column;align-items:flex-start;gap:3px;">
-                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                    @if($phone->is_primary)
-                        <span class="data-badge data-badge--primary">Primary</span>
-                    @endif
-                    <span class="phone-row__number">{{ ltrim($phone->number, '+') }}</span>
-                    @if($phone->geo_mode === null || $phone->geo_mode === '')
-                        <span class="geo-badge geo-badge--hidden geo-badge--sm">Прих.</span>
-                    @elseif($phone->geo_mode === 'all')
-                        <span class="geo-badge geo-badge--all geo-badge--sm">Всі</span>
-                    @elseif($phone->geo_mode === 'include')
-                        <span class="geo-badge geo-badge--include geo-badge--sm">{{ $phone->geo_countries ?: '…' }}</span>
-                    @elseif($phone->geo_mode === 'exclude')
-                        <span class="geo-badge geo-badge--exclude geo-badge--sm">≠ {{ $phone->geo_countries ?: '…' }}</span>
-                    @endif
-                </div>
-                <div class="phone-row__sub">
-                    <span class="phone-row__id">#{{ $phone->id }}</span>
-                    @if($phone->label)
-                        <span class="phone-row__label">{{ $phone->label }}</span>
-                    @endif
-                    <span class="phone-row__geo">{{ $phone->country_iso }} +{{ $phone->dial_code }}</span>
-                </div>
+            {{-- Col 1: country badge + primary --}}
+            <div class="data-row__indicator">
+                <span class="data-badge">{{ $phone->country_iso }} +{{ $phone->dial_code }}</span>
+                @if($phone->is_primary)
+                    <span class="data-badge data-badge--primary">Primary</span>
+                @endif
+            </div>
+            {{-- Col 2: number --}}
+            <div class="data-row__main">
+                <span class="data-row__val">{{ ltrim($phone->number, '+') }}</span>
+            </div>
+            {{-- Col 3: label + geo --}}
+            <div class="data-row__secondary">
+                @if($phone->label)
+                    <span class="data-row__label">{{ $phone->label }}</span>
+                @endif
+                @if($phone->geo_mode === null || $phone->geo_mode === '')
+                    <span class="geo-badge geo-badge--hidden geo-badge--sm">Прих.</span>
+                @elseif($phone->geo_mode === 'all')
+                    <span class="geo-badge geo-badge--all geo-badge--sm">Всі</span>
+                @elseif($phone->geo_mode === 'include')
+                    <span class="geo-badge geo-badge--include geo-badge--sm">{{ $phone->geo_countries ?: '…' }}</span>
+                @elseif($phone->geo_mode === 'exclude')
+                    <span class="geo-badge geo-badge--exclude geo-badge--sm">≠ {{ $phone->geo_countries ?: '…' }}</span>
+                @endif
             </div>
             <div class="data-row__actions">
                 <button class="btn-icon" title="Редагувати"

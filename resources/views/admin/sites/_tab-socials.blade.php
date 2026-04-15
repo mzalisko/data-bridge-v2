@@ -25,10 +25,17 @@ $platformLabels = [
     <ul class="data-list">
         @foreach($socials as $social)
         <li class="data-row">
-            <div class="data-row__main">
+            {{-- Col 1: platform badge --}}
+            <div class="data-row__indicator">
                 <span class="data-badge data-badge--platform">{{ $platformLabels[$social->platform] ?? $social->platform }}</span>
-                <span class="data-row__val">{{ $social->handle }}</span>
-                <a href="{{ $social->url }}" target="_blank" class="data-row__link" title="Відкрити">↗</a>
+            </div>
+            {{-- Col 2: handle --}}
+            <div class="data-row__main">
+                <span class="data-row__val">{{ $social->handle ?: $social->url }}</span>
+            </div>
+            {{-- Col 3: url link + geo --}}
+            <div class="data-row__secondary">
+                <a href="{{ $social->url }}" target="_blank" class="data-row__link" title="Відкрити">↗ посилання</a>
                 @if($social->geo_mode === null || $social->geo_mode === '')
                     <span class="geo-badge geo-badge--hidden geo-badge--sm">Прих.</span>
                 @elseif($social->geo_mode === 'all')

@@ -17,15 +17,22 @@
     <ul class="data-list">
         @foreach($addresses as $address)
         <li class="data-row">
-            <div class="data-row__main">
+            {{-- Col 1: country + primary --}}
+            <div class="data-row__indicator">
+                <span class="data-badge">{{ $address->country_iso }}{{ $address->postal_code ? ' '.$address->postal_code : '' }}</span>
                 @if($address->is_primary)
                     <span class="data-badge data-badge--primary">Primary</span>
                 @endif
-                <span class="data-row__val">{{ $address->city }}{{ $address->street ? ', '.$address->street : '' }}{{ $address->building ? ', '.$address->building : '' }}</span>
+            </div>
+            {{-- Col 2: city + street --}}
+            <div class="data-row__main">
+                <span class="data-row__val">{{ $address->city }}{{ $address->street ? ', '.$address->street : '' }}{{ $address->building ? ' '.$address->building : '' }}</span>
+            </div>
+            {{-- Col 3: label + geo --}}
+            <div class="data-row__secondary">
                 @if($address->label)
                     <span class="data-row__label">{{ $address->label }}</span>
                 @endif
-                <span class="data-row__meta">{{ $address->country_iso }}{{ $address->postal_code ? ' '.$address->postal_code : '' }}</span>
                 @if($address->geo_mode === null || $address->geo_mode === '')
                     <span class="geo-badge geo-badge--hidden geo-badge--sm">Прих.</span>
                 @elseif($address->geo_mode === 'all')
