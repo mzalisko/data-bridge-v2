@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk" data-theme="{{ $_COOKIE['theme'] ?? 'dark' }}">
+<html lang="uk" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
