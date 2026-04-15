@@ -168,11 +168,11 @@
 @endforeach
 
 <script>
-// Auto-fill dial code from country ISO (common ones)
+// Dial codes from CRM settings (Settings → Country codes)
 var dialCodes = {
-    'UA': '380', 'PL': '48', 'DE': '49', 'US': '1', 'GB': '44',
-    'FR': '33', 'IT': '39', 'ES': '34', 'CZ': '420', 'RO': '40',
-    'SK': '421', 'HU': '36', 'BY': '375', 'MD': '373', 'GE': '995',
+@foreach($countries ?? [] as $c)
+    '{{ $c->iso }}': '{{ $c->dial_code }}',
+@endforeach
 };
 function syncDialCode(input) {
     var iso = input.value.toUpperCase();

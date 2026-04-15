@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreSiteRequest;
 use App\Http\Requests\Admin\UpdateSiteRequest;
+use App\Models\Country;
 use App\Models\Site;
 use App\Models\SiteGroup;
 use Illuminate\Http\RedirectResponse;
@@ -63,9 +64,10 @@ class SiteController extends Controller
     {
         $tab = $request->get('tab', 'phones');
         $site->load(['siteGroup', 'apiKey', 'phones', 'prices', 'addresses', 'socials']);
-        $groups = SiteGroup::orderBy('name')->get(['id', 'name', 'color']);
+        $groups    = SiteGroup::orderBy('name')->get(['id', 'name', 'color']);
+        $countries = Country::orderBy('sort_order')->orderBy('iso')->get(['iso', 'dial_code', 'name']);
 
-        return view('admin.sites.show', compact('site', 'groups', 'tab'));
+        return view('admin.sites.show', compact('site', 'groups', 'tab', 'countries'));
     }
 
     public function store(StoreSiteRequest $request): RedirectResponse

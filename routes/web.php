@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\SitePhoneController;
 use App\Http\Controllers\Admin\SitePriceController;
 use App\Http\Controllers\Admin\SiteAddressController;
 use App\Http\Controllers\Admin\SiteSocialController;
+use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 
@@ -66,4 +67,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/logs/system', [LogController::class, 'system'])->name('logs.system');
     Route::get('/logs/sync', [LogController::class, 'sync'])->name('logs.sync');
+
+    // Settings
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings/countries', [SettingsController::class, 'storeCountry'])->name('settings.countries.store');
+    Route::delete('/settings/countries/{country}', [SettingsController::class, 'destroyCountry'])->name('settings.countries.destroy');
 });

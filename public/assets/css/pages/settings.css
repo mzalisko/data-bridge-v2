@@ -1,0 +1,98 @@
+/* DataBridge CRM — Settings page */
+
+.settings-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    max-width: 760px;
+}
+
+.settings-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-lg);
+}
+
+.settings-card__header {
+    margin-bottom: var(--space-lg);
+}
+
+.settings-card__title {
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.settings-card__desc {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* Add form */
+.settings-add-form {
+    margin-bottom: var(--space-md);
+}
+
+.settings-add-row {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.settings-add-iso  { width: 72px; }
+.settings-add-dial { width: 90px; }
+.settings-add-name-group { flex: 1; min-width: 140px; }
+
+.settings-add-btn-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Countries list */
+.countries-list {
+    list-style: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-item);
+    overflow: hidden;
+}
+
+.countries-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: 10px var(--space-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.countries-row:last-child { border-bottom: none; }
+.countries-row:hover { background: var(--bg-hover, rgba(255,255,255,0.03)); }
+
+.country-iso {
+    width: 36px;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+}
+
+.country-dial {
+    width: 60px;
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.country-name {
+    flex: 1;
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+.countries-row__del {
+    margin-left: auto;
+}

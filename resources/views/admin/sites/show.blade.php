@@ -113,7 +113,7 @@
     {{-- Content --}}
     <div class="site-show__content">
         @if($tab === 'phones')
-            @include('admin.sites._tab-phones', ['site' => $site, 'phones' => $site->phones])
+            @include('admin.sites._tab-phones', ['site' => $site, 'phones' => $site->phones, 'countries' => $countries])
         @elseif($tab === 'prices')
             @include('admin.sites._tab-prices', ['site' => $site, 'prices' => $site->prices])
         @elseif($tab === 'addresses')
