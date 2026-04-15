@@ -17,19 +17,19 @@
     <ul class="data-list">
         @foreach($phones as $phone)
         <li class="data-row">
-            {{-- Col 1: country badge + primary --}}
+            {{-- Col 1: country badge only --}}
             <div class="data-row__indicator">
                 <span class="data-badge">{{ $phone->country_iso }} +{{ $phone->dial_code }}</span>
-                @if($phone->is_primary)
-                    <span class="data-badge data-badge--primary">Primary</span>
-                @endif
             </div>
             {{-- Col 2: number --}}
             <div class="data-row__main">
                 <span class="data-row__val">{{ ltrim($phone->number, '+') }}</span>
             </div>
-            {{-- Col 3: label + geo --}}
+            {{-- Col 3: primary + label + geo --}}
             <div class="data-row__secondary">
+                @if($phone->is_primary)
+                    <span class="data-badge data-badge--primary">Primary</span>
+                @endif
                 @if($phone->label)
                     <span class="data-row__label">{{ $phone->label }}</span>
                 @endif

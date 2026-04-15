@@ -17,19 +17,19 @@
     <ul class="data-list">
         @foreach($addresses as $address)
         <li class="data-row">
-            {{-- Col 1: country + primary --}}
+            {{-- Col 1: country badge only --}}
             <div class="data-row__indicator">
                 <span class="data-badge">{{ $address->country_iso }}{{ $address->postal_code ? ' '.$address->postal_code : '' }}</span>
-                @if($address->is_primary)
-                    <span class="data-badge data-badge--primary">Primary</span>
-                @endif
             </div>
             {{-- Col 2: city + street --}}
             <div class="data-row__main">
                 <span class="data-row__val">{{ $address->city }}{{ $address->street ? ', '.$address->street : '' }}{{ $address->building ? ' '.$address->building : '' }}</span>
             </div>
-            {{-- Col 3: label + geo --}}
+            {{-- Col 3: primary + label + geo --}}
             <div class="data-row__secondary">
+                @if($address->is_primary)
+                    <span class="data-badge data-badge--primary">Primary</span>
+                @endif
                 @if($address->label)
                     <span class="data-row__label">{{ $address->label }}</span>
                 @endif
