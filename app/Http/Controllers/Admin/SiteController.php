@@ -59,12 +59,13 @@ class SiteController extends Controller
         ));
     }
 
-    public function show(Site $site): View
+    public function show(Request $request, Site $site): View
     {
-        $site->load(['siteGroup', 'apiKey']);
+        $tab = $request->get('tab', 'phones');
+        $site->load(['siteGroup', 'apiKey', 'phones', 'prices', 'addresses', 'socials']);
         $groups = SiteGroup::orderBy('name')->get(['id', 'name', 'color']);
 
-        return view('admin.sites.show', compact('site', 'groups'));
+        return view('admin.sites.show', compact('site', 'groups', 'tab'));
     }
 
     public function store(StoreSiteRequest $request): RedirectResponse

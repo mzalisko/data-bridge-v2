@@ -8,6 +8,10 @@ use App\Http\Controllers\Admin\FavoriteController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\ApiKeyController;
 use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\SitePhoneController;
+use App\Http\Controllers\Admin\SitePriceController;
+use App\Http\Controllers\Admin\SiteAddressController;
+use App\Http\Controllers\Admin\SiteSocialController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +39,23 @@ Route::middleware('auth')->group(function () {
 
     Route::post('sites/{site}/api-key/generate', [ApiKeyController::class, 'generate'])->name('sites.api-key.generate');
     Route::post('sites/{site}/api-key/revoke',   [ApiKeyController::class, 'revoke'])->name('sites.api-key.revoke');
+
+    // Site data CRUD
+    Route::post(  'sites/{site}/phones',              [SitePhoneController::class,   'store']  )->name('phones.store');
+    Route::put(   'sites/{site}/phones/{phone}',      [SitePhoneController::class,   'update'] )->name('phones.update');
+    Route::delete('sites/{site}/phones/{phone}',      [SitePhoneController::class,   'destroy'])->name('phones.destroy');
+
+    Route::post(  'sites/{site}/prices',              [SitePriceController::class,   'store']  )->name('prices.store');
+    Route::put(   'sites/{site}/prices/{price}',      [SitePriceController::class,   'update'] )->name('prices.update');
+    Route::delete('sites/{site}/prices/{price}',      [SitePriceController::class,   'destroy'])->name('prices.destroy');
+
+    Route::post(  'sites/{site}/addresses',           [SiteAddressController::class, 'store']  )->name('addresses.store');
+    Route::put(   'sites/{site}/addresses/{address}', [SiteAddressController::class, 'update'] )->name('addresses.update');
+    Route::delete('sites/{site}/addresses/{address}', [SiteAddressController::class, 'destroy'])->name('addresses.destroy');
+
+    Route::post(  'sites/{site}/socials',             [SiteSocialController::class,  'store']  )->name('socials.store');
+    Route::put(   'sites/{site}/socials/{social}',    [SiteSocialController::class,  'update'] )->name('socials.update');
+    Route::delete('sites/{site}/socials/{social}',    [SiteSocialController::class,  'destroy'])->name('socials.destroy');
 
     Route::resource('users', UserController::class)
         ->only(['index', 'store', 'update', 'destroy']);
