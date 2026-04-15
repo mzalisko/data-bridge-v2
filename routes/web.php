@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\SiteAddressController;
 use App\Http\Controllers\Admin\SiteSocialController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\BatchController;
+use App\Http\Controllers\Admin\DataBrowserController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 
@@ -72,6 +73,12 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/logs/system', [LogController::class, 'system'])->name('logs.system');
     Route::get('/logs/sync', [LogController::class, 'sync'])->name('logs.sync');
+
+    // Data Browser
+    Route::get( 'data',             [DataBrowserController::class, 'index'])->name('data.index');
+    Route::post('data/bulk-delete', [DataBrowserController::class, 'bulkDelete'])->name('data.bulk-delete');
+    Route::post('data/bulk-edit',   [DataBrowserController::class, 'bulkEdit'])->name('data.bulk-edit');
+    Route::post('data/bulk-copy',   [DataBrowserController::class, 'bulkCopy'])->name('data.bulk-copy');
 
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
