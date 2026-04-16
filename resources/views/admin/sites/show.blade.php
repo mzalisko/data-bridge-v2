@@ -24,7 +24,7 @@
     $color  = $site->siteGroup?->color ?? '#708499';
     $letter = strtoupper(substr(parse_url($site->url, PHP_URL_HOST) ?: $site->name, 0, 1));
     $syncLog  = $site->latestSyncLog;
-    $syncOk   = $syncLog?->status === 'success';
+    $syncOk   = $syncLog?->status === 'ok';
     $syncWarn = $syncLog && !$syncOk;
     $syncColor = $syncOk ? 'var(--dot-ok)' : ($syncWarn ? 'var(--dot-pause)' : 'var(--text-muted)');
 @endphp
@@ -57,7 +57,7 @@
             <div class="site-show__info-row">
                 <span class="site-show__info-label">Sync</span>
                 <span class="site-show__info-val" style="color:{{ $syncColor }}">
-                    {{ $syncLog->created_at->diffForHumans() }}
+                    {{ $syncLog->synced_at->diffForHumans() }}
                 </span>
             </div>
             @endif
