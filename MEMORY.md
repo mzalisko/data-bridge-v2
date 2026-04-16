@@ -40,18 +40,30 @@
 
 | TASK-MERGE: Мерж feature/task-sprint03-sync → main (fast-forward + remote merge) | main | ✅ |
 
-## 🔲 Наступні задачі (Sprint 04)
+## ✅ Sprint 04 — WP Plugin Rework (в процесі)
 
-1. **WP Plugin** — базова структура плагіна DataBridge для WordPress
-2. **Scheduled sync** — WP Cron pull кожні 15 хвилин
-3. **Conflict resolution** — логіка пріоритету CRM при конфліктах
+| Задача | Гілка | Статус |
+|---|---|---|
+| TASK-PLUGIN-REWORK: CRM custom_fields API + per-site logs tab | feature/task-plugin-rework | ✅ |
+| TASK-PLUGIN-REWORK: Plugin CSS rewrite (Restrained Loft) + all views rewrite | data-bridge-v2-plugin | ✅ |
+| TASK-PLUGIN-REWORK: Shortcodes (if/plural/format_tel) + copy UI | data-bridge-v2-plugin | ✅ |
+| TASK-PLUGIN-REWORK: CRUD data.js + type_map fix + security fix | data-bridge-v2-plugin | ✅ |
+
+## 🔲 Залишилось (Sprint 04)
+
+1. **Мерж** feature/task-plugin-rework → main (CRM)
+2. **Plugin git remote** — підключити до GitHub repo
+3. **WP test env** — налаштувати docker wp-test з реальним WordPress
+4. **Scheduled sync** — WP Cron pull (вже реалізовано в плагіні)
+5. **Conflict resolution** — логіка пріоритету CRM
 
 ---
 
 ## 🌿 Git стан
 
-- **Remote:** `git@github.com:mzalisko/data-bridge-v2.git` ✅
-- **Активна гілка:** `main` (запушено)
+- **Remote (CRM):** `git@github.com:mzalisko/data-bridge-v2.git` ✅
+- **Активна гілка CRM:** `feature/task-plugin-rework` (запушено)
+- **Plugin repo:** `M:\Projects\CC\data-bridge-v2-plugin\` (git init, remote потрібно)
 - **Точка повернення Sprint 03:** `v0.3.0-sprint03-complete` (git tag)
 - **Точка повернення Sprint 02:** `v0.2.0-sprint02-complete` (git tag)
 - **Всі feature/* гілки:** злиті в main ✅
@@ -101,4 +113,8 @@
 
 ---
 
-*Оновлено: 2026-04-17 | Сесія: sprint-03-merge-complete*
+- Plugin repo path: `M:\Projects\CC\data-bridge-v2-plugin\`
+- Plugin CRUD: тип передається до push_create/update/delete у форматі `phones|prices|addresses|socials|custom_fields`
+- type_map: phones→phone, prices→price, addresses→address, socials→social, custom_fields→custom_field
+
+*Оновлено: 2026-04-17 | Сесія: sprint-04-plugin-rework*
