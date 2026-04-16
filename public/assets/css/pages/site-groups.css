@@ -283,7 +283,7 @@
 
 .group-row__icon {
     width: 48px;
-    height: 40px;
+    height: 48px;
     border-radius: var(--radius-item);
     display: flex;
     flex-direction: column;
@@ -311,6 +311,8 @@
 .group-row__edit {
     flex-shrink: 0;
     margin-left: auto;
+    width: 100%;
+    justify-content: flex-end;
 }
 
 .group-row__info {
@@ -390,16 +392,16 @@
     .page-controls__sort { margin-left: 0; flex: 1; }
     .page-controls__pills { gap: var(--space-sm); }
     .page-toolbar { flex-direction: column; align-items: flex-start; gap: var(--space-md); }
-    
+
     /* Layout Forced Overrides */
     .group-grid { grid-template-columns: 1fr; }
     .group-list { display: grid; grid-template-columns: 1fr; gap: var(--space-md); }
-    .group-list .group-row { 
-        flex-direction: column; 
-        align-items: flex-start; 
-        border-radius: var(--radius-card); 
-        padding: var(--space-lg); 
-        gap: var(--space-sm); 
+    .group-list .group-row {
+        flex-direction: column;
+        align-items: flex-start;
+        border-radius: var(--radius-card);
+        padding: var(--space-lg);
+        gap: var(--space-sm);
     }
     .group-list .group-row__sites { flex-wrap: wrap; width: auto; }
 }
