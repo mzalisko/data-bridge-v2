@@ -63,11 +63,21 @@ class SiteController extends Controller
     public function show(Request $request, Site $site): View
     {
         $tab = $request->get('tab', 'phones');
-        $site->load(['siteGroup', 'apiKey', 'phones', 'prices', 'addresses', 'socials']);
+        $site->load(['siteGroup', 'apiKey', 'phones', 'prices', 'addresses', 'socials', 'customFields']);
         $groups    = SiteGroup::orderBy('name')->get(['id', 'name', 'color']);
         $countries = Country::orderBy('sort_order')->orderBy('iso')->get(['iso', 'dial_code', 'name']);
 
-        return view('admin.sites.show', compact('site', 'groups', 'tab', 'countries'));
+        $syncLogs = null;
+        $logStatus = $request->get('log_status');
+        if ($tab === 'logs') {
+            $logsQuery = $site->syncLogs();
+            if ($logStatus) {
+                $logsQuery->where('status', $logStatus);
+            }
+            $syncLogs = $logsQuery->paginate(20)->withQueryString();
+        }
+
+        return view('admin.sites.show', compact('site', 'groups', 'tab', 'countries', 'syncLogs', 'logStatus'));
     }
 
     public function store(StoreSiteRequest $request): RedirectResponse

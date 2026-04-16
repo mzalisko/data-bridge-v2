@@ -32,10 +32,11 @@ class SyncController extends Controller
         $sinceDate = $since ? date('Y-m-d H:i:s', (int) $since) : null;
 
         $data = [
-            'phones'    => $this->fetchPhones($site, $sinceDate),
-            'prices'    => $this->fetchPrices($site, $sinceDate),
-            'addresses' => $this->fetchAddresses($site, $sinceDate),
-            'socials'   => $this->fetchSocials($site, $sinceDate),
+            'phones'        => $this->fetchPhones($site, $sinceDate),
+            'prices'        => $this->fetchPrices($site, $sinceDate),
+            'addresses'     => $this->fetchAddresses($site, $sinceDate),
+            'socials'       => $this->fetchSocials($site, $sinceDate),
+            'custom_fields' => $this->fetchCustomFields($site, $sinceDate),
         ];
 
         $checksum = 'sha256:' . hash('sha256', json_encode($data));
@@ -56,6 +57,11 @@ class SyncController extends Controller
             'data'      => $data,
             'checksum'  => $checksum,
         ]);
+    }
+
+    public function pullCustomFields(Request $request): JsonResponse
+    {
+        return $this->pullSingle($request, 'custom_fields');
     }
 
     public function pullPhones(Request $request): JsonResponse
@@ -98,10 +104,11 @@ class SyncController extends Controller
         }
 
         $data = match ($type) {
-            'phones'    => $this->fetchPhones($site, $sinceDate),
-            'prices'    => $this->fetchPrices($site, $sinceDate),
-            'addresses' => $this->fetchAddresses($site, $sinceDate),
-            'socials'   => $this->fetchSocials($site, $sinceDate),
+            'phones'        => $this->fetchPhones($site, $sinceDate),
+            'prices'        => $this->fetchPrices($site, $sinceDate),
+            'addresses'     => $this->fetchAddresses($site, $sinceDate),
+            'socials'       => $this->fetchSocials($site, $sinceDate),
+            'custom_fields' => $this->fetchCustomFields($site, $sinceDate),
         };
 
         $checksum = 'sha256:' . hash('sha256', json_encode($data));
@@ -145,6 +152,15 @@ class SyncController extends Controller
     private function fetchSocials(Site $site, ?string $since): array
     {
         $q = $site->socials();
+        if ($since) {
+            $q->where('updated_at', '>', $since);
+        }
+        return $q->orderBy('sort_order')->get()->toArray();
+    }
+
+    private function fetchCustomFields(Site $site, ?string $since): array
+    {
+        $q = $site->customFields();
         if ($since) {
             $q->where('updated_at', '>', $since);
         }
