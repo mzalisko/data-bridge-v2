@@ -260,7 +260,96 @@ data-bridge-v2-plugin/
 
 ---
 
-## 6. Additional: CRM per-site logs tab
+## 6. Shortcodes + Copy UI
+
+### 6a. Available shortcodes
+
+| Shortcode | Output | Attributes |
+|---|---|---|
+| `[databridge_phone]` | `<a href="tel:+380441234567">+380 44 123-45-67</a>` | `primary="1"`, `label="WhatsApp"` |
+| `[databridge_phones]` | All phones as `<ul>` | — |
+| `[databridge_price label="Базовий"]` | `1 200.00 UAH / міс` | `label` (required) |
+| `[databridge_prices]` | All visible prices as `<ul>` | — |
+| `[databridge_address]` | City, Street Building | `primary="1"`, `label="Головна"` |
+| `[databridge_social platform="telegram"]` | Link to social | `platform` (required) |
+| `[databridge_socials]` | All socials as `<ul>` | — |
+| `[databridge_custom_field key="working_hours"]` | Field value | `key` (required) |
+| `[databridge_if type="phone"]` ... `[/databridge_if]` | Conditional wrapper — renders content only if data exists | `type` (required) |
+
+### 6b. Phone href formatting
+
+Phones in CRM are stored in human-readable format (e.g., `number = "44 123-45-67"`, `dial_code = "+380"`).
+For `href="tel:"` must strip all chars except digits and leading `+`.
+
+**Helper method** in `DataBridge_Shortcodes` (private):
+```php
+private function format_tel( string $dial_code, string $number ): string {
+    $raw = $dial_code . $number;
+    // Remove everything except digits and leading +
+    $clean = preg_replace( '/[^\d+]/', '', $raw );
+    // Ensure only one leading +
+    $clean = '+' . ltrim( $clean, '+' );
+    return 'tel:' . $clean;
+}
+```
+
+Edge cases handled:
+- `+380` + `44 123-45-67` → `tel:+380441234567` ✅
+- `+380` + `(44) 123-45-67` → `tel:+380441234567` ✅
+- `+1` + `800 555-1234` → `tel:+18005551234` ✅
+
+### 6c. Conditional shortcode `[databridge_if]`
+
+```php
+// Renders inner content only if records of given type exist
+[databridge_if type="phone"] <p>Call us: [databridge_phone primary="1"]</p> [/databridge_if]
+[databridge_if type="price"] <p>Pricing: [databridge_price label="Базовий"]</p> [/databridge_if]
+```
+
+Implementation: `add_shortcode('databridge_if', [$this, 'render_if'])` — checks `count($model->get_all()) > 0`, returns `do_shortcode($content)` or `''`.
+
+### 6d. Missing model method
+
+`DataBridge_Model_CustomFields::get_value_by_key(string $key): ?string`
+```php
+public function get_value_by_key( string $key ): ?string {
+    global $wpdb;
+    return $wpdb->get_var( $wpdb->prepare(
+        "SELECT field_value FROM {$this->table} WHERE field_key = %s LIMIT 1",
+        $key
+    ));
+}
+```
+
+### 6e. Shortcode Copy UI in admin pages
+
+On each data page (phones/prices/addresses/socials/custom-fields) — add a **"Shortcodes"** collapsible section below the data card:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  📋 Shortcodes                               [▾]    │
+├─────────────────────────────────────────────────────┤
+│  Primary phone                                      │
+│  [databridge_phone primary="1"]          [Copy] ✓  │
+│                                                     │
+│  All phones                                         │
+│  [databridge_phones]                     [Copy] ✓  │
+│                                                     │
+│  Conditional block                                  │
+│  [databridge_if type="phone"]            [Copy] ✓  │
+│    Your content here                                │
+│  [/databridge_if]                                   │
+└─────────────────────────────────────────────────────┘
+```
+
+- Shortcode snippets shown in `<code>` blocks with monospace font
+- **Copy button** — `navigator.clipboard.writeText()` → shows ✓ for 1.5s
+- Collapsible via vanilla JS toggle (no jQuery)
+- Section rendered per-page with relevant shortcodes only
+
+---
+
+## 7. Additional: CRM per-site logs tab
 
 Requested during brainstorm — added to sprint scope.
 
@@ -272,7 +361,7 @@ Requested during brainstorm — added to sprint scope.
 
 ---
 
-## 7. What is NOT changing
+## 8. What is NOT changing
 
 - `DataBridge_API_Client` — HTTP layer is correct
 - `DataBridge_Sync_Engine` core logic — pull/push/force_sync/health
@@ -284,7 +373,7 @@ Requested during brainstorm — added to sprint scope.
 
 ---
 
-## 8. Git strategy
+## 9. Git strategy
 
 Single branch: `feature/task-plugin-rework`
 Commit order:
@@ -293,11 +382,12 @@ Commit order:
 3. `feat(crm): pullCustomFields in SyncController`
 4. `test(crm): extend SyncApiTest with custom_fields`
 5. `feat(crm): per-site sync logs tab in sites/show`
-6. `feat(plugin): add DataBridge_Model_CustomFields`
+6. `feat(plugin): add DataBridge_Model_CustomFields + get_value_by_key`
 7. `feat(plugin): update API endpoints — remove pull_meta, add custom_fields`
-8. `feat(plugin): update sync engine — custom_fields in models + loop`
+8. `feat(plugin): fix sync engine type_map + add custom_fields to loop`
 9. `fix(plugin): escapeshellcmd → esc_html in ajax`
 10. `feat(plugin): CRUD ajax actions for all data types`
-11. `style(plugin): Restrained Loft CSS rewrite`
-12. `feat(plugin): rewrite all admin views`
-13. `docs(memory): update MEMORY.md`
+11. `feat(plugin): shortcodes — databridge_if, databridge_phones/prices/socials/addresses, format_tel helper`
+12. `style(plugin): Restrained Loft CSS rewrite`
+13. `feat(plugin): rewrite all admin views + shortcode copy UI`
+14. `docs(memory): update MEMORY.md`
