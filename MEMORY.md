@@ -6,11 +6,11 @@
 
 ## 📍 Поточний стан
 
-- **Версія:** 0.3.0-alpha (Laravel stack + Sync API)
-- **Активна фаза:** Phase 3 (Sync Engine — виконано)
-- **Активний спринт:** Sprint 03 — частково завершено (Sync ✅, Merge 🔲)
-- **Активна гілка:** `feature/task-sprint03-sync` (запушено)
-- **Наступна задача:** Merge всіх feature/* гілок до `main`
+- **Версія:** 0.3.0 (Laravel stack + Sync API + merged to main)
+- **Активна фаза:** Phase 3 — Sprint 03 повністю завершено ✅
+- **Активний спринт:** Sprint 04 — WP Plugin
+- **Активна гілка:** `main` (запушено, тег `v0.3.0-sprint03-complete`)
+- **Наступна задача:** Sprint 04 — WP Plugin базова структура
 
 ---
 
@@ -38,18 +38,23 @@
 | TASK-UI-3: Batch mode toggle (Вибрати button), data-row table-style layout, sticky sidebar, right-align col3, preview system | feature/task-data-browser | ✅ |
 | TASK-SYNC: Sync Engine REST API (GET /api/v1/sync, write endpoints, ApiKeyAuth, 13 tests) | feature/task-sprint03-sync | ✅ |
 
-## 🔲 Наступні задачі
+| TASK-MERGE: Мерж feature/task-sprint03-sync → main (fast-forward + remote merge) | main | ✅ |
 
-1. **Merge** всіх feature/* гілок до `main`
+## 🔲 Наступні задачі (Sprint 04)
+
+1. **WP Plugin** — базова структура плагіна DataBridge для WordPress
+2. **Scheduled sync** — WP Cron pull кожні 15 хвилин
+3. **Conflict resolution** — логіка пріоритету CRM при конфліктах
 
 ---
 
 ## 🌿 Git стан
 
 - **Remote:** `git@github.com:mzalisko/data-bridge-v2.git` ✅
-- **Активна гілка:** `feature/task-sprint03-sync` (запушено)
+- **Активна гілка:** `main` (запушено)
+- **Точка повернення Sprint 03:** `v0.3.0-sprint03-complete` (git tag)
 - **Точка повернення Sprint 02:** `v0.2.0-sprint02-complete` (git tag)
-- **Незлиті гілки:** task-l001..task-sprint03-sync (всі на GitHub)
+- **Всі feature/* гілки:** злиті в main ✅
 - **Тестові дані:** 3 групи (Alpha/Beta/Gamma) + 8 сайтів (Site1–Site8) + 3 старі групи + 7 старих сайтів
 
 ---
@@ -96,4 +101,4 @@
 
 ---
 
-*Оновлено: 2026-04-17 | Сесія: sprint-03-sync-engine*
+*Оновлено: 2026-04-17 | Сесія: sprint-03-merge-complete*
