@@ -6,11 +6,11 @@
 
 ## 📍 Поточний стан
 
-- **Версія:** 0.2.0-alpha (Laravel stack)
-- **Активна фаза:** Phase 2 (Batch + Data Browser — завершено)
-- **Активний спринт:** Sprint 02 — частково завершено
-- **Активна гілка:** `feature/task-data-browser` (запушено)
-- **Наступна задача:** Sprint 03 — Sync Engine / API endpoints / Merge
+- **Версія:** 0.3.0-alpha (Laravel stack + Sync API)
+- **Активна фаза:** Phase 3 (Sync Engine — виконано)
+- **Активний спринт:** Sprint 03 — частково завершено (Sync ✅, Merge 🔲)
+- **Активна гілка:** `feature/task-sprint03-sync` (запушено)
+- **Наступна задача:** Merge всіх feature/* гілок до `main`
 
 ---
 
@@ -36,21 +36,20 @@
 | TASK-SEED: SiteDataSeeder (3 groups Alpha/Beta/Gamma, 8 sites Site1–Site8 + повні дані) | feature/task-data-browser | ✅ |
 | TASK-MOBILE: Drawer bottom-sheet, 44px touch targets, batch tabs scroll, stat grid | feature/task-data-browser | ✅ |
 | TASK-UI-3: Batch mode toggle (Вибрати button), data-row table-style layout, sticky sidebar, right-align col3, preview system | feature/task-data-browser | ✅ |
+| TASK-SYNC: Sync Engine REST API (GET /api/v1/sync, write endpoints, ApiKeyAuth, 13 tests) | feature/task-sprint03-sync | ✅ |
 
-## 🔲 Наступні задачі (Sprint 03)
+## 🔲 Наступні задачі
 
-1. **Sync Engine** — WP plugin → CRM API endpoint (`/api/v1/sync`)
-2. **API endpoints** — REST для WP-плагінів
-3. **Merge** всіх feature/* гілок до `main`
+1. **Merge** всіх feature/* гілок до `main`
 
 ---
 
 ## 🌿 Git стан
 
 - **Remote:** `git@github.com:mzalisko/data-bridge-v2.git` ✅
-- **Активна гілка:** `feature/task-data-browser` (запушено)
-- **Точка повернення для data browser:** `feature/task-batch-edit`
-- **Незлиті гілки:** task-l001..task-data-browser (всі на GitHub)
+- **Активна гілка:** `feature/task-sprint03-sync` (запушено)
+- **Точка повернення Sprint 02:** `v0.2.0-sprint02-complete` (git tag)
+- **Незлиті гілки:** task-l001..task-sprint03-sync (всі на GitHub)
 - **Тестові дані:** 3 групи (Alpha/Beta/Gamma) + 8 сайтів (Site1–Site8) + 3 старі групи + 7 старих сайтів
 
 ---
@@ -74,6 +73,9 @@
 | data-row layout | Table-style: data-list = card container (no border-radius), rows use border-bottom separators, col3 right-aligned | 2026-04-16 |
 | site-show sticky sidebar | overflow:clip on .site-show (not hidden) + position:sticky on sidebar | 2026-04-16 |
 | Preview system | public/preview/*.html — links real CSS files, full shell structure, open at localhost:8082/preview/*.html | 2026-04-16 |
+| API auth | Bearer token → find by key_prefix (12 chars) → Hash::check() | 2026-04-17 |
+| API permissions | JSON array in api_keys.permissions; MySQL JSON no default → nullable + backfill | 2026-04-17 |
+| Rate limiting | Laravel RateLimiter::for('api', 60/min per token) in bootstrap/app.php booted() | 2026-04-17 |
 
 ---
 
@@ -94,4 +96,4 @@
 
 ---
 
-*Оновлено: 2026-04-16 | Сесія: sprint-02-ui-polish-data-row*
+*Оновлено: 2026-04-17 | Сесія: sprint-03-sync-engine*
