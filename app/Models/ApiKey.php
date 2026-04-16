@@ -14,6 +14,7 @@ class ApiKey extends Model
         'site_id',
         'key_hash',
         'key_prefix',
+        'permissions',
         'last_used',
         'revoked_at',
     ];
@@ -23,10 +24,17 @@ class ApiKey extends Model
     protected function casts(): array
     {
         return [
-            'created_at' => 'datetime',
-            'last_used'  => 'datetime',
-            'revoked_at' => 'datetime',
+            'permissions' => 'array',
+            'created_at'  => 'datetime',
+            'last_used'   => 'datetime',
+            'revoked_at'  => 'datetime',
         ];
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        $perms = $this->permissions ?? ['phones.read', 'prices.read', 'addresses.read', 'socials.read'];
+        return in_array($permission, $perms, true);
     }
 
     public function site(): BelongsTo
