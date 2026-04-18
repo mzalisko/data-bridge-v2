@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\SitePhoneController;
 use App\Http\Controllers\Admin\SitePriceController;
 use App\Http\Controllers\Admin\SiteAddressController;
 use App\Http\Controllers\Admin\SiteSocialController;
+use App\Http\Controllers\Admin\SiteCustomFieldController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\BatchController;
 use App\Http\Controllers\Admin\DataBrowserController;
@@ -63,6 +64,10 @@ Route::middleware('auth')->group(function () {
     Route::post(  'sites/{site}/socials',             [SiteSocialController::class,  'store']  )->name('socials.store');
     Route::put(   'sites/{site}/socials/{social}',    [SiteSocialController::class,  'update'] )->name('socials.update');
     Route::delete('sites/{site}/socials/{social}',    [SiteSocialController::class,  'destroy'])->name('socials.destroy');
+
+    Route::post(  'sites/{site}/custom-fields',                   [SiteCustomFieldController::class, 'store']  )->name('custom-fields.store');
+    Route::put(   'sites/{site}/custom-fields/{customField}',     [SiteCustomFieldController::class, 'update'] )->name('custom-fields.update');
+    Route::delete('sites/{site}/custom-fields/{customField}',     [SiteCustomFieldController::class, 'destroy'])->name('custom-fields.destroy');
 
     Route::resource('users', UserController::class)
         ->only(['index', 'store', 'update', 'destroy']);

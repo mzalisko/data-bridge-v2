@@ -107,6 +107,14 @@
                 Соцмережі
                 <span class="site-show__nav-count">{{ $site->socials->count() ?: '—' }}</span>
             </a>
+            <a class="site-show__nav-item {{ $tab === 'custom_fields' ? 'is-active' : '' }}"
+               href="{{ route('sites.show', $site) }}?tab=custom_fields">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 7h16M4 12h16M4 17h10"/>
+                </svg>
+                Кастомні поля
+                <span class="site-show__nav-count">{{ $site->customFields->count() ?: '—' }}</span>
+            </a>
             <a class="site-show__nav-item {{ $tab === 'logs' ? 'is-active' : '' }}"
                href="{{ route('sites.show', $site) }}?tab=logs">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -131,6 +139,8 @@
             @include('admin.sites._tab-addresses', ['site' => $site, 'addresses' => $site->addresses, 'countries' => $countries])
         @elseif($tab === 'socials')
             @include('admin.sites._tab-socials',   ['site' => $site, 'socials'   => $site->socials,   'countries' => $countries])
+        @elseif($tab === 'custom_fields')
+            @include('admin.sites._tab-custom-fields', ['site' => $site, 'customFields' => $site->customFields])
         @elseif($tab === 'logs')
             @include('admin.sites._tab-logs', ['syncLogs' => $syncLogs, 'logStatus' => $logStatus, 'site' => $site])
         @endif
