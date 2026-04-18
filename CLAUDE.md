@@ -66,36 +66,42 @@ C:\Users\zalis\OneDrive\Documents\DataBridgeV2\
 
 ---
 
-## 📚 Карта знань проекту — що читати перед якою задачею
+## 📚 Карта знань — lazy-load vault (токен-оптимізація)
 
-| Задача | Прочитати з vault перед початком |
+Vault: `C:\Users\zalis\OneDrive\Documents\DataBridgeV2\`
+Головна точка входу у vault: `INDEX.md` (навігатор + поточний стан + інваріанти).
+
+**Правило:** НЕ читай vault-файли наперед. Читай **лише** той, що стосується поточної задачі, і лише коли MEMORY.md+CLAUDE.md недостатньо. Для складних задач — спочатку `INDEX.md`, далі один цільовий файл із карти нижче.
+
+| Задача | Файл(и) для читання |
 |---|---|
-| Будь-яка задача (завжди) | `MEMORY.md` (вже авто) |
-| Нова задача зі спринту | `08-Задачі/sprint_01.md` |
-| Робота з БД / міграції | `04-База-даних/schema.md` |
-| Робота з Router / controllers | `01-Архітектура/routing.md` |
-| Робота з API / sync | `01-Архітектура/api_contract.md` + `02-Модулі/sync_engine.md` |
-| Робота з безпекою (Auth, Policies) | `06-Безпека/authentication.md` |
-| Робота з UI / CSS | `05-UI/design_system.md` + `05-UI/components.md` |
+| Поточний спринт | `08-Задачі/sprint_04.md` |
+| Beklog / scope | `08-Задачі/backlog.md` · `08-Задачі/mvp_scope.md` |
+| БД / міграції | `04-База-даних/schema.md` (+ `migrations.md` якщо нова міграція) |
+| Routes / controllers | `01-Архітектура/routing.md` |
+| API / sync / plugin contract | `01-Архітектура/api_contract.md` + `02-Модулі/sync_engine.md` |
+| Auth / RBAC / CSRF | `06-Безпека/authentication.md` (+ `rbac.md`, `csrf.md`) |
+| UI / CSS / компоненти | `05-UI/design_system.md` + `05-UI/components.md` |
 | Batch операції | `02-Модулі/batch_edit.md` |
-| Конкретний модуль (phones/prices/...) | `02-Модулі/{module}.md` |
+| Конкретний модуль | `02-Модулі/{phones\|prices\|addresses\|socials\|custom_fields\|groups\|sites\|api_keys}.md` |
 | Архітектурне рішення | `01-Архітектура/architecture.md` |
+| Laravel-specific патерни | `11-Laravel/laravel_guide.md` |
 
-**Правило:** читай ТІЛЬКИ потрібні файли. НЕ завантажуй весь vault.
-
-Vault знаходиться тут: `C:\Users\zalis\OneDrive\Documents\DataBridgeV2\`
+Заборонено: читати весь vault, grep по vault, читати файли >200 рядків без потреби.
 
 ---
 
-## ⚡ Протокол початку кожної сесії
+## ⚡ Протокол початку сесії
 
 ```
-1. Прочитати MEMORY.md                   → вже прочитано через @import вище
-2. Подивитись 08-Задачі/sprint_01.md     → у vault (C:\Users\zalis\OneDrive\Documents\DataBridgeV2\08-Задачі\sprint_01.md)
-3. Перевірити: docker-compose ps         → чи запущено
-4. Перевірити: git status                → чи є незакоміченого
-5. Починати задачу
+1. MEMORY.md              → вже завантажено через @import
+2. git status + поточна гілка
+3. docker-compose ps      → якщо задача торкається БД/артизана
+4. Відкрити sprint_04.md  → ТІЛЬКИ якщо задача зі спринту і не зрозуміла з MEMORY
+5. Почати роботу
 ```
+
+**Auto-memory:** `C:\Users\zalis\.claude\projects\M--Projects-CC-data-bridge-v2\memory\` — точковий стан між сесіями, підтягується автоматично. НЕ дублювати сюди те, що в MEMORY.md репо.
 
 ---
 
@@ -238,7 +244,19 @@ dbapi_ + bin2hex(random_bytes(16)) = 38 символів
 ## 📞 Проект
 
 - **Vault:** `C:\Users\zalis\OneDrive\Documents\DataBridgeV2\`
-- **Репо:** `M:\Projects\CC\data-bridge-v2\`
+- **CRM repo:** `M:\Projects\CC\data-bridge-v2\`
+- **Plugin repo:** `M:\Projects\CC\data-bridge-v2-plugin\` (окремий git, remote TBD)
 - **URL (dev):** http://localhost:8082
-- **Точка повернення (vanilla PHP):** git tag `v0.1-vanilla-php-foundation`
+- **Точки повернення:** `v0.1-vanilla-php-foundation`, `v0.2.0-sprint02-complete`, `v0.3.0-sprint03-complete`
 - **Власник:** MeWeek (zaliskomykola@gmail.com)
+
+---
+
+## 🔗 Інтеграція з плагіном (швидка довідка)
+
+- Endpoints: `GET /api/v1/sync`, pull-ендпоінти для `phones|prices|addresses|socials|custom_fields`; write — POST/PUT/DELETE `/api/v1/{plural}`
+- Auth: `Authorization: Bearer dbapi_...` → lookup by `key_prefix` (12 chars) → `Hash::check()`
+- Rate limit: 60 req/min per token (Laravel `RateLimiter::for('api', ...)` у `bootstrap/app.php` booted())
+- **Type column** у БД — singular: `phone|price|address|social|custom_field`; endpoints — plural
+- `source='plugin'` для всіх write-операцій із плагіна
+- SyncLog: `synced_at` (не `created_at`), `status='ok'` (не `'success'`)
