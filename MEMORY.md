@@ -6,115 +6,100 @@
 
 ## 📍 Поточний стан
 
-- **Версія:** 0.3.0 (Laravel stack + Sync API + merged to main)
-- **Активна фаза:** Phase 3 — Sprint 03 повністю завершено ✅
+- **Версія:** 0.3.0 (Laravel + Sync API, merged to main)
 - **Активний спринт:** Sprint 04 — WP Plugin
-- **Активна гілка:** `main` (запушено, тег `v0.3.0-sprint03-complete`)
-- **Наступна задача:** Sprint 04 — WP Plugin базова структура
+- **CRM гілка:** `feature/task-plugin-rework` (не злита в main)
+- **Plugin гілка:** `feature/plugin-redesign-3pages`
+- **Наступний крок:** мерж обох гілок → main
 
 ---
 
-## ✅ Виконано (Laravel stack)
+## ✅ Виконано — Laravel CRM (Sprint 01–03)
 
-| Задача | Гілка | Статус |
+Всі задачі L001–L011, BATCH, DATA-BROWSER, SEED, MOBILE, UI/UI-2/UI-3, SYNC — злиті в `main`, тег `v0.3.0-sprint03-complete`.
+
+---
+
+## ✅ Sprint 04 — WP Plugin (поточний)
+
+| Задача | Де | Статус |
 |---|---|---|
-| TASK-L001: Laravel 13 + Docker (nginx:8082, mysql:3307, cloudflared) | feature/task-l001-laravel | ✅ |
-| TASK-L002: 12 міграцій (всі 15 таблиць схеми) | feature/task-l002-migrations | ✅ |
-| TASK-L003: 13 Eloquent моделей з відносинами | feature/task-l003-models | ✅ |
-| TASK-L004: Auth (LoginController + Blade layouts + design system CSS/JS) | feature/task-l004-auth | ✅ |
-| TASK-L005: Dashboard (real data + x-stat-card + log list) | feature/task-l005-dashboard | ✅ |
-| TASK-L006: SiteGroups CRUD + Drawer + Form Requests | feature/task-l006-site-groups | ✅ |
-| TASK-L007: Sites CRUD + Drawer + group pill badge | feature/task-l007-sites | ✅ |
-| TASK-L008: Users CRUD + Drawer + role badges | feature/task-l008-users | ✅ |
-| TASK-L009: Logs viewer (SystemLog + SyncLog, tabs, level/status filter, paginated) | feature/task-l009-logs | ✅ |
-| TASK-UI: UI Redesign (TG Dark, dashboard timeline, favorites, site/group/user redesign) | feature/task-ui-redesign | ✅ |
-| TASK-L010: API Keys (generate + revoke per site, sidebar block in sites/show) | feature/task-l010-api-keys | ✅ |
-| TASK-UI-2: UI Fixes (CSS @stack, pagination arrows, api-key icons, dashboard dot, groups grid) | feature/task-l010-api-keys | ✅ |
-| TASK-L011: Site data tabs (phones/prices/addresses/socials CRUD, 4 tests) | feature/task-l010-api-keys | ✅ |
-| TASK-BATCH: Batch Edit — 7 tabs (status/group/phone/price/address/social/delete) | feature/task-data-browser | ✅ |
-| TASK-DATA-BROWSER: /data page — крос-сайтовий пошук, bulk edit/delete/copy | feature/task-data-browser | ✅ |
-| TASK-SEED: SiteDataSeeder (3 groups Alpha/Beta/Gamma, 8 sites Site1–Site8 + повні дані) | feature/task-data-browser | ✅ |
-| TASK-MOBILE: Drawer bottom-sheet, 44px touch targets, batch tabs scroll, stat grid | feature/task-data-browser | ✅ |
-| TASK-UI-3: Batch mode toggle (Вибрати button), data-row table-style layout, sticky sidebar, right-align col3, preview system | feature/task-data-browser | ✅ |
-| TASK-SYNC: Sync Engine REST API (GET /api/v1/sync, write endpoints, ApiKeyAuth, 13 tests) | feature/task-sprint03-sync | ✅ |
-
-| TASK-MERGE: Мерж feature/task-sprint03-sync → main (fast-forward + remote merge) | main | ✅ |
-
-## ✅ Sprint 04 — WP Plugin Rework (в процесі)
-
-| Задача | Гілка | Статус |
-|---|---|---|
-| TASK-PLUGIN-REWORK: CRM custom_fields API + per-site logs tab | feature/task-plugin-rework | ✅ |
-| TASK-PLUGIN-REWORK: Plugin CSS rewrite (Restrained Loft) + all views rewrite | data-bridge-v2-plugin | ✅ |
-| TASK-PLUGIN-REWORK: Shortcodes (if/plural/format_tel) + copy UI | data-bridge-v2-plugin | ✅ |
-| TASK-PLUGIN-REWORK: CRUD data.js + type_map fix + security fix | data-bridge-v2-plugin | ✅ |
+| CRM: custom_fields API + ApiCustomFieldController + pullCustomFields | CRM feature/task-plugin-rework | ✅ |
+| CRM: per-site logs tab (synced_at, status='ok') | CRM feature/task-plugin-rework | ✅ |
+| CRM: group FK cascade → nullOnDelete (migration) | CRM feature/task-plugin-rework | ✅ |
+| CRM: plugin_webhook_url на sites (migration) | CRM feature/task-plugin-rework | ✅ |
+| CRM: PluginSyncService::ping() після store/update/destroy | CRM feature/task-plugin-rework | ✅ |
+| CRM: SitePhoneController — auto-add country + ping після змін | CRM feature/task-plugin-rework | ✅ |
+| Plugin: CSS rewrite (Restrained Loft) + all views rewrite | plugin feature/plugin-redesign-3pages | ✅ |
+| Plugin: Shortcodes (if/plural/format_tel) + copy UI | plugin feature/plugin-redesign-3pages | ✅ |
+| Plugin: CRUD data.js + type_map fix + security fix | plugin feature/plugin-redesign-3pages | ✅ |
+| Plugin: Overview infographic + geo badges + shortcode copy panel | plugin feature/plugin-redesign-3pages | ✅ |
+| Plugin: Zero-flash tabs (cookie server-side) | plugin feature/plugin-redesign-3pages | ✅ |
+| Plugin: Geo-aware shortcodes + template helpers | plugin feature/plugin-redesign-3pages | ✅ |
+| Plugin: Webhook sync trigger endpoint (admin-ajax nopriv) | plugin feature/plugin-redesign-3pages | ✅ |
+| Plugin: Settings page — webhook URL display + copy | plugin feature/plugin-redesign-3pages | ✅ |
+| Plugin: DB upgrade routine v1.2.0 (dbDelta geo columns) | plugin feature/plugin-redesign-3pages | ✅ |
+| Plugin: Auto-sync on dashboard page load (якщо >60s) | plugin feature/plugin-redesign-3pages | ✅ |
+| Plugin: Fix custom_fields — field_value замість value/label | plugin feature/plugin-redesign-3pages | ✅ |
+| Plugin: Fix socials — прибрати неіснуючий $r['label'] | plugin feature/plugin-redesign-3pages | ✅ |
 
 ## 🔲 Залишилось (Sprint 04)
 
-1. **Мерж** feature/task-plugin-rework → main (CRM)
-2. **Plugin git remote** — підключити до GitHub repo
-3. **WP test env** — налаштувати docker wp-test з реальним WordPress
-4. **Scheduled sync** — WP Cron pull (вже реалізовано в плагіні)
-5. **Conflict resolution** — логіка пріоритету CRM
+1. **Мерж** `feature/task-plugin-rework` → main (CRM)
+2. **Мерж** `feature/plugin-redesign-3pages` → (plugin main)
+3. **Plugin git remote** — GitHub repo
+4. **wp-test/** — docker env з реальним WordPress
+5. **Дизайн плагіна** — відповідність макету (користувач вказав невідповідність)
+6. **Conflict resolution** — логіка пріоритету CRM
 
 ---
 
 ## 🌿 Git стан
 
-- **Remote (CRM):** `git@github.com:mzalisko/data-bridge-v2.git` ✅
-- **Активна гілка CRM:** `feature/task-plugin-rework` (запушено)
+- **CRM remote:** `git@github.com:mzalisko/data-bridge-v2.git`
+- **CRM активна гілка:** `feature/task-plugin-rework`
 - **Plugin repo:** `M:\Projects\CC\data-bridge-v2-plugin\` (git init, remote потрібно)
-- **Точка повернення Sprint 03:** `v0.3.0-sprint03-complete` (git tag)
-- **Точка повернення Sprint 02:** `v0.2.0-sprint02-complete` (git tag)
-- **Всі feature/* гілки:** злиті в main ✅
-- **Тестові дані:** 3 групи (Alpha/Beta/Gamma) + 8 сайтів (Site1–Site8) + 3 старі групи + 7 старих сайтів
+- **Plugin активна гілка:** `feature/plugin-redesign-3pages`
+- **Теги повернення:** `v0.3.0-sprint03-complete`, `v0.2.0-sprint02-complete`, `v0.1-vanilla-php-foundation`
 
 ---
 
 ## 🔑 Ключові рішення
 
-| Рішення | Значення | Дата |
-|---|---|---|
-| **PHP фреймворк** | **Laravel** (замість vanilla PHP) | 2026-04-08 |
-| Auth | Laravel вбудований + власні контролери (не Breeze UI) | 2026-04-08 |
-| Views | Blade templates + Blade components | 2026-04-08 |
-| CSS/JS | Без Tailwind/Bootstrap — Restrained Loft / TG Dark design system | 2026-04-08 |
-| CrmRail | Завжди темний (#111), незалежно від теми | 2026-04-08 |
-| Drawer | 440px стандарт, 600px batch; на мобільному — bottom sheet | 2026-04-08 |
-| API key | `dbapi_` + 32 hex = 38 символів; Hash::make(); prefix = перші 12 символів | 2026-04-08 |
-| Tab routing | `?tab=phones\|prices\|addresses\|socials` — server-side, SiteController@show | 2026-04-15 |
-| Data Browser routing | `?type=phones\|prices\|addresses\|socials&q=...` — DataBrowserController@index | 2026-04-15 |
-| Validation | Form Requests (не ручна валідація) | 2026-04-08 |
-| RBAC | Laravel Policies + Gates | 2026-04-08 |
-| Mobile checkboxes | appearance:none, custom border+fill, indeterminate dash | 2026-04-15 |
-| data-row layout | Table-style: data-list = card container (no border-radius), rows use border-bottom separators, col3 right-aligned | 2026-04-16 |
-| site-show sticky sidebar | overflow:clip on .site-show (not hidden) + position:sticky on sidebar | 2026-04-16 |
-| Preview system | public/preview/*.html — links real CSS files, full shell structure, open at localhost:8082/preview/*.html | 2026-04-16 |
-| API auth | Bearer token → find by key_prefix (12 chars) → Hash::check() | 2026-04-17 |
-| API permissions | JSON array in api_keys.permissions; MySQL JSON no default → nullable + backfill | 2026-04-17 |
-| Rate limiting | Laravel RateLimiter::for('api', 60/min per token) in bootstrap/app.php booted() | 2026-04-17 |
+| Рішення | Значення |
+|---|---|
+| PHP фреймворк | Laravel (єдиний) |
+| CSS/JS | Без фреймворків — Restrained Loft / TG Dark design system |
+| API key | `dbapi_` + 32 hex = 38 симв; Hash::make(); prefix = перші 12 |
+| API auth | Bearer → key_prefix (12) → Hash::check() |
+| API permissions | JSON array в api_keys.permissions (nullable) |
+| Rate limit | RateLimiter 60/min per token, bootstrap/app.php booted() |
+| Tab routing | `?tab=phones\|prices\|addresses\|socials` — server-side |
+| Data Browser | `?type=…&q=…` — DataBrowserController@index |
+| Plugin sync | CRM→Plugin: pull на page load (>60s) + optional webhook ping; Plugin→CRM: push на CRUD |
+| Plugin DB | DATABRIDGE_DB_VERSION='1.2.0'; dbDelta на plugins_loaded prio 5 |
+| Plugin geo | geo_mode/geo_countries у phones/prices/addresses/socials; fail-open якщо country невідомий |
+| Plugin tabs | Cookie server-side (zero-flash); JS записує cookie при кліку |
+| socials | Немає колонки label — тільки platform/handle/url/sort_order/geo |
+| custom_fields | Немає label/is_visible — тільки field_key/field_value/field_type/sort_order |
+| site sticky | overflow:clip на .site-show + position:sticky на sidebar |
+| Group FK | nullOnDelete (не cascade) — sites.group_id nullable |
 
 ---
 
-## 📋 Факти (не забувати)
+## 📋 Факти
 
-- Vault: `C:\Users\zalis\OneDrive\Documents\DataBridgeV2\` (MCP Obsidian доступний)
-- Репо: `M:\Projects\CC\data-bridge-v2\`
-- Мова документації: Ukrainian | код і коміти: English
-- БЕЗ фреймворків (PHP/CSS/JS), без SaaS
-- Admin default: `admin@databridge.local` / `admin123` (з міграції)
-- Test users: `irina@databridge.local` / `pass123` (manager), `oleksiy@databridge.local` / `pass123` (viewer)
-- Docker: `docker-compose up -d --build` → http://localhost:8082
-- **ВАЖЛИВО:** При рестарті Docker — якщо volume скинувся — запустити:
-  `php artisan db:seed --class=AdminSeeder`
-  `php artisan db:seed --class=TestDataSeeder`
-  `php artisan db:seed --class=SiteDataSeeder`
-- Cloudflare tunnel URL змінюється при кожному рестарті (trycloudflare.com — ефемерний)
+- **CRM repo:** `M:\Projects\CC\data-bridge-v2\`
+- **Plugin repo:** `M:\Projects\CC\data-bridge-v2-plugin\`
+- **Vault:** `C:\Users\zalis\OneDrive\Documents\DataBridgeV2\` (MCP Obsidian)
+- **URL dev:** http://localhost:8082
+- **Docker:** `docker-compose up -d --build`
+- **Docker reset seeders:** `AdminSeeder` → `TestDataSeeder` → `SiteDataSeeder`
+- **Admin:** `admin@databridge.local` / `admin123`
+- **Test users:** `irina@databridge.local` (manager), `oleksiy@databridge.local` (viewer) — обидва `pass123`
+- **Мова:** документація Ukrainian | код і коміти English
+- **Cloudflare tunnel:** ефемерний, URL змінюється при кожному рестарті
 
 ---
 
-- Plugin repo path: `M:\Projects\CC\data-bridge-v2-plugin\`
-- Plugin CRUD: тип передається до push_create/update/delete у форматі `phones|prices|addresses|socials|custom_fields`
-- type_map: phones→phone, prices→price, addresses→address, socials→social, custom_fields→custom_field
-
-*Оновлено: 2026-04-17 | Сесія: sprint-04-plugin-rework*
+*Оновлено: 2026-04-20 | Сесія: sprint-04-plugin-fixes*
