@@ -91,8 +91,10 @@
                 <div id="country-manual-create" style="{{ ($countries ?? collect())->isNotEmpty() ? 'display:none' : '' }}">
                     <div class="form-row" style="margin-top:6px;">
                         <input type="text" id="country-iso-manual-create" class="form-input" placeholder="UA" maxlength="2"
-                               style="text-transform:uppercase;width:80px">
-                        <input type="text" class="form-input" placeholder="+380" style="flex:1">
+                               style="text-transform:uppercase;width:80px"
+                               oninput="syncManualIso(this, 'create')">
+                        <input type="text" id="dial-manual-create" class="form-input" placeholder="+380" style="flex:1"
+                               oninput="syncManualDial(this, 'create')">
                     </div>
                 </div>
                 <input type="hidden" name="country_iso" id="country-iso-create" required>
