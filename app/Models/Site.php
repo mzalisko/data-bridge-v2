@@ -19,6 +19,7 @@ class Site extends Model
         'logo',
         'is_active',
         'site_countries',
+        'plugin_webhook_url',
     ];
 
     protected function casts(): array

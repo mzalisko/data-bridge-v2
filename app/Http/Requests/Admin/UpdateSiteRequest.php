@@ -19,7 +19,8 @@ class UpdateSiteRequest extends FormRequest
             'url'         => ['required', 'url', 'max:512'],
             'description'     => ['nullable', 'string', 'max:2000'],
             'is_active'       => ['boolean'],
-            'site_countries'  => ['nullable', 'string', 'max:2000'],
+            'site_countries'      => ['nullable', 'string', 'max:2000'],
+            'plugin_webhook_url'  => ['nullable', 'url', 'max:512'],
         ];
     }
 }
