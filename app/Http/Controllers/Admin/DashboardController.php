@@ -12,12 +12,9 @@ class DashboardController extends Controller
 {
     public function index(): View
     {
-        // Last sync events (Show all up to 50, else paginate by 20)
-        $syncsCount = SyncLog::count();
-        $syncsLimit = $syncsCount > 50 ? 20 : 50;
         $recentSyncs = SyncLog::with('site')
             ->orderByDesc('synced_at')
-            ->paginate($syncsLimit, ['*'], 'syncs_page');
+            ->paginate(20, ['*'], 'syncs_page');
 
         // Last system logs — always 8 per page (AJAX pagination in blade)
         $recentLogs = SystemLog::with('user')
@@ -45,11 +42,11 @@ class DashboardController extends Controller
             ->limit(5)
             ->pluck('site_id');
             
-        $quickSites = Site::with('latestSyncLog')
+        $quickSites = Site::with(['latestSyncLog', 'apiKey'])
             ->whereIn('id', $recentSyncSiteIds)
             ->get()
             ->sortBy(fn($site) => array_search($site->id, $recentSyncSiteIds->toArray()))
-            ->values(); // Reset keys after sort
+            ->values();
 
         // IDs of favorites for the star toggle
         $favoriteIds = $favoriteSites->pluck('id')->toArray();

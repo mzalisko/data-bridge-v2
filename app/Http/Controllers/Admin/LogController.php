@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Site;
 use App\Models\SyncLog;
 use App\Models\SystemLog;
 use Illuminate\Http\Request;
@@ -39,8 +40,9 @@ class LogController extends Controller
             $query->where('site_id', $request->site_id);
         }
 
-        $logs = $query->paginate(50)->withQueryString();
+        $logs  = $query->paginate(50)->withQueryString();
+        $sites = Site::orderBy('name')->get(['id', 'name']);
 
-        return view('admin.logs.sync', compact('logs'));
+        return view('admin.logs.sync', compact('logs', 'sites'));
     }
 }

@@ -32,6 +32,6 @@ class SyncLog extends Model
 
     public function isSuccess(): bool
     {
-        return $this->status === 'success';
+        return $this->status === 'ok';
     }
 }
