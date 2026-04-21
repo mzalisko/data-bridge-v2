@@ -6,6 +6,7 @@ use App\Http\Requests\Admin\StorePriceRequest;
 use App\Http\Requests\Admin\UpdatePriceRequest;
 use App\Models\Site;
 use App\Models\SitePrice;
+use App\Services\PluginSyncService;
 use Illuminate\Http\RedirectResponse;
 
 class SitePriceController extends Controller
@@ -15,6 +16,7 @@ class SitePriceController extends Controller
         $data = $request->validated();
         $data['is_visible'] = $request->boolean('is_visible', true);
         $site->prices()->create($data);
+        PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=prices')
             ->with('success', 'Ціну додано');
     }
@@ -24,6 +26,7 @@ class SitePriceController extends Controller
         $data = $request->validated();
         $data['is_visible'] = $request->boolean('is_visible', true);
         $price->update($data);
+        PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=prices')
             ->with('success', 'Ціну оновлено');
     }
@@ -31,6 +34,7 @@ class SitePriceController extends Controller
     public function destroy(Site $site, SitePrice $price): RedirectResponse
     {
         $price->delete();
+        PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=prices')
             ->with('success', 'Ціну видалено');
     }

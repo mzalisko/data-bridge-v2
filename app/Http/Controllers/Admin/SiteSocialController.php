@@ -6,6 +6,7 @@ use App\Http\Requests\Admin\StoreSocialRequest;
 use App\Http\Requests\Admin\UpdateSocialRequest;
 use App\Models\Site;
 use App\Models\SiteSocial;
+use App\Services\PluginSyncService;
 use Illuminate\Http\RedirectResponse;
 
 class SiteSocialController extends Controller
@@ -13,6 +14,7 @@ class SiteSocialController extends Controller
     public function store(StoreSocialRequest $request, Site $site): RedirectResponse
     {
         $site->socials()->create($request->validated());
+        PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=socials')
             ->with('success', 'Соцмережу додано');
     }
@@ -20,6 +22,7 @@ class SiteSocialController extends Controller
     public function update(UpdateSocialRequest $request, Site $site, SiteSocial $social): RedirectResponse
     {
         $social->update($request->validated());
+        PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=socials')
             ->with('success', 'Соцмережу оновлено');
     }
@@ -27,6 +30,7 @@ class SiteSocialController extends Controller
     public function destroy(Site $site, SiteSocial $social): RedirectResponse
     {
         $social->delete();
+        PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=socials')
             ->with('success', 'Соцмережу видалено');
     }
