@@ -15,6 +15,7 @@ Route::get('/v1/health', [SyncController::class, 'health'])->name('api.health');
 Route::middleware(['api.key', 'throttle:60,1'])->prefix('v1')->group(function () {
 
     // Pull (read) endpoints
+    Route::get('/sync/status',    [SyncController::class, 'status']);
     Route::get('/sync',           [SyncController::class, 'pull']);
     Route::get('/sync/phones',    [SyncController::class, 'pullPhones']);
     Route::get('/sync/prices',    [SyncController::class, 'pullPrices']);

@@ -19,6 +19,19 @@ class SyncController extends Controller
     }
 
     /**
+     * GET /api/v1/sync/status — lightweight endpoint; returns site's data_updated_at.
+     * Plugin polls this to detect CRM changes without a full data pull.
+     */
+    public function status(Request $request): JsonResponse
+    {
+        $site = $request->attributes->get('site');
+        return response()->json([
+            'status'          => 'ok',
+            'data_updated_at' => $site->updated_at->timestamp,
+        ]);
+    }
+
+    /**
      * GET /api/v1/sync — full pull for all data types.
      * Optional ?since=UNIX_TIMESTAMP for delta sync.
      */

@@ -19,6 +19,7 @@ class SitePhoneController extends Controller
         $site->phones()->create($data);
 
         $this->ensureCountryExists($data['country_iso'], $data['dial_code']);
+        $site->touch();
         PluginSyncService::ping($site);
 
         return redirect(route('sites.show', $site) . '?tab=phones')
@@ -32,6 +33,7 @@ class SitePhoneController extends Controller
         $phone->update($data);
 
         $this->ensureCountryExists($data['country_iso'], $data['dial_code']);
+        $site->touch();
         PluginSyncService::ping($site);
 
         return redirect(route('sites.show', $site) . '?tab=phones')
@@ -41,6 +43,7 @@ class SitePhoneController extends Controller
     public function destroy(Site $site, SitePhone $phone): RedirectResponse
     {
         $phone->delete();
+        $site->touch();
         PluginSyncService::ping($site);
 
         return redirect(route('sites.show', $site) . '?tab=phones')

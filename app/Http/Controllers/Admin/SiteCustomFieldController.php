@@ -14,6 +14,7 @@ class SiteCustomFieldController extends Controller
     public function store(StoreCustomFieldRequest $request, Site $site): RedirectResponse
     {
         $site->customFields()->create($request->validated());
+        $site->touch();
         PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=custom_fields')
             ->with('success', 'Кастомне поле додано');
@@ -22,6 +23,7 @@ class SiteCustomFieldController extends Controller
     public function update(UpdateCustomFieldRequest $request, Site $site, SiteCustomField $customField): RedirectResponse
     {
         $customField->update($request->validated());
+        $site->touch();
         PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=custom_fields')
             ->with('success', 'Кастомне поле оновлено');
@@ -30,6 +32,7 @@ class SiteCustomFieldController extends Controller
     public function destroy(Site $site, SiteCustomField $customField): RedirectResponse
     {
         $customField->delete();
+        $site->touch();
         PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=custom_fields')
             ->with('success', 'Кастомне поле видалено');

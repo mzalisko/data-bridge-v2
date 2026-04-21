@@ -16,6 +16,7 @@ class SiteAddressController extends Controller
         $data = $request->validated();
         $data['is_primary'] = $request->boolean('is_primary');
         $site->addresses()->create($data);
+        $site->touch();
         PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=addresses')
             ->with('success', 'Адресу додано');
@@ -26,6 +27,7 @@ class SiteAddressController extends Controller
         $data = $request->validated();
         $data['is_primary'] = $request->boolean('is_primary');
         $address->update($data);
+        $site->touch();
         PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=addresses')
             ->with('success', 'Адресу оновлено');
@@ -34,6 +36,7 @@ class SiteAddressController extends Controller
     public function destroy(Site $site, SiteAddress $address): RedirectResponse
     {
         $address->delete();
+        $site->touch();
         PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=addresses')
             ->with('success', 'Адресу видалено');

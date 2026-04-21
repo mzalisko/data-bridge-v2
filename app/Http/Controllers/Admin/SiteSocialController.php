@@ -14,6 +14,7 @@ class SiteSocialController extends Controller
     public function store(StoreSocialRequest $request, Site $site): RedirectResponse
     {
         $site->socials()->create($request->validated());
+        $site->touch();
         PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=socials')
             ->with('success', 'Соцмережу додано');
@@ -22,6 +23,7 @@ class SiteSocialController extends Controller
     public function update(UpdateSocialRequest $request, Site $site, SiteSocial $social): RedirectResponse
     {
         $social->update($request->validated());
+        $site->touch();
         PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=socials')
             ->with('success', 'Соцмережу оновлено');
@@ -30,6 +32,7 @@ class SiteSocialController extends Controller
     public function destroy(Site $site, SiteSocial $social): RedirectResponse
     {
         $social->delete();
+        $site->touch();
         PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=socials')
             ->with('success', 'Соцмережу видалено');

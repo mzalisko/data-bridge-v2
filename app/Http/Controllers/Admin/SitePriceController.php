@@ -16,6 +16,7 @@ class SitePriceController extends Controller
         $data = $request->validated();
         $data['is_visible'] = $request->boolean('is_visible', true);
         $site->prices()->create($data);
+        $site->touch();
         PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=prices')
             ->with('success', 'Ціну додано');
@@ -26,6 +27,7 @@ class SitePriceController extends Controller
         $data = $request->validated();
         $data['is_visible'] = $request->boolean('is_visible', true);
         $price->update($data);
+        $site->touch();
         PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=prices')
             ->with('success', 'Ціну оновлено');
@@ -34,6 +36,7 @@ class SitePriceController extends Controller
     public function destroy(Site $site, SitePrice $price): RedirectResponse
     {
         $price->delete();
+        $site->touch();
         PluginSyncService::ping($site);
         return redirect(route('sites.show', $site) . '?tab=prices')
             ->with('success', 'Ціну видалено');
