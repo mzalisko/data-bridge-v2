@@ -54,21 +54,6 @@
     @enderror
 </div>
 
-<div class="form-group">
-    <label class="form-label" for="plugin_webhook_url">
-        Webhook URL плагіну
-        <span class="form-hint">(для авто-синхронізації після змін)</span>
-    </label>
-    <input type="url"
-           id="plugin_webhook_url"
-           name="plugin_webhook_url"
-           class="form-input @error('plugin_webhook_url') form-input--error @enderror"
-           value="{{ old('plugin_webhook_url', $site?->plugin_webhook_url) }}"
-           placeholder="https://site.com/wp-admin/admin-ajax.php?action=databridge_sync_trigger&token=...">
-    @error('plugin_webhook_url')
-        <span class="form-error">{{ $message }}</span>
-    @enderror
-</div>
 
 <div class="form-check">
     <input type="hidden" name="is_active" value="0">

@@ -15,14 +15,13 @@ class PluginSyncService
      */
     public static function ping(Site $site): void
     {
-        $url = $site->plugin_webhook_url ?? '';
-        if (empty($url)) return;
+        $siteUrl = $site->url ?? '';
+        if (empty($siteUrl)) return;
+
+        $url = rtrim($siteUrl, '/') . '/wp-admin/admin-ajax.php?action=databridge_sync_trigger';
 
         try {
-            Http::timeout(3)
-                ->async()
-                ->post($url)
-                ->wait();
+            Http::timeout(3)->post($url);
         } catch (\Throwable $e) {
             Log::debug('PluginSyncService ping failed', [
                 'site_id' => $site->id,

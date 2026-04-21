@@ -125,45 +125,53 @@ class SyncController extends Controller
     private function fetchPhones(Site $site, ?string $since): array
     {
         $q = $site->phones();
-        if ($since) {
-            $q->where('updated_at', '>', $since);
-        }
-        return $q->orderBy('sort_order')->get()->toArray();
+        if ($since) $q->where('updated_at', '>', $since);
+        return $this->normalizeRecords($q->orderBy('sort_order')->get()->toArray());
     }
 
     private function fetchPrices(Site $site, ?string $since): array
     {
         $q = $site->prices();
-        if ($since) {
-            $q->where('updated_at', '>', $since);
-        }
-        return $q->orderBy('sort_order')->get()->toArray();
+        if ($since) $q->where('updated_at', '>', $since);
+        return $this->normalizeRecords($q->orderBy('sort_order')->get()->toArray());
     }
 
     private function fetchAddresses(Site $site, ?string $since): array
     {
         $q = $site->addresses();
-        if ($since) {
-            $q->where('updated_at', '>', $since);
-        }
-        return $q->orderBy('sort_order')->get()->toArray();
+        if ($since) $q->where('updated_at', '>', $since);
+        return $this->normalizeRecords($q->orderBy('sort_order')->get()->toArray());
     }
 
     private function fetchSocials(Site $site, ?string $since): array
     {
         $q = $site->socials();
-        if ($since) {
-            $q->where('updated_at', '>', $since);
-        }
-        return $q->orderBy('sort_order')->get()->toArray();
+        if ($since) $q->where('updated_at', '>', $since);
+        return $this->normalizeRecords($q->orderBy('sort_order')->get()->toArray());
     }
 
     private function fetchCustomFields(Site $site, ?string $since): array
     {
         $q = $site->customFields();
-        if ($since) {
-            $q->where('updated_at', '>', $since);
-        }
+        if ($since) $q->where('updated_at', '>', $since);
         return $q->orderBy('sort_order')->get()->toArray();
+    }
+
+    /**
+     * Convert geo_countries from comma-separated "UA,PL" to array ["UA","PL"]
+     * so the WordPress plugin can json_decode it correctly.
+     */
+    private function normalizeRecords(array $records): array
+    {
+        return array_map(function (array $r) {
+            if (!empty($r['geo_countries'])) {
+                $r['geo_countries'] = array_values(
+                    array_filter(array_map('strtoupper', array_map('trim', explode(',', $r['geo_countries']))))
+                );
+            } else {
+                $r['geo_countries'] = [];
+            }
+            return $r;
+        }, $records);
     }
 }
