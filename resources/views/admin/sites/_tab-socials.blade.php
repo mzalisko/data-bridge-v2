@@ -32,6 +32,7 @@ $platformLabels = [
             {{-- Col 2: handle --}}
             <div class="data-row__main">
                 <span class="data-row__val">{{ $social->handle ?: $social->url }}</span>
+                <span class="data-row__id">#{{ $social->id }}</span>
             </div>
             {{-- Col 3: url link + geo --}}
             <div class="data-row__secondary">

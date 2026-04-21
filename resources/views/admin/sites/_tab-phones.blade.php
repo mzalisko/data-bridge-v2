@@ -24,6 +24,7 @@
             {{-- Col 2: number --}}
             <div class="data-row__main">
                 <span class="data-row__val">{{ ltrim($phone->number, '+') }}</span>
+                <span class="data-row__id">#{{ $phone->id }}</span>
             </div>
             {{-- Col 3: primary + label + geo --}}
             <div class="data-row__secondary">
@@ -82,7 +83,7 @@
                     <option value="">— Оберіть країну —</option>
                     @foreach($countries as $c)
                     <option value="{{ $c->iso }}" data-dial="{{ $c->dial_code }}">
-                        {{ $c->iso }} — {{ $c->name ?? $c->iso }} (+{{ $c->dial_code }})
+                        {{ $c->iso }}{{ ($c->name && $c->name !== $c->iso) ? ' — ' . $c->name : '' }} (+{{ $c->dial_code }})
                     </option>
                     @endforeach
                     <option value="__other__">Інше (ввести вручну)</option>
@@ -164,7 +165,7 @@
                     @foreach($countries as $c)
                     <option value="{{ $c->iso }}" data-dial="{{ $c->dial_code }}"
                             {{ $editIso === $c->iso ? 'selected' : '' }}>
-                        {{ $c->iso }} — {{ $c->name ?? $c->iso }} (+{{ $c->dial_code }})
+                        {{ $c->iso }}{{ ($c->name && $c->name !== $c->iso) ? ' — ' . $c->name : '' }} (+{{ $c->dial_code }})
                     </option>
                     @endforeach
                     <option value="__other__" {{ !$inList && $editIso ? 'selected' : '' }}>Інше (ввести вручну)</option>

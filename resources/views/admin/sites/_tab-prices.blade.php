@@ -27,6 +27,7 @@
             {{-- Col 2: amount --}}
             <div class="data-row__main">
                 <span class="data-row__val">{{ number_format($price->amount, 2) }}</span>
+                <span class="data-row__id">#{{ $price->id }}</span>
             </div>
             {{-- Col 3: label + period + geo --}}
             <div class="data-row__secondary">

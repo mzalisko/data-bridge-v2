@@ -28,6 +28,7 @@
             </div>
             <div class="data-row__main">
                 <code style="font-size:13px">{{ $cf->field_key }}</code>
+                <span class="data-row__id">#{{ $cf->id }}</span>
             </div>
             <div class="data-row__secondary">
                 <span class="data-row__label" style="color:var(--text-muted);max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle;">

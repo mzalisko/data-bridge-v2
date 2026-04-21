@@ -24,6 +24,7 @@
             {{-- Col 2: city + street --}}
             <div class="data-row__main">
                 <span class="data-row__val">{{ $address->city }}{{ $address->street ? ', '.$address->street : '' }}{{ $address->building ? ' '.$address->building : '' }}</span>
+                <span class="data-row__id">#{{ $address->id }}</span>
             </div>
             {{-- Col 3: primary + label + geo --}}
             <div class="data-row__secondary">
