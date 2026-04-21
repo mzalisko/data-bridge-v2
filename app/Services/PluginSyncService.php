@@ -15,10 +15,12 @@ class PluginSyncService
      */
     public static function ping(Site $site): void
     {
-        $siteUrl = $site->url ?? '';
-        if (empty($siteUrl)) return;
+        // Use explicit sync URL if set (e.g. Docker internal: http://wp1),
+        // otherwise auto-construct from public site URL.
+        $base = $site->plugin_webhook_url ?: ($site->url ?? '');
+        if (empty($base)) return;
 
-        $url = rtrim($siteUrl, '/') . '/wp-admin/admin-ajax.php?action=databridge_sync_trigger';
+        $url = rtrim($base, '/') . '/wp-admin/admin-ajax.php?action=databridge_sync_trigger';
 
         try {
             Http::timeout(3)->post($url);

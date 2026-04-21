@@ -44,6 +44,20 @@
 </div>
 
 <div class="form-group">
+    <label class="form-label" for="plugin_webhook_url">URL для авто-синхронізації <span style="font-weight:400;color:var(--text-muted)">(опціонально)</span></label>
+    <input type="url"
+           id="plugin_webhook_url"
+           name="plugin_webhook_url"
+           class="form-input @error('plugin_webhook_url') form-input--error @enderror"
+           value="{{ old('plugin_webhook_url', $site?->plugin_webhook_url) }}"
+           placeholder="http://wp1  (залиш порожнім якщо URL вище досяжний з CRM)">
+    <span class="form-hint">Заповни лише якщо сайт недоступний за основним URL (напр. Docker dev: <code>http://wp1</code>). CRM пінгує цей URL після кожної зміни даних.</span>
+    @error('plugin_webhook_url')
+        <span class="form-error">{{ $message }}</span>
+    @enderror
+</div>
+
+<div class="form-group">
     <label class="form-label" for="description">Опис</label>
     <textarea id="description"
               name="description"
