@@ -42,15 +42,16 @@
 | Plugin: Auto-sync on dashboard page load (якщо >60s) | plugin feature/plugin-redesign-3pages | ✅ |
 | Plugin: Fix custom_fields — field_value замість value/label | plugin feature/plugin-redesign-3pages | ✅ |
 | Plugin: Fix socials — прибрати неіснуючий $r['label'] | plugin feature/plugin-redesign-3pages | ✅ |
+| Plugin: 3 WP-admin redesign demos (business/editorial/bold) | plugin feature/plugin-redesign-explore | ✅ |
+| Plugin: Business/Classic WP CSS applied (repaint admin, geo sim polish) | plugin feature/plugin-redesign-explore | ✅ |
 
 ## 🔲 Залишилось (Sprint 04)
 
 1. **Мерж** `feature/task-plugin-rework` → main (CRM)
-2. **Мерж** `feature/plugin-redesign-3pages` → (plugin main)
+2. **Мерж** `feature/plugin-redesign-explore` → `feature/plugin-redesign-3pages` → master (plugin)
 3. **Plugin git remote** — GitHub repo
-4. **wp-test/** — docker env з реальним WordPress
-5. **Дизайн плагіна** — відповідність макету (користувач вказав невідповідність)
-6. **Conflict resolution** — логіка пріоритету CRM
+4. **wp-test/** — docker env з реальним WordPress (візуальна перевірка нового CSS)
+5. **Conflict resolution** — логіка пріоритету CRM
 
 ---
 
