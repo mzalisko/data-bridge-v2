@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  db1:
+    image: mariadb:10.6
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: root
+    volumes:
+      - db1_data:/var/lib/mysql
+
+  wp1:
+    image: wordpress:latest
+    restart: always
+    ports:
+      - "8084:80"
+    environment:
+      WORDPRESS_DB_HOST: db1
+      WORDPRESS_DB_USER: root
+      WORDPRESS_DB_PASSWORD: root
+      WORDPRESS_DB_NAME: root
+      WORDPRESS_DEBUG: 1
+    volumes:
+      - m:/Projects/CC/data-bridge-v2-plugin:/var/www/html/wp-content/plugins/databridge
+    networks:
+      - default
+      - crm
+
+  db2:
+    image: mariadb:10.6
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: root
+    volumes:
+      - db2_data:/var/lib/mysql
+
+  wp2:
+    image: wordpress:latest
+    restart: always
+    ports:
+      - "8085:80"
+    environment:
+      WORDPRESS_DB_HOST: db2
+      WORDPRESS_DB_USER: root
+      WORDPRESS_DB_PASSWORD: root
+      WORDPRESS_DB_NAME: root
+      WORDPRESS_DEBUG: 1
+    volumes:
+      - m:/Projects/CC/data-bridge-v2-plugin:/var/www/html/wp-content/plugins/databridge
+    networks:
+      - default
+      - crm
+
+volumes:
+  db1_data:
+  db2_data:
+
+networks:
+  default: {}
+  crm:
+    external: true
+    name: data-bridge-v2_databridge
