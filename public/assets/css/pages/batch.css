@@ -139,8 +139,8 @@
     transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
 }
 .batch-tab:hover {
-    background: var(--bg-hover, rgba(255,255,255,.04));
-    color: var(--text-primary);
+    background: var(--panel-2);
+    color: var(--text);
 }
 .batch-tab--active {
     background: rgba(var(--accent-rgb, 99,102,241), 0.12);

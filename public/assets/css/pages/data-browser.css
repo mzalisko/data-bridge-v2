@@ -74,14 +74,18 @@
     transition: background var(--duration-fast), color var(--duration-fast);
     white-space: nowrap;
 }
-.db-type-tab:hover { background: var(--bg-hover, rgba(255,255,255,.04)); color: var(--text-primary); }
+.db-type-tab:hover { background: var(--panel-2); color: var(--text); }
 .db-type-tab.is-active { background: var(--accent); color: #fff; }
 .db-type-tab__count {
     font-size: 10px;
     font-weight: 700;
-    background: rgba(255,255,255,.18);
+    background: rgba(255,255,255,.22);
     padding: 1px 5px;
     border-radius: 100px;
+}
+.db-type-tab:not(.is-active) .db-type-tab__count {
+    background: var(--border);
+    color: var(--text-3);
 }
 
 /* ─── Data table ─── */
@@ -130,10 +134,10 @@
 
 .db-table tr:last-child td { border-bottom: none; }
 
-.db-table tr:hover td { background: var(--bg-hover, rgba(255,255,255,.025)); }
+.db-table tr:hover td { background: var(--panel-2); }
 
 .db-table tr.is-selected td {
-    background: rgba(var(--accent-rgb, 99,102,241), 0.06);
+    background: var(--accent-2);
 }
 
 .db-cb {
@@ -225,12 +229,13 @@
     border-radius: 100px;
     font-size: var(--font-size-xs);
     font-weight: 600;
-    background: var(--bg-muted, rgba(255,255,255,.06));
-    color: var(--text-muted);
+    background: var(--panel-2);
+    color: var(--text-3);
+    border: 1px solid var(--border);
 }
 
-.db-badge--platform { color: var(--accent); background: rgba(var(--accent-rgb,99,102,241),.1); }
-.db-badge--currency { color: var(--dot-ok); background: rgba(72,187,120,.1); }
+.db-badge--platform { color: var(--accent-text); background: var(--accent-2); border-color: transparent; }
+.db-badge--currency { color: var(--success); background: var(--success-bg); border-color: transparent; }
 
 /* ─── Empty state ─── */
 .db-empty {
@@ -336,7 +341,7 @@
     font-size: var(--font-size-sm);
     color: var(--text-primary);
 }
-.db-site-picker-item:hover { background: var(--bg-hover, rgba(255,255,255,.04)); }
+.db-site-picker-item:hover { background: var(--panel-2); }
 .db-site-picker-item input[type=checkbox] { accent-color: var(--accent); }
 
 /* ─── Mobile ─── */
