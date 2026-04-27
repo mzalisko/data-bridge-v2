@@ -51,7 +51,7 @@
 @if($groups->isEmpty())
     <div class="empty-page"><p>Груп ще немає. Натисніть «+ Нова група» щоб розпочати.</p></div>
 @else
-    <div class="group-list" id="groups-list">
+    <div class="group-list group-list--grid" id="groups-list">
         @foreach($groups as $group)
         @php
             $sites = $group->sites->take(3);
@@ -144,18 +144,32 @@
 
 @push('scripts')
 <script>
-    initViewToggle('groups-view', 'groups-list', 'btn-view-list', 'btn-view-grid');
-    // Замінюємо клас для груп (grid використовує group-list--grid)
     (function() {
         var list = document.getElementById('groups-list');
         if (!list) return;
-        var saved = localStorage.getItem('groups-view') || 'list';
-        if (saved === 'grid') list.classList.add('group-list--grid');
+        var saved = localStorage.getItem('groups-view') || 'grid';
+
+        if (saved === 'list') {
+            list.classList.remove('group-list--grid');
+            document.getElementById('btn-view-list').classList.add('is-active');
+            document.getElementById('btn-view-grid').classList.remove('is-active');
+        } else {
+            list.classList.add('group-list--grid');
+            document.getElementById('btn-view-grid').classList.add('is-active');
+            document.getElementById('btn-view-list').classList.remove('is-active');
+        }
+
         document.getElementById('btn-view-list').addEventListener('click', function() {
             list.classList.remove('group-list--grid');
+            localStorage.setItem('groups-view', 'list');
+            document.getElementById('btn-view-list').classList.add('is-active');
+            document.getElementById('btn-view-grid').classList.remove('is-active');
         });
         document.getElementById('btn-view-grid').addEventListener('click', function() {
             list.classList.add('group-list--grid');
+            localStorage.setItem('groups-view', 'grid');
+            document.getElementById('btn-view-grid').classList.add('is-active');
+            document.getElementById('btn-view-list').classList.remove('is-active');
         });
     })();
 

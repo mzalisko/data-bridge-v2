@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Site;
 use App\Models\SyncLog;
 use App\Models\SystemLog;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -51,6 +52,15 @@ class DashboardController extends Controller
         // IDs of favorites for the star toggle
         $favoriteIds = $favoriteSites->pluck('id')->toArray();
 
+        // Stat cards
+        $totalSites   = Site::count();
+        $activeSites  = Site::where('is_active', true)->count();
+        $syncedToday  = SyncLog::whereDate('synced_at', today())->distinct('site_id')->count();
+        $errorCount   = $problemSites->count();
+        $totalContacts = DB::table('phones')->count()
+                       + DB::table('prices')->count()
+                       + DB::table('addresses')->count();
+
         return view('admin.dashboard', compact(
             'recentSyncs',
             'problemSites',
@@ -58,6 +68,11 @@ class DashboardController extends Controller
             'favoriteSites',
             'favoriteIds',
             'recentLogs',
+            'totalSites',
+            'activeSites',
+            'syncedToday',
+            'errorCount',
+            'totalContacts',
         ));
     }
 }

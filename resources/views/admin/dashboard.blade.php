@@ -8,23 +8,76 @@
 
 @section('content')
 
+{{-- ── Page header ── --}}
+<div class="page-toolbar">
+    <div>
+        <h1 class="page-title">Dashboard</h1>
+    </div>
+    @if($errorCount > 0)
+        <div class="db-status db-status--err">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {{ $errorCount }} {{ $errorCount === 1 ? 'помилка' : 'помилок' }}
+        </div>
+    @else
+        <div class="db-status db-status--ok">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Всі сайти в нормі
+        </div>
+    @endif
+</div>
+
+{{-- ── Stat cards ── --}}
+<div class="dash-stats">
+    <div class="dash-stat-card">
+        <div class="dash-stat-card__icon dash-stat-card__icon--blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </div>
+        <div class="dash-stat-card__body">
+            <div class="dash-stat-card__value">{{ $totalSites }}</div>
+            <div class="dash-stat-card__label">Всього сайтів</div>
+        </div>
+        <div class="dash-stat-card__sub">{{ $activeSites }} активних</div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-card__icon dash-stat-card__icon--green">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2.1l4 4-4 4"/><path d="M3 12.2v-2a4 4 0 0 1 4-4h13.8"/><path d="M7 21.9l-4-4 4-4"/><path d="M21 11.8v2a4 4 0 0 1-4 4H3.2"/></svg>
+        </div>
+        <div class="dash-stat-card__body">
+            <div class="dash-stat-card__value">{{ $syncedToday }}</div>
+            <div class="dash-stat-card__label">Синхронізовано сьогодні</div>
+        </div>
+        <div class="dash-stat-card__sub">сайтів</div>
+    </div>
+
+    <div class="dash-stat-card {{ $errorCount > 0 ? 'dash-stat-card--danger' : '' }}">
+        <div class="dash-stat-card__icon {{ $errorCount > 0 ? 'dash-stat-card__icon--red' : 'dash-stat-card__icon--muted' }}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="dash-stat-card__body">
+            <div class="dash-stat-card__value">{{ $errorCount }}</div>
+            <div class="dash-stat-card__label">Помилки синхронізації</div>
+        </div>
+        <div class="dash-stat-card__sub">{{ $errorCount === 0 ? 'все чисто' : 'потребують уваги' }}</div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-card__icon dash-stat-card__icon--purple">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="dash-stat-card__body">
+            <div class="dash-stat-card__value">{{ number_format($totalContacts) }}</div>
+            <div class="dash-stat-card__label">Всього контактів</div>
+        </div>
+        <div class="dash-stat-card__sub">телефони · ціни · адреси</div>
+    </div>
+</div>
+
+{{-- ── 2-column layout ── --}}
 <div class="db-layout">
 
     {{-- ── CENTER: Sync Timeline ── --}}
     <div class="db-main">
-
-        <div class="page-toolbar">
-            <div>
-                <h1 class="page-title">Dashboard</h1>
-            </div>
-
-            @if($problemSites->isNotEmpty())
-                <div class="db-status db-status--err">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    {{ $problemSites->count() }} {{ $problemSites->count() === 1 ? 'помилка' : 'помилок' }}
-                </div>
-            @endif
-        </div>
 
         {{-- Timeline --}}
         <div class="db-card" id="syncs-card">
@@ -106,9 +159,9 @@
             <div class="db-card__header">
                 <span class="db-card__title">
                     @if($problemSites->isEmpty())
-                        <span style="color:var(--dot-ok)">✓</span> Проблем немає
+                        <span style="color:var(--success)">✓</span> Проблем немає
                     @else
-                        <span style="color:var(--dot-off)">⚠</span> Проблеми ({{ $problemSites->count() }})
+                        <span style="color:var(--danger)">⚠</span> Проблеми ({{ $problemSites->count() }})
                     @endif
                 </span>
             </div>
@@ -138,7 +191,7 @@
         @if($favoriteSites->isNotEmpty())
         <div class="db-card">
             <div class="db-card__header">
-                <span class="db-card__title">★ Улюблені сайти</span>
+                <span class="db-card__title">Улюблені сайти</span>
                 <a href="{{ route('sites.index') }}" class="db-card__link">Всі →</a>
             </div>
             <ul class="db-quick-list">
@@ -149,7 +202,7 @@
                             {{ mb_strtoupper(mb_substr($site->name, 0, 1, 'UTF-8'), 'UTF-8') }}
                         </div>
                         <span class="db-quick-item__name">{{ $site->name }}</span>
-                        <span class="db-quick-item__dot" style="background:{{ $site->latestSyncLog?->status === 'ok' ? 'var(--dot-ok)' : ($site->latestSyncLog ? 'var(--dot-off)' : 'var(--text-muted)') }}"></span>
+                        <span class="db-quick-item__dot" style="background:{{ $site->latestSyncLog?->status === 'ok' ? 'var(--success)' : ($site->latestSyncLog ? 'var(--danger)' : 'var(--text-3)') }}"></span>
                     </a>
                     <button class="db-fav-btn is-fav" title="Прибрати з улюблених" onclick="toggleFavorite(event, this, {{ $site->id }})">★</button>
                 </li>
@@ -161,7 +214,7 @@
         {{-- Recently Synchronized --}}
         <div class="db-card">
             <div class="db-card__header">
-                <span class="db-card__title">🕒 Нещодавно синхронізовані</span>
+                <span class="db-card__title">Нещодавно синхронізовані</span>
             </div>
             @if($quickSites->isEmpty())
                 <p class="db-side__empty">Немає недавніх подій</p>
@@ -173,10 +226,10 @@
                         $syncStatus   = $site->latestSyncLog?->status;
                         $isConnected  = $site->apiKey && !$site->apiKey->revoked_at;
                         $dotColor     = match(true) {
-                            $syncStatus === 'ok'         => 'var(--dot-ok)',
-                            $syncStatus === 'no_changes' => 'var(--dot-ok)',
-                            $syncStatus === 'error'      => 'var(--dot-off)',
-                            default                      => 'var(--text-muted)',
+                            $syncStatus === 'ok'         => 'var(--success)',
+                            $syncStatus === 'no_changes' => 'var(--success)',
+                            $syncStatus === 'error'      => 'var(--danger)',
+                            default                      => 'var(--text-3)',
                         };
                     @endphp
                     <li>
@@ -188,12 +241,12 @@
                                 <span class="db-quick-item__name">{{ $site->name }}</span>
                                 <span class="db-quick-item__sub">
                                     @if($isConnected)
-                                        <span style="color:var(--dot-ok)">●</span> Підключений
+                                        <span style="color:var(--success)">●</span> Підключений
                                         @if($site->latestSyncLog?->synced_at)
                                             · {{ $site->latestSyncLog->synced_at->diffForHumans() }}
                                         @endif
                                     @else
-                                        <span style="color:var(--text-muted)">○</span> Без ключа
+                                        <span style="color:var(--text-3)">○</span> Без ключа
                                     @endif
                                 </span>
                             </div>

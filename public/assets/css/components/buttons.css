@@ -21,6 +21,31 @@
 .btn--md  { height: 34px; padding: 0 14px; font-size: 13px; }
 .btn--lg  { height: 40px; padding: 0 18px; font-size: 14px; }
 
+/* Standalone usage (without .btn base): give default size */
+.btn--primary, .btn--ghost, .btn--danger, .btn--secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: none;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    transition: background var(--duration-fast), color var(--duration-fast), opacity var(--duration-fast);
+}
+
+.btn--ghost-sm {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 12px;
+}
+
 /* Kinds */
 .btn--primary {
     background: var(--accent);
