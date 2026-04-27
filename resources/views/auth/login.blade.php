@@ -6,7 +6,10 @@
 <div class="form-card">
     <div class="form-card__header">
         <div class="form-card__logo">
-            <span class="form-card__logo-icon">⬡</span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 7h7a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5H4"/>
+                <path d="M20 17h-7a5 5 0 0 1-5-5v0a5 5 0 0 1 5-5h7"/>
+            </svg>
         </div>
         <h1 class="form-card__title">DataBridge</h1>
         <p class="form-card__subtitle">CRM для мережі сайтів</p>

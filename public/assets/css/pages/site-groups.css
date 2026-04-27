@@ -4,7 +4,7 @@
 .page-controls {
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 12px;
     margin-bottom: var(--space-md);
 }
 
@@ -164,9 +164,21 @@
 }
 
 .alert--success {
-    background: rgba(72, 187, 120, .12);
-    color: var(--dot-ok);
-    border: 1px solid rgba(72, 187, 120, .25);
+    background: var(--success-bg);
+    color: var(--success);
+    border: 1px solid transparent;
+}
+
+.alert--error {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid transparent;
+}
+
+.alert--warning {
+    background: var(--warning-bg);
+    color: var(--warning);
+    border: 1px solid transparent;
 }
 
 .empty-page {
@@ -269,16 +281,18 @@
     display: flex;
     align-items: center;
     gap: var(--space-md);
-    background: var(--bg-card);
-    border-radius: var(--radius-pill);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
     padding: var(--space-sm) var(--space-md);
-    box-shadow: var(--shadow-card);
+    box-shadow: var(--shadow-sm);
     cursor: pointer;
-    transition: box-shadow var(--duration-fast) var(--ease-ui);
+    transition: box-shadow var(--duration-fast), border-color var(--duration-fast);
 }
 
 .group-row:hover {
-    box-shadow: var(--shadow-card), 0 0 0 1px var(--accent);
+    box-shadow: var(--shadow);
+    border-color: var(--accent);
 }
 
 .group-row__icon {
@@ -359,8 +373,9 @@
     font-size: 9px;
     padding: 2px 7px;
     border-radius: 6px;
-    background: rgba(255,255,255,.06);
-    color: var(--text-muted);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text-3);
     white-space: nowrap;
 }
 

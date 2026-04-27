@@ -1,13 +1,13 @@
 /* DataBridge CRM — Main Stylesheet */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @import 'tokens.css';
 @import 'reset.css';
 
 /* Layout */
 @import 'layout/shell.css';
-@import 'layout/rail.css';
+@import 'layout/sidebar.css';
 
 /* Components */
 @import 'components/cards.css';

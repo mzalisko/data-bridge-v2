@@ -1,11 +1,18 @@
-/* DataBridge CRM — Design Tokens (Restrained Loft) */
+/* DataBridge CRM — Design Tokens (Vibe B: Modern SaaS) */
 
 :root {
+    /* Fonts */
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
     /* Radius */
-    --radius-card: 24px;
-    --radius-pill: 12px;
+    --radius:      10px;
+    --radius-lg:   14px;
+    --radius-sm:   6px;
+    --radius-card: 14px;
+    --radius-pill: 999px;
     --radius-item: 10px;
-    --radius-input: 8px;
+    --radius-input: 10px;
 
     /* Spacing */
     --space-xs:  4px;
@@ -15,18 +22,17 @@
     --space-xl: 40px;
 
     /* Typography */
-    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
     --font-size-xs:   11px;
     --font-size-sm:   13px;
     --font-size-base: 14px;
     --font-size-md:   16px;
-    --font-size-lg:   20px;
+    --font-size-lg:   22px;
     --font-size-xl:   28px;
 
-    /* Status dots — незмінні між темами */
-    --dot-ok:    #48bb78;
-    --dot-pause: #ed8936;
-    --dot-off:   #f56565;
+    /* Status dots */
+    --dot-ok:    #10b981;
+    --dot-pause: #d97706;
+    --dot-off:   #e11d48;
 
     /* Transitions */
     --ease-ui: cubic-bezier(0.4, 0, 0.2, 1);
@@ -37,50 +43,89 @@
     --drawer-width:       440px;
     --drawer-width-batch: 600px;
 
-    /* Rail — завжди темний */
-    --rail-width: 60px;
-    --rail-bg:    #0e1621;
+    /* Sidebar */
+    --sidebar-width: 240px;
 
-    /* Dark theme (default) — TG Dark */
-    --bg-page:        #17212b;
-    --bg-card:        #242f3d;
-    --bg-card2:       #1e2a38;
-    --bg-input:       #1e2a38;
-    --bg-hover:       #2a3a4d;
+    /* ===== Light theme (default) ===== */
+    --bg:          #fafafa;
+    --panel:       #ffffff;
+    --panel-2:     #f7f7f8;
+    --border:      #ececf0;
+    --border-2:    #f1f1f4;
 
-    --text-primary:   #ffffff;
-    --text-secondary: #a0b4c4;
-    --text-muted:     #708499;
-    --text-inverse:   #ffffff;
+    --text:        #0b0b12;
+    --text-2:      #4a4a58;
+    --text-3:      #71717a;
+    --muted:       #a1a1aa;
 
-    --border-color:   #2b3c4e;
-    --border-focus:   #5288c1;
+    --accent:      #5b5bf5;
+    --accent-2:    #eef0ff;
+    --accent-text: #3a3ac9;
 
-    --accent:         #5288c1;
-    --accent-hover:   #3d6fa8;
+    --success:     #10b981;
+    --success-bg:  #e8f9f1;
+    --warning:     #d97706;
+    --warning-bg:  #fef4e2;
+    --danger:      #e11d48;
+    --danger-bg:   #fdecef;
 
-    --shadow-card:   0 1px 3px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
-    --shadow-drawer: -4px 0 32px rgba(0,0,0,.5);
+    --shadow-sm:   0 1px 2px rgba(17,17,26,.04);
+    --shadow:      0 4px 14px rgba(17,17,26,.06), 0 1px 2px rgba(17,17,26,.04);
+
+    /* Legacy compat aliases */
+    --bg-page:       var(--bg);
+    --bg-card:       var(--panel);
+    --bg-card2:      var(--panel-2);
+    --bg-input:      var(--panel);
+    --bg-hover:      var(--panel-2);
+    --text-primary:  var(--text);
+    --text-secondary:var(--text-2);
+    --text-muted:    var(--text-3);
+    --border-color:  var(--border);
+    --border-focus:  var(--accent);
+    --accent-hover:  var(--accent-text);
+    --shadow-card:   var(--shadow);
+    --shadow-drawer: -4px 0 32px rgba(17,17,26,.12);
 }
 
-[data-theme="light"] {
-    --bg-page:        #ebedf1;
-    --bg-card:        #ffffff;
-    --bg-card2:       #f5f6f8;
-    --bg-input:       #f5f6f8;
-    --bg-hover:       #f0f1f4;
+[data-theme="dark"] {
+    color-scheme: dark;
 
-    --text-primary:   #111827;
-    --text-secondary: #6b7280;
-    --text-muted:     #9ca3af;
-    --text-inverse:   #ffffff;
+    --bg:          #0a0a0c;
+    --panel:       #131318;
+    --panel-2:     #0f0f14;
+    --border:      #22222b;
+    --border-2:    #1c1c23;
 
-    --border-color:   #e5e7eb;
-    --border-focus:   #3d6fa8;
+    --text:        #f2f2f5;
+    --text-2:      #b4b4bf;
+    --text-3:      #8a8a95;
+    --muted:       #6b6b75;
 
-    --accent:         #3d6fa8;
-    --accent-hover:   #2d5a8a;
+    --accent:      #7c7cff;
+    --accent-2:    #1d1d3a;
+    --accent-text: #c7c7ff;
 
-    --shadow-card:   0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
-    --shadow-drawer: -4px 0 32px rgba(0,0,0,.12);
+    --success:     #34d399;
+    --success-bg:  #052e22;
+    --warning:     #fbbf24;
+    --warning-bg:  #3a2a08;
+    --danger:      #fb7185;
+    --danger-bg:   #3a1220;
+
+    --shadow-sm:   0 1px 2px rgba(0,0,0,.4);
+    --shadow:      0 8px 24px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.3);
+
+    /* Legacy compat aliases */
+    --bg-page:       var(--bg);
+    --bg-card:       var(--panel);
+    --bg-card2:      var(--panel-2);
+    --bg-input:      var(--panel);
+    --bg-hover:      var(--panel-2);
+    --text-primary:  var(--text);
+    --text-secondary:var(--text-2);
+    --text-muted:    var(--text-3);
+    --border-color:  var(--border);
+    --shadow-card:   var(--shadow);
+    --shadow-drawer: -4px 0 32px rgba(0,0,0,.5);
 }
