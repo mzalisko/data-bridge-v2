@@ -824,6 +824,23 @@
 }
 
 /* Mobile: hero stacks */
+@media (max-width: 900px) {
+    .site-mini-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+    .site-mini-stat {
+        flex: none;
+        min-width: 0;
+        padding: 10px 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    .site-mini-stat__val { font-size: 16px; }
+}
+
 @media (max-width: 768px) {
     .site-hero {
         flex-direction: column;
@@ -838,9 +855,9 @@
         width: 100%;
         max-width: 100%;
     }
-    .site-mini-stats { gap: 6px; }
-    .site-mini-stat { min-width: calc(50% - 3px); flex: 0 0 auto; }
-    .site-mini-stat__val { font-size: 15px; }
+    .site-mini-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 /* ─── Site show — sidebar layout (legacy, kept for CSS compat) ─── */
