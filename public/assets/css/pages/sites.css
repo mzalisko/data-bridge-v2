@@ -2,10 +2,13 @@
 
 /* ─── Filter bar ─── */
 .sites-filter-bar {
+    margin-bottom: var(--space-md);
+}
+
+.sites-filter-normal {
     display: flex;
     align-items: center;
     gap: var(--space-md);
-    margin-bottom: var(--space-md);
     flex-wrap: wrap;
 }
 
@@ -58,6 +61,30 @@
     font-size: 12px;
     color: var(--text-3);
     white-space: nowrap;
+}
+
+/* ─── Inline batch action bar ─── */
+.sites-batch-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+}
+
+.sites-batch-bar__count {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    padding: 4px 12px;
+    background: var(--accent-2);
+    border-radius: var(--radius-pill);
+    color: var(--accent-text);
+}
+
+.sites-batch-bar__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 /* ─── Sites table ─── */
@@ -121,13 +148,7 @@
     padding-left: 16px;
 }
 
-/* Hide all checkboxes unless in batch mode */
-.sites-table:not(.is-batch-mode) .sites-table__td--cb .batch-cb,
-.sites-table:not(.is-batch-mode) .sites-table__th--cb .sites-cb { opacity: 0; pointer-events: none; }
-
-/* Fade in checkboxes in batch mode */
-.sites-table.is-batch-mode .sites-table__td--cb .batch-cb,
-.sites-table.is-batch-mode .sites-table__th--cb .sites-cb { opacity: 1; }
+/* Checkboxes always visible */
 
 .sites-cb {
     width: 15px;
@@ -141,6 +162,8 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    text-decoration: none;
+    color: inherit;
 }
 
 .sites-table__favicon {
@@ -214,7 +237,6 @@
     gap: 2px;
 }
 
-.sites-table.is-batch-mode .sites-table__actions { display: none; }
 
 /* Status dot pill (compact) */
 .status-dot-pill {

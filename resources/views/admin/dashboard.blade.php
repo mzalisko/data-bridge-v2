@@ -8,292 +8,165 @@
 
 @section('content')
 
-{{-- ── Page header ── --}}
-<div class="page-toolbar">
+{{-- ── Page head ── --}}
+<div class="page-head">
     <div>
-        <h1 class="page-title">Dashboard</h1>
+        <h1 class="page-head__title">Overview</h1>
+        <p class="page-head__sub">All sites, groups, and team activity in one place.</p>
     </div>
-    @if($errorCount > 0)
-        <div class="db-status db-status--err">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            {{ $errorCount }} {{ $errorCount === 1 ? 'помилка' : 'помилок' }}
-        </div>
-    @else
-        <div class="db-status db-status--ok">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            Всі сайти в нормі
-        </div>
-    @endif
+    <div style="display:flex;gap:8px;">
+        <a href="{{ route('sites.index') }}" class="btn btn--md btn--secondary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            All sites
+        </a>
+        <a href="{{ route('sites.index') }}" class="btn btn--md btn--primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add site
+        </a>
+    </div>
 </div>
 
-{{-- ── Stat cards ── --}}
+{{-- ── 4 Stat cards ── --}}
 <div class="dash-stats">
-    <div class="dash-stat-card">
-        <div class="dash-stat-card__icon dash-stat-card__icon--blue">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    <div class="stat-card">
+        <div class="stat-card__label">Sites</div>
+        <div class="stat-card__body">
+            <span class="stat-card__value">{{ $totalSites }}</span>
+            <svg class="stat-card__spark" viewBox="0 0 60 24" preserveAspectRatio="none">
+                <polyline points="0,20 10,16 20,18 30,10 40,12 50,6 60,4" stroke="var(--success)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
         </div>
-        <div class="dash-stat-card__body">
-            <div class="dash-stat-card__value">{{ $totalSites }}</div>
-            <div class="dash-stat-card__label">Всього сайтів</div>
-        </div>
-        <div class="dash-stat-card__sub">{{ $activeSites }} активних</div>
+        <div class="stat-card__delta" style="color:var(--success)">{{ $activeSites }} active</div>
     </div>
 
-    <div class="dash-stat-card">
-        <div class="dash-stat-card__icon dash-stat-card__icon--green">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2.1l4 4-4 4"/><path d="M3 12.2v-2a4 4 0 0 1 4-4h13.8"/><path d="M7 21.9l-4-4 4-4"/><path d="M21 11.8v2a4 4 0 0 1-4 4H3.2"/></svg>
+    <div class="stat-card">
+        <div class="stat-card__label">Total contacts</div>
+        <div class="stat-card__body">
+            <span class="stat-card__value">{{ number_format($totalContacts) }}</span>
+            <svg class="stat-card__spark" viewBox="0 0 60 24" preserveAspectRatio="none">
+                <polyline points="0,22 10,18 20,14 30,10 40,7 50,4 60,2" stroke="var(--accent)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
         </div>
-        <div class="dash-stat-card__body">
-            <div class="dash-stat-card__value">{{ $syncedToday }}</div>
-            <div class="dash-stat-card__label">Синхронізовано сьогодні</div>
-        </div>
-        <div class="dash-stat-card__sub">сайтів</div>
+        <div class="stat-card__delta">Across all sites</div>
     </div>
 
-    <div class="dash-stat-card {{ $errorCount > 0 ? 'dash-stat-card--danger' : '' }}">
-        <div class="dash-stat-card__icon {{ $errorCount > 0 ? 'dash-stat-card__icon--red' : 'dash-stat-card__icon--muted' }}">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <div class="stat-card">
+        <div class="stat-card__label">Synced today</div>
+        <div class="stat-card__body">
+            <span class="stat-card__value">{{ $syncedToday }}</span>
+            <svg class="stat-card__spark" viewBox="0 0 60 24" preserveAspectRatio="none">
+                <polyline points="0,16 10,14 20,12 30,8 40,10 50,6 60,4" stroke="var(--accent)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
         </div>
-        <div class="dash-stat-card__body">
-            <div class="dash-stat-card__value">{{ $errorCount }}</div>
-            <div class="dash-stat-card__label">Помилки синхронізації</div>
-        </div>
-        <div class="dash-stat-card__sub">{{ $errorCount === 0 ? 'все чисто' : 'потребують уваги' }}</div>
+        <div class="stat-card__delta">{{ $totalSites > 0 ? round($syncedToday / $totalSites * 100) : 0 }}% of sites</div>
     </div>
 
-    <div class="dash-stat-card">
-        <div class="dash-stat-card__icon dash-stat-card__icon--purple">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <div class="stat-card">
+        <div class="stat-card__label">Errors</div>
+        <div class="stat-card__body">
+            <span class="stat-card__value">{{ $errorCount }}</span>
+            @php $errColor = $errorCount > 0 ? 'var(--danger)' : 'var(--success)'; @endphp
+            <svg class="stat-card__spark" viewBox="0 0 60 24" preserveAspectRatio="none">
+                <polyline points="0,20 10,20 20,18 30,18 40,14 50,10 60,{{ $errorCount > 0 ? 6 : 20 }}" stroke="{{ $errColor }}" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
         </div>
-        <div class="dash-stat-card__body">
-            <div class="dash-stat-card__value">{{ number_format($totalContacts) }}</div>
-            <div class="dash-stat-card__label">Всього контактів</div>
+        <div class="stat-card__delta" style="color:{{ $errColor }}">
+            {{ $errorCount > 0 ? 'Needs review' : 'All clear' }}
         </div>
-        <div class="dash-stat-card__sub">телефони · ціни · адреси</div>
     </div>
 </div>
 
-{{-- ── 2-column layout ── --}}
-<div class="db-layout">
+{{-- ── 2-col main grid ── --}}
+<div class="dash-grid">
 
-    {{-- ── CENTER: Sync Timeline ── --}}
-    <div class="db-main">
-
-        {{-- Timeline --}}
-        <div class="db-card" id="syncs-card">
-            <div class="db-card__header">
-                <span class="db-card__title">Стрічка синхронізацій</span>
-                <span class="db-card__count">{{ $recentSyncs->total() }} подій</span>
-            </div>
-
-            @if($recentSyncs->isEmpty())
-                <div class="db-empty">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 2.1l4 4-4 4"/><path d="M3 12.2v-2a4 4 0 0 1 4-4h13.8"/><path d="M7 21.9l-4-4 4-4"/><path d="M21 11.8v2a4 4 0 0 1-4 4H3.2"/></svg>
-                    <p>Синхронізацій поки немає</p>
-                </div>
-            @else
-                <ul class="db-timeline" id="syncs-timeline">
-                    @foreach($recentSyncs as $sync)
-                    <li class="db-event db-event--{{ $sync->status }}">
-                        <span class="db-event__dot"></span>
-                        <div class="db-event__body">
-                            <div class="db-event__top">
-                                <a href="{{ route('sites.show', $sync->site_id) }}" class="db-event__site">{{ $sync->site?->name ?? 'Невідомий сайт' }}</a>
-                                <span class="db-event__time">{{ $sync->synced_at?->diffForHumans() ?? '' }}</span>
-                            </div>
-                            @if($sync->status === 'ok')
-                                <span class="db-event__desc">Синхронізовано · {{ $sync->duration_ms }}ms</span>
-                            @elseif($sync->status === 'no_changes')
-                                <span class="db-event__desc">Без змін · {{ $sync->duration_ms }}ms</span>
-                            @else
-                                <span class="db-event__desc db-event__desc--err">{{ $sync->error_msg ?? 'Помилка синхронізації' }}</span>
-                            @endif
-                        </div>
-                    </li>
-                    @endforeach
-                </ul>
-                @if($recentSyncs->hasPages())
-                <div class="db-card__footer" id="syncs-pagination">
-                    {{ $recentSyncs->links() }}
-                </div>
-                @endif
-            @endif
+    {{-- Left: Recent activity --}}
+    <div class="dash-card">
+        <div class="dash-card__head">
+            <h3 class="dash-card__title">Recent activity</h3>
+            <a href="{{ route('logs.system') }}" class="dash-card__link">View all</a>
         </div>
-
-        {{-- Recent system logs --}}
-        @if($recentLogs->isNotEmpty())
-        <div class="db-card" id="logs-card">
-            <div class="db-card__header">
-                <span class="db-card__title">Системні події</span>
-                <span class="db-card__count">{{ $recentLogs->total() }} подій</span>
-            </div>
-            <ul class="db-timeline" id="logs-timeline">
-                @foreach($recentLogs as $log)
-                <li class="db-event db-event--{{ $log->level ?? 'info' }}">
-                    <span class="db-event__dot"></span>
-                    <div class="db-event__body">
-                        <div class="db-event__top">
-                            <span class="db-event__site">{{ $log->event }}</span>
-                            <span class="db-event__time">{{ $log->created_at?->diffForHumans() ?? '' }}</span>
-                        </div>
-                        <span class="db-event__desc">{{ $log->user?->email ?? 'system' }}</span>
-                    </div>
-                </li>
-                @endforeach
-            </ul>
-            @if($recentLogs->hasPages())
-            <div class="db-card__footer" id="logs-pagination">
-                {{ $recentLogs->links() }}
-            </div>
-            @endif
-        </div>
-        @endif
-
-    </div>{{-- /db-main --}}
-
-    {{-- ── SIDEBAR ── --}}
-    <aside class="db-side">
-
-        {{-- Problems --}}
-        <div class="db-card">
-            <div class="db-card__header">
-                <span class="db-card__title">
-                    @if($problemSites->isEmpty())
-                        <span style="color:var(--success)">✓</span> Проблем немає
+        <div class="dash-activity">
+            @forelse($recentActivity as $log)
+            @php
+                $kind = match($log->level) { 'error' => 'err', 'warning' => 'warn', 'info' => 'info', default => 'ok' };
+                $when = $log->created_at->diffForHumans(null, true, true);
+            @endphp
+            <div class="activity-row">
+                <span class="activity-row__when">{{ $when }}</span>
+                <div class="activity-row__body">
+                    <span class="activity-dot activity-dot--{{ $kind }}"></span>
+                    @if($log->user)
+                        <span class="activity-avatar">{{ mb_strtoupper(mb_substr($log->user->name, 0, 1, 'UTF-8'), 'UTF-8') }}</span>
+                        <span class="activity-row__text"><b>{{ $log->user->name }}</b> {{ $log->event }}</span>
                     @else
-                        <span style="color:var(--danger)">⚠</span> Проблеми ({{ $problemSites->count() }})
+                        <span class="activity-row__system">system</span>
+                        <span class="activity-row__text">{{ $log->event }}</span>
                     @endif
-                </span>
+                </div>
+                <span class="activity-row__kind activity-row__kind--{{ $kind }}">{{ $log->level }}</span>
             </div>
-            @if($problemSites->isEmpty())
-                <p class="db-side__empty">Усі сайти синхронізовані</p>
-            @else
-                <ul class="db-problem-list">
-                    @foreach($problemSites as $site)
-                    <li class="db-problem-item">
-                        <div class="db-problem-item__favicon" style="background:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }}20;color:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }}">
-                            {{ mb_strtoupper(mb_substr($site->name, 0, 1, 'UTF-8'), 'UTF-8') }}
-                        </div>
-                        <div class="db-problem-item__info">
-                            <span class="db-problem-item__name">{{ $site->name }}</span>
-                            <span class="db-problem-item__err">{{ $site->latestSyncLog?->error_msg ?? "Помилка з'єднання" }}</span>
-                        </div>
-                        <a href="{{ route('sites.show', $site) }}" class="btn-icon" title="Переглянути">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                        </a>
-                    </li>
-                    @endforeach
-                </ul>
-            @endif
+            @empty
+            <div class="dash-empty">No activity yet</div>
+            @endforelse
         </div>
+    </div>
 
-        {{-- Favorites --}}
-        @if($favoriteSites->isNotEmpty())
-        <div class="db-card">
-            <div class="db-card__header">
-                <span class="db-card__title">Улюблені сайти</span>
-                <a href="{{ route('sites.index') }}" class="db-card__link">Всі →</a>
+    {{-- Right: Sync status + Top sites --}}
+    <div class="dash-aside">
+
+        <div class="dash-card">
+            <div class="dash-card__head">
+                <h3 class="dash-card__title">Sync status</h3>
             </div>
-            <ul class="db-quick-list">
-                @foreach($favoriteSites as $site)
-                <li>
-                    <a href="{{ route('sites.show', $site) }}" class="db-quick-item">
-                        <div class="db-quick-item__favicon" style="background:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }}20;color:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }}">
-                            {{ mb_strtoupper(mb_substr($site->name, 0, 1, 'UTF-8'), 'UTF-8') }}
-                        </div>
-                        <span class="db-quick-item__name">{{ $site->name }}</span>
-                        <span class="db-quick-item__dot" style="background:{{ $site->latestSyncLog?->status === 'ok' ? 'var(--success)' : ($site->latestSyncLog ? 'var(--danger)' : 'var(--text-3)') }}"></span>
-                    </a>
-                    <button class="db-fav-btn is-fav" title="Прибрати з улюблених" onclick="toggleFavorite(event, this, {{ $site->id }})">★</button>
-                </li>
+            <div class="dash-status-bars">
+                @php
+                    $ok   = max(0, $activeSites - $errorCount);
+                    $bars = [
+                        'Online'  => [$ok, 'var(--success)'],
+                        'Errors'  => [$errorCount, 'var(--danger)'],
+                        'Offline' => [$totalSites - $activeSites, 'var(--text-3)'],
+                    ];
+                @endphp
+                @foreach($bars as $label => [$count, $color])
+                @php $pct = $totalSites > 0 ? round($count / $totalSites * 100) : 0; @endphp
+                <div class="status-bar">
+                    <div class="status-bar__meta">
+                        <span style="color:var(--text-2)">{{ $label }}</span>
+                        <span style="font-family:var(--font-mono);color:var(--text-3);font-size:12px">{{ $count }} · {{ $pct }}%</span>
+                    </div>
+                    <div class="status-bar__track">
+                        <div class="status-bar__fill" style="width:{{ $pct }}%;background:{{ $color }}"></div>
+                    </div>
+                </div>
                 @endforeach
-            </ul>
-        </div>
-        @endif
-
-        {{-- Recently Synchronized --}}
-        <div class="db-card">
-            <div class="db-card__header">
-                <span class="db-card__title">Нещодавно синхронізовані</span>
             </div>
-            @if($quickSites->isEmpty())
-                <p class="db-side__empty">Немає недавніх подій</p>
-            @else
-                <ul class="db-quick-list">
-                    @foreach($quickSites as $site)
-                    @php
-                        $isFav        = in_array($site->id, $favoriteIds);
-                        $syncStatus   = $site->latestSyncLog?->status;
-                        $isConnected  = $site->apiKey && !$site->apiKey->revoked_at;
-                        $dotColor     = match(true) {
-                            $syncStatus === 'ok'         => 'var(--success)',
-                            $syncStatus === 'no_changes' => 'var(--success)',
-                            $syncStatus === 'error'      => 'var(--danger)',
-                            default                      => 'var(--text-3)',
-                        };
-                    @endphp
-                    <li>
-                        <a href="{{ route('sites.show', $site) }}" class="db-quick-item">
-                            <div class="db-quick-item__favicon" style="background:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }}20;color:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }}">
-                                {{ mb_strtoupper(mb_substr($site->name, 0, 1, 'UTF-8'), 'UTF-8') }}
-                            </div>
-                            <div class="db-quick-item__info">
-                                <span class="db-quick-item__name">{{ $site->name }}</span>
-                                <span class="db-quick-item__sub">
-                                    @if($isConnected)
-                                        <span style="color:var(--success)">●</span> Підключений
-                                        @if($site->latestSyncLog?->synced_at)
-                                            · {{ $site->latestSyncLog->synced_at->diffForHumans() }}
-                                        @endif
-                                    @else
-                                        <span style="color:var(--text-3)">○</span> Без ключа
-                                    @endif
-                                </span>
-                            </div>
-                            <span class="db-quick-item__dot" style="background:{{ $dotColor }}"></span>
-                        </a>
-                        <button class="db-fav-btn {{ $isFav ? 'is-fav' : '' }}"
-                                title="{{ $isFav ? 'Прибрати з улюблених' : 'Додати до улюблених' }}"
-                                onclick="toggleFavorite(event, this, {{ $site->id }})">★</button>
-                    </li>
-                    @endforeach
-                </ul>
-            @endif
         </div>
 
-    </aside>{{-- /db-side --}}
+        <div class="dash-card dash-card--no-pad">
+            <div class="dash-card__head" style="padding:14px 20px">
+                <h3 class="dash-card__title">Top sites</h3>
+                <a href="{{ route('sites.index') }}" class="dash-card__link">All sites</a>
+            </div>
+            @forelse($topSites as $site)
+            @php
+                $letter = strtoupper(substr(parse_url($site->url, PHP_URL_HOST) ?: $site->name, 0, 1));
+                $h = 0;
+                foreach (str_split($site->name) as $c) { $h = ($h * 31 + ord($c)) % 360; }
+            @endphp
+            <a href="{{ route('sites.show', $site) }}" class="top-site-row">
+                <span class="top-site-row__favicon" style="background:oklch(0.94 0.04 {{ $h }});color:oklch(0.4 0.1 {{ $h }});">{{ $letter }}</span>
+                <div class="top-site-row__info">
+                    <span class="top-site-row__name">{{ $site->name }}</span>
+                    <span class="top-site-row__url">{{ parse_url($site->url, PHP_URL_HOST) ?: $site->url }}</span>
+                </div>
+                <span class="top-site-row__count">{{ $site->contact_total }}</span>
+            </a>
+            @empty
+            <div class="dash-empty" style="padding:20px">No sites yet</div>
+            @endforelse
+        </div>
 
+    </div>
 </div>
-
-@push('scripts')
-<script>
-(function () {
-    function ajaxCard(cardId, pageParam) {
-        var card = document.getElementById(cardId);
-        if (!card) return;
-        card.addEventListener('click', function (e) {
-            var link = e.target.closest('a[href]');
-            if (!link) return;
-            var href = link.getAttribute('href');
-            if (!href || !href.includes(pageParam)) return;
-            e.preventDefault();
-            card.style.opacity = '0.6';
-            fetch(href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then(function (r) { return r.text(); })
-                .then(function (html) {
-                    var doc = new DOMParser().parseFromString(html, 'text/html');
-                    var fresh = doc.getElementById(cardId);
-                    if (fresh) { card.innerHTML = fresh.innerHTML; history.pushState(null, '', href); }
-                    card.style.opacity = '1';
-                })
-                .catch(function () { card.style.opacity = '1'; });
-        });
-    }
-
-    ajaxCard('syncs-card', 'syncs_page');
-    ajaxCard('logs-card',  'logs_page');
-})();
-</script>
-@endpush
 
 @endsection

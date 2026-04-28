@@ -191,12 +191,129 @@
     font-size: var(--font-size-sm);
 }
 
+/* ─── Groups filter bar ─── */
+.groups-filter-bar {
+    margin-bottom: var(--space-md);
+}
+
 /* Group grid */
 .group-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: var(--space-md);
     margin-bottom: var(--space-lg);
+}
+
+/* ─── Group card ─── */
+.group-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 20px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: box-shadow var(--duration-fast), border-color var(--duration-fast);
+    position: relative;
+}
+
+.group-card:hover {
+    box-shadow: var(--shadow);
+    border-color: var(--accent);
+}
+
+.group-card__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.group-card__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.group-card__edit {
+    opacity: 0;
+    transition: opacity var(--duration-fast);
+}
+
+.group-card:hover .group-card__edit { opacity: 1; }
+
+.group-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.group-card__name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+}
+
+.group-card__desc {
+    font-size: 12px;
+    color: var(--text-3);
+    line-height: 1.4;
+}
+
+.group-card__stats {
+    display: flex;
+    gap: 16px;
+}
+
+.group-card__stat {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.group-card__stat-val {
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+}
+
+.group-card__stat-label {
+    font-size: 11px;
+    color: var(--text-3);
+    font-weight: 500;
+}
+
+.group-card__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    border-top: 1px solid var(--border-2);
+    padding-top: 12px;
+}
+
+.group-card__chip {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text-3);
+    white-space: nowrap;
+}
+
+.group-card__chip--more {
+    color: var(--accent-text);
+    background: var(--accent-2);
+    border-color: transparent;
 }
 
 .group-card__header {

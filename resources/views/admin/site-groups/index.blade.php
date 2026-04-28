@@ -4,43 +4,30 @@
 <link rel="stylesheet" href="{{ asset('assets/css/pages/site-groups.css') }}?v={{ filemtime(public_path('assets/css/pages/site-groups.css')) }}">
 @endpush
 
-@section('title', 'Групи сайтів')
+@section('title', 'Groups')
 
 @section('content')
 
-<div class="page-toolbar">
-    <h1 class="page-title">Групи сайтів</h1>
-    <div style="display:flex;align-items:center;gap:var(--space-sm);">
-        <div class="view-toggle">
-            <button id="btn-view-list" class="view-toggle__btn is-active" title="Список">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-                    <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-                </svg>
-            </button>
-            <button id="btn-view-grid" class="view-toggle__btn" title="Сітка">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                </svg>
-            </button>
-        </div>
-        <button class="btn-primary" onclick="openDrawer('drawer-group-create')">+ Нова група</button>
+<div class="page-head">
+    <div>
+        <h1 class="page-head__title">Groups</h1>
+        <p class="page-head__sub">{{ $groups->total() }} {{ $groups->total() === 1 ? 'group' : 'groups' }}</p>
     </div>
+    <button class="btn btn--md btn--primary" onclick="openDrawer('drawer-group-create')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New group
+    </button>
 </div>
 
-{{-- Controls bar --}}
-<div class="page-controls">
-    <div class="page-controls__search-row">
-        <div class="page-controls__search">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <input type="text" class="page-controls__search-input"
-                   placeholder="Пошук груп…"
-                   value="{{ request('search') }}" id="group-search">
-        </div>
-        <span class="page-controls__count">{{ $groups->total() }} груп</span>
+{{-- Search bar --}}
+<div class="groups-filter-bar">
+    <div class="sites-search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" class="sites-search-input"
+               placeholder="Search groups…"
+               value="{{ request('search') }}" id="group-search">
     </div>
 </div>
 
@@ -49,45 +36,63 @@
 @endif
 
 @if($groups->isEmpty())
-    <div class="empty-page"><p>Груп ще немає. Натисніть «+ Нова група» щоб розпочати.</p></div>
+    <div class="sites-empty">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <p>No groups yet. Click "New group" to start.</p>
+    </div>
 @else
-    <div class="group-list group-list--grid" id="groups-list">
+    <div class="group-grid" id="groups-list">
         @foreach($groups as $group)
         @php
-            $sites = $group->sites->take(3);
+            $sites = $group->sites->take(4);
             $extra = $group->sites_count - $sites->count();
             $colorHex = $group->color ?? '#708499';
-            $letter = mb_strtoupper(mb_substr($group->name, 0, 1, 'UTF-8'), 'UTF-8');
         @endphp
-        <div class="group-row"
+        <div class="group-card"
              data-searchable="{{ $group->name }} {{ $group->description }}"
              onclick="window.location='{{ route('site-groups.show', $group) }}'">
-            <div class="group-row__icon"
-                 style="background:{{ $colorHex }}26;color:{{ $colorHex }};">
-                <span class="group-row__icon-count">{{ $group->sites_count }}</span>
-                <span class="group-row__icon-label">sites</span>
+
+            <div class="group-card__head">
+                <div class="group-card__icon"
+                     style="background:{{ $colorHex }}22;color:{{ $colorHex }};">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                </div>
+                <button class="btn-icon group-card__edit" title="Edit"
+                        onclick="event.stopPropagation(); openDrawer('drawer-group-{{ $group->id }}')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                </button>
             </div>
-            <div class="group-row__info">
-                <span class="group-row__name">{{ $group->name }}</span>
+
+            <div class="group-card__body">
+                <span class="group-card__name">{{ $group->name }}</span>
                 @if($group->description)
-                    <span class="group-row__desc">{{ Str::limit($group->description, 60) }}</span>
+                    <span class="group-card__desc">{{ Str::limit($group->description, 80) }}</span>
                 @endif
             </div>
-            <div class="group-row__sites" onclick="event.stopPropagation()">
+
+            <div class="group-card__stats">
+                <span class="group-card__stat">
+                    <span class="group-card__stat-val">{{ $group->sites_count }}</span>
+                    <span class="group-card__stat-label">sites</span>
+                </span>
+            </div>
+
+            @if($sites->isNotEmpty())
+            <div class="group-card__chips" onclick="event.stopPropagation()">
                 @foreach($sites as $site)
-                    <span class="group-row__site-chip">{{ parse_url($site->url, PHP_URL_HOST) ?: $site->url }}</span>
+                    <span class="group-card__chip">{{ parse_url($site->url, PHP_URL_HOST) ?: $site->url }}</span>
                 @endforeach
                 @if($extra > 0)
-                    <span class="group-row__site-chip">+{{ $extra }}</span>
+                    <span class="group-card__chip group-card__chip--more">+{{ $extra }}</span>
                 @endif
             </div>
-            <button class="btn-icon group-row__edit" title="Редагувати"
-                    onclick="event.stopPropagation(); openDrawer('drawer-group-{{ $group->id }}')">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-            </button>
+            @endif
         </div>
         @endforeach
     </div>
@@ -98,7 +103,7 @@
 <div class="drawer-overlay" id="drawer-group-create-overlay" onclick="closeDrawer('drawer-group-create')"></div>
 <div class="drawer" id="drawer-group-create">
     <div class="drawer__header">
-        <span class="drawer__title">Нова група</span>
+        <span class="drawer__title">New group</span>
         <button class="btn-icon" onclick="closeDrawer('drawer-group-create')">✕</button>
     </div>
     <div class="drawer__body">
@@ -108,8 +113,8 @@
         </form>
     </div>
     <div class="drawer__footer">
-        <button type="button" class="btn-ghost" onclick="closeDrawer('drawer-group-create')">Скасувати</button>
-        <button type="submit" form="form-group-create" class="btn-primary">Створити</button>
+        <button type="button" class="btn--ghost" onclick="closeDrawer('drawer-group-create')">Cancel</button>
+        <button type="submit" form="form-group-create" class="btn--primary">Create</button>
     </div>
 </div>
 
@@ -133,47 +138,18 @@
     <div class="drawer__footer">
         <form method="POST" action="{{ route('site-groups.destroy', $group) }}" class="drawer__footer-left">
             @csrf @method('DELETE')
-            <button type="submit" class="btn-danger"
-                    onclick="return confirm('Видалити групу «{{ $group->name }}»?')">Видалити</button>
+            <button type="submit" class="btn--danger"
+                    onclick="return confirm('Delete group «{{ $group->name }}»?')">Delete</button>
         </form>
-        <button type="button" class="btn-ghost" onclick="closeDrawer('drawer-group-{{ $group->id }}')">Скасувати</button>
-        <button type="submit" form="form-group-{{ $group->id }}" class="btn-primary">Зберегти</button>
+        <button type="button" class="btn--ghost" onclick="closeDrawer('drawer-group-{{ $group->id }}')">Cancel</button>
+        <button type="submit" form="form-group-{{ $group->id }}" class="btn--primary">Save</button>
     </div>
 </div>
 @endforeach
 
 @push('scripts')
 <script>
-    (function() {
-        var list = document.getElementById('groups-list');
-        if (!list) return;
-        var saved = localStorage.getItem('groups-view') || 'grid';
-
-        if (saved === 'list') {
-            list.classList.remove('group-list--grid');
-            document.getElementById('btn-view-list').classList.add('is-active');
-            document.getElementById('btn-view-grid').classList.remove('is-active');
-        } else {
-            list.classList.add('group-list--grid');
-            document.getElementById('btn-view-grid').classList.add('is-active');
-            document.getElementById('btn-view-list').classList.remove('is-active');
-        }
-
-        document.getElementById('btn-view-list').addEventListener('click', function() {
-            list.classList.remove('group-list--grid');
-            localStorage.setItem('groups-view', 'list');
-            document.getElementById('btn-view-list').classList.add('is-active');
-            document.getElementById('btn-view-grid').classList.remove('is-active');
-        });
-        document.getElementById('btn-view-grid').addEventListener('click', function() {
-            list.classList.add('group-list--grid');
-            localStorage.setItem('groups-view', 'grid');
-            document.getElementById('btn-view-grid').classList.add('is-active');
-            document.getElementById('btn-view-list').classList.remove('is-active');
-        });
-    })();
-
-    initClientSearch('group-search', '.group-row');
+    initClientSearch('group-search', '.group-card');
 </script>
 @endpush
 

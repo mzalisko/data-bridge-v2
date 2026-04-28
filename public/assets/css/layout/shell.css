@@ -122,6 +122,29 @@ html, body {
     padding: 28px 32px 60px;
 }
 
+/* ─── New page head (shared) ─── */
+.page-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.page-head__title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+    margin: 0 0 4px;
+}
+
+.page-head__sub {
+    font-size: 13px;
+    color: var(--text-3);
+    margin: 0;
+}
+
 .page-header {
     display: flex;
     align-items: flex-end;
