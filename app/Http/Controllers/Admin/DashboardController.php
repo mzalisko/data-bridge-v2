@@ -57,9 +57,9 @@ class DashboardController extends Controller
         $activeSites  = Site::where('is_active', true)->count();
         $syncedToday  = SyncLog::whereDate('synced_at', today())->distinct('site_id')->count();
         $errorCount   = $problemSites->count();
-        $totalContacts = DB::table('phones')->count()
-                       + DB::table('prices')->count()
-                       + DB::table('addresses')->count();
+        $totalContacts = DB::table('site_phones')->count()
+                       + DB::table('site_prices')->count()
+                       + DB::table('site_addresses')->count();
 
         return view('admin.dashboard', compact(
             'recentSyncs',

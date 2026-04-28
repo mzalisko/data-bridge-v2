@@ -121,8 +121,13 @@
     padding-left: 16px;
 }
 
-/* Hide checkboxes unless in batch mode */
-.sites-table:not(.is-batch-mode) .sites-table__td--cb .batch-cb { opacity: 0; pointer-events: none; }
+/* Hide all checkboxes unless in batch mode */
+.sites-table:not(.is-batch-mode) .sites-table__td--cb .batch-cb,
+.sites-table:not(.is-batch-mode) .sites-table__th--cb .sites-cb { opacity: 0; pointer-events: none; }
+
+/* Fade in checkboxes in batch mode */
+.sites-table.is-batch-mode .sites-table__td--cb .batch-cb,
+.sites-table.is-batch-mode .sites-table__th--cb .sites-cb { opacity: 1; }
 
 .sites-cb {
     width: 15px;
@@ -207,11 +212,8 @@
     align-items: center;
     justify-content: flex-end;
     gap: 2px;
-    opacity: 0;
-    transition: opacity var(--duration-fast);
 }
 
-.sites-table__row:hover .sites-table__actions { opacity: 1; }
 .sites-table.is-batch-mode .sites-table__actions { display: none; }
 
 /* Status dot pill (compact) */
