@@ -39,6 +39,10 @@ class LogController extends Controller
             $query->where('site_id', $request->site_id);
         }
 
+        if ($request->filled('search')) {
+            $query->whereHas('site', fn($q) => $q->where('name', 'like', '%' . $request->search . '%'));
+        }
+
         $logs = $query->paginate(50)->withQueryString();
 
         return view('admin.logs.sync', compact('logs'));
