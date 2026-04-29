@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk" class="vibeB vibe">
+<html lang="uk" class="vibeB vibe" {{ request()->cookie('theme') === 'dark' ? 'data-theme="dark"' : '' }}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

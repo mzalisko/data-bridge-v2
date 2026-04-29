@@ -9,10 +9,10 @@
 - **Версія:** 0.3.0 (Laravel + Sync API, merged to main)
 - **Активний спринт:** Sprint 04 — WP Plugin
 - **CRM гілка:** `feature/task-plugin-rework` (не злита в main)
-- **CRM дизайн гілка:** `feature/crm-redesign` (standalone React CRM, активна)
-- **CRM дизайн refresh:** `feature/crm-design-refresh` (Blade UI оновлення, stash)
+- **CRM дизайн гілка:** `feature/crm-redesign` — **vibeB Blade redesign ЗАВЕРШЕНО** (всі 11 задач виконані)
+- **CRM дизайн refresh:** `feature/crm-design-refresh` (Blade UI оновлення, stash — superseded by crm-redesign)
 - **Plugin гілка:** `feature/plugin-redesign-3pages`
-- **Наступний крок:** мерж `feature/task-plugin-rework` → main + мерж plugin гілок
+- **Наступний крок:** мерж `feature/crm-redesign` → main + мерж `feature/task-plugin-rework` → main
 
 ---
 
@@ -45,6 +45,7 @@
 | Plugin: Fix custom_fields — field_value замість value/label | plugin feature/plugin-redesign-3pages | ✅ |
 | Plugin: Fix socials — прибрати неіснуючий $r['label'] | plugin feature/plugin-redesign-3pages | ✅ |
 | CRM redesign: standalone React SPA (vibeB, CDN React+Babel) | feature/crm-redesign | ✅ |
+| CRM redesign: vibeB Blade redesign — всі сторінки (токени, sidebar, компоненти, сторінки) | feature/crm-redesign | ✅ |
 
 ## 🔲 Залишилось (Sprint 04)
 
