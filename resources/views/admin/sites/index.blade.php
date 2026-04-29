@@ -4,197 +4,211 @@
 <link rel="stylesheet" href="{{ asset('assets/css/pages/sites.css') }}?v={{ filemtime(public_path('assets/css/pages/sites.css')) }}">
 @endpush
 
-@section('title', 'Сайти')
+@section('title', 'Sites')
 
 @section('content')
 
+{{-- Page head --}}
 <div class="page-toolbar">
-    <h1 class="page-title">Сайти</h1>
-    <div style="display:flex;align-items:center;gap:var(--space-sm);">
-        <div class="view-toggle">
-            <button id="btn-view-list" class="view-toggle__btn is-active" title="Список">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-                    <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-                </svg>
-            </button>
-            <button id="btn-view-grid" class="view-toggle__btn" title="Сітка">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                </svg>
-            </button>
-        </div>
-        <button id="btn-batch-toggle" class="btn-batch-toggle" title="Вибрати кілька" onclick="toggleBatchMode()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="5" width="4" height="4" rx="1"/><line x1="10" y1="7" x2="21" y2="7"/>
-                <rect x="3" y="11" width="4" height="4" rx="1"/><line x1="10" y1="13" x2="21" y2="13"/>
-                <rect x="3" y="17" width="4" height="4" rx="1"/><line x1="10" y1="19" x2="21" y2="19"/>
-            </svg>
-            Вибрати
+    <div>
+        <h1 class="page-title">Sites</h1>
+        <div class="page-subtitle">{{ $sites->total() }} sites across {{ $groups->count() }} groups</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+        <a href="{{ route('sites.batch.show') }}?ids[]=" class="btn-ghost" style="display:none" id="btn-batch-action">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Batch дії <span id="batch-count-inline" style="font-size:11px;opacity:.7"></span>
+        </a>
+        <button class="btn-primary" onclick="openDrawer('drawer-site-create')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Add site
         </button>
-        <button class="btn-primary" onclick="openDrawer('drawer-site-create')">+ Новий сайт</button>
     </div>
 </div>
 
-{{-- Controls bar --}}
-<div class="page-controls">
-    <div class="page-controls__search-row">
-        <div class="page-controls__search">
+{{-- Toolbar --}}
+<div class="crm-table__wrap" style="margin-bottom:24px;">
+
+    {{-- Search + filters bar --}}
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border-2);flex-wrap:wrap;">
+        <div class="page-controls__search" style="max-width:360px;flex:1;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
             <input type="text" class="page-controls__search-input"
-                   placeholder="Пошук сайтів…"
-                   value="{{ request('search') }}" id="site-search">
+                   placeholder="Search sites by name or URL…"
+                   id="site-search" value="{{ request('search') }}">
         </div>
-        <span class="page-controls__count">{{ $sites->total() }} сайтів</span>
-    </div>
-    <div class="page-controls__pills">
-        <a href="{{ request()->fullUrlWithQuery(['status' => null, 'page' => null]) }}"
-           class="filter-pill {{ !request('status') ? 'is-active' : '' }}">
-            Всі <span class="filter-pill__count">{{ $totalCount }}</span>
-        </a>
-        <a href="{{ request()->fullUrlWithQuery(['status' => 'active', 'page' => null]) }}"
-           class="filter-pill {{ request('status') === 'active' ? 'is-active' : '' }}">
-            <span class="filter-pill__dot" style="background:var(--dot-ok)"></span>
-            Active <span class="filter-pill__count">{{ $activeCount }}</span>
-        </a>
-        <a href="{{ request()->fullUrlWithQuery(['status' => 'inactive', 'page' => null]) }}"
-           class="filter-pill {{ request('status') === 'inactive' ? 'is-active' : '' }}">
-            <span class="filter-pill__dot" style="background:var(--dot-off)"></span>
-            Disabled <span class="filter-pill__count">{{ $inactiveCount }}</span>
-        </a>
-        @if($groups->isNotEmpty())
-            <div class="filter-pill-sep"></div>
-            @foreach($groups as $group)
-            <a href="{{ request()->fullUrlWithQuery(['group_id' => $group->id, 'page' => null]) }}"
-               class="filter-pill {{ request('group_id') == $group->id ? 'is-active' : '' }}">
-                <span class="filter-pill__dot" style="background:{{ $group->color ?? '#708499' }}"></span>
-                {{ $group->name }}
-            </a>
+
+        {{-- Group filter --}}
+        <select class="page-controls__sort" onchange="applyQueryParam('group_id', this.value)">
+            <option value="">All groups</option>
+            @foreach($groups as $g)
+                <option value="{{ $g->id }}" {{ request('group_id') == $g->id ? 'selected' : '' }}>{{ $g->name }}</option>
             @endforeach
-            @if(request('group_id'))
-            <a href="{{ request()->fullUrlWithQuery(['group_id' => null, 'page' => null]) }}"
-               class="filter-pill">✕ Очистити</a>
-            @endif
-        @endif
-        <select class="page-controls__sort" onchange="applyQueryParam('sort', this.value)">
-            <option value="date"   {{ request('sort', 'date') === 'date'   ? 'selected' : '' }}>За датою ↓</option>
-            <option value="name"   {{ request('sort', 'date') === 'name'   ? 'selected' : '' }}>За назвою A→Z</option>
-            <option value="status" {{ request('sort', 'date') === 'status' ? 'selected' : '' }}>За статусом</option>
-            <option value="group"  {{ request('sort', 'date') === 'group'  ? 'selected' : '' }}>За групою</option>
         </select>
+
+        {{-- Status filter --}}
+        <select class="page-controls__sort" onchange="applyQueryParam('status', this.value)">
+            <option value="" {{ !request('status') ? 'selected' : '' }}>All statuses</option>
+            <option value="active"   {{ request('status') === 'active'   ? 'selected' : '' }}>Active</option>
+            <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Disabled</option>
+        </select>
+
+        <div style="flex:1;"></div>
+
+        {{-- Selection actions (shown when rows checked) --}}
+        <span id="sel-count" style="font-size:12px;color:var(--text-3);display:none;"></span>
+        <a href="{{ route('sites.batch.show') }}" id="btn-batch-go"
+           class="btn-ghost" style="display:none;font-size:12px;">
+            Batch дії
+        </a>
+        <button class="btn-ghost" id="btn-batch-clear" onclick="batchClear()" style="display:none;font-size:12px;">
+            Очистити
+        </button>
+
+        {{-- Total / filtered count --}}
+        <span class="page-controls__count" id="visible-count">{{ $sites->total() }} sites</span>
     </div>
+
+    {{-- Table --}}
+    @if($sites->isEmpty())
+        <div class="data-tab__empty">Сайтів не знайдено.</div>
+    @else
+    <div style="overflow-x:auto;">
+        <table class="crm-table">
+            <thead>
+                <tr>
+                    <th style="width:36px;padding-left:16px;">
+                        <input type="checkbox" id="cb-all" style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer;"
+                               onchange="batchToggleAll(this.checked)">
+                    </th>
+                    <th>Site</th>
+                    <th>Group</th>
+                    <th>Status</th>
+                    <th>Sync</th>
+                    <th>Added</th>
+                    <th style="width:80px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($sites as $site)
+                @php
+                    $color    = $site->siteGroup?->color ?? '#708499';
+                    $letter   = strtoupper(substr($site->name, 0, 1));
+                    $syncLog  = $site->latestSyncLog;
+                    $syncOk   = $syncLog?->status === 'success';
+                    $syncTime = $syncLog?->created_at?->diffForHumans() ?? null;
+                    $isFav    = in_array($site->id, $favoriteIds);
+                @endphp
+                <tr data-searchable="{{ strtolower($site->name) }} {{ strtolower($site->url) }} {{ strtolower($site->siteGroup?->name ?? '') }}"
+                    onclick="handleRowClick(event, {{ $site->id }}, '{{ route('sites.show', $site) }}')"
+                    style="cursor:pointer;" id="row-site-{{ $site->id }}">
+
+                    {{-- Checkbox --}}
+                    <td style="padding-left:16px;width:36px;" onclick="event.stopPropagation()">
+                        <input type="checkbox" class="batch-cb" value="{{ $site->id }}"
+                               style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer;"
+                               onchange="batchUpdateSelection()">
+                    </td>
+
+                    {{-- Site cell --}}
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div class="site-card__favicon" data-site-favicon="{{ $site->name }}"
+                                 style="width:32px;height:32px;background:{{ $color }}22;color:{{ $color }};font-size:12px;">
+                                {{ $letter }}
+                            </div>
+                            <div>
+                                <div style="font-size:13px;font-weight:500;color:var(--text);">{{ $site->name }}</div>
+                                <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);">{{ $site->url }}</div>
+                            </div>
+                        </div>
+                    </td>
+
+                    {{-- Group --}}
+                    <td>
+                        @if($site->siteGroup)
+                            <span class="group-pill" style="--pill-color:{{ $color }}">{{ $site->siteGroup->name }}</span>
+                        @else
+                            <span style="color:var(--text-3);font-size:12px;">—</span>
+                        @endif
+                    </td>
+
+                    {{-- Status --}}
+                    <td>
+                        <span class="status-badge {{ $site->is_active ? 'status-badge--active' : 'status-badge--disabled' }}">
+                            <span class="status-badge__dot"></span>
+                            {{ $site->is_active ? 'Active' : 'Disabled' }}
+                        </span>
+                    </td>
+
+                    {{-- Sync --}}
+                    <td style="font-size:12px;color:var(--text-3);">
+                        @if($syncTime)
+                            <span style="color:{{ $syncOk ? 'var(--success)' : 'var(--warning)' }};">● </span>{{ $syncTime }}
+                        @else
+                            <span style="color:var(--text-3);">—</span>
+                        @endif
+                    </td>
+
+                    {{-- Added --}}
+                    <td style="font-size:12px;color:var(--text-3);white-space:nowrap;">
+                        {{ $site->created_at->format('d.m.Y') }}
+                    </td>
+
+                    {{-- Actions --}}
+                    <td onclick="event.stopPropagation()" style="text-align:right;padding-right:12px;">
+                        <div style="display:flex;align-items:center;gap:2px;justify-content:flex-end;opacity:0;transition:opacity .15s;" class="row-actions">
+                            <button class="db-fav-btn {{ $isFav ? 'is-fav' : '' }}"
+                                    title="{{ $isFav ? 'Прибрати з улюблених' : 'Додати до улюблених' }}"
+                                    onclick="toggleFavorite(event, this, {{ $site->id }})">★</button>
+                            <a href="{{ $site->url }}" target="_blank" class="btn-icon" title="Open site">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                    <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                                </svg>
+                            </a>
+                            <button class="btn-icon" title="Edit" onclick="openDrawer('drawer-site-{{ $site->id }}')">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M4 20h4l11-11-4-4L4 16v4z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                @endforeach
+                @if($sites->isEmpty())
+                <tr><td colspan="7" class="data-tab__empty">No sites match the filters.</td></tr>
+                @endif
+            </tbody>
+        </table>
+    </div>
+
+    @if($sites->hasPages())
+    <div style="padding:12px 16px;border-top:1px solid var(--border-2);">
+        {{ $sites->appends(request()->query())->links() }}
+    </div>
+    @endif
+    @endif
+
 </div>
 
-@if(session('success'))
-    <div class="alert alert--success">{{ session('success') }}</div>
-@endif
-
-@if($sites->isEmpty())
-    <div class="empty-page"><p>Сайтів не знайдено.</p></div>
-@else
-    <div class="sites-list" id="sites-list">
-        @foreach($sites as $site)
-        @php
-            $color = $site->siteGroup?->color ?? '#708499';
-            $letter = strtoupper(substr(parse_url($site->url, PHP_URL_HOST) ?: $site->name, 0, 1));
-            $syncOk = $site->latestSyncLog?->status === 'success';
-            $syncWarn = $site->latestSyncLog && !$syncOk;
-            $syncDot = $syncOk ? 'var(--dot-ok)' : ($syncWarn ? 'var(--dot-pause)' : 'var(--text-muted)');
-            $syncTime = $site->latestSyncLog?->created_at?->diffForHumans() ?? null;
-        @endphp
-        <div class="site-card {{ !$site->is_active ? 'site-card--disabled' : '' }}"
-             data-searchable="{{ $site->name }} {{ $site->url }} {{ $site->siteGroup?->name }}"
-             data-site-id="{{ $site->id }}"
-             onclick="handleSiteCardClick(event, {{ $site->id }}, '{{ route('sites.show', $site) }}')">
-
-            {{-- Batch checkbox --}}
-            <div class="site-card__check" onclick="event.stopPropagation()">
-                <input type="checkbox" class="batch-cb" value="{{ $site->id }}"
-                       onchange="batchUpdateSelection()">
-            </div>
-
-            <div class="site-card__favicon"
-                 data-site-favicon="{{ $site->name }}"
-                 style="background:{{ $color }}26;color:{{ $color }};">
-                {{ $letter }}
-            </div>
-            <div class="site-card__info">
-                <div class="site-card__name-row">
-                    <span class="site-card__name">{{ $site->name }}</span>
-                </div>
-                <div class="site-card__meta-row">
-                    <span class="site-card__url">{{ $site->url }}</span>
-                    @if($syncTime)
-                        <span class="site-card__meta-sep">·</span>
-                        <span class="site-card__sync-dot" style="background:{{ $syncDot }}"></span>
-                        <span class="site-card__sync-time">{{ $syncTime }}</span>
-                    @endif
-                </div>
-            </div>
-            <div class="site-card__status">
-                <span class="status-badge status-badge--{{ $site->is_active ? 'active' : 'disabled' }}">
-                    <span class="status-badge__dot"></span>{{ $site->is_active ? 'Active' : 'Disabled' }}
-                </span>
-            </div>
-            <div class="site-card__group">
-                @if($site->siteGroup)
-                    <span class="group-pill" style="--pill-color:{{ $color }}">
-                        {{ $site->siteGroup->name }}
-                    </span>
-                @endif
-            </div>
-            <span class="site-card__date">{{ $site->created_at->format('d.m.Y') }}</span>
-            <div class="site-card__actions" onclick="event.stopPropagation()">
-                @php $isFav = in_array($site->id, $favoriteIds); @endphp
-                <button class="db-fav-btn {{ $isFav ? 'is-fav' : '' }}"
-                        style="font-size: 18px; margin-right: 4px;"
-                        title="{{ $isFav ? 'Прибрати з улюблених' : 'Додати до улюблених' }}"
-                        onclick="toggleFavorite(event, this, {{ $site->id }})">★</button>
-                <a href="{{ $site->url }}" target="_blank" class="btn-icon" title="Відкрити">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                        <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-                    </svg>
-                </a>
-                <button class="btn-icon" title="Редагувати"
-                        onclick="openDrawer('drawer-site-{{ $site->id }}')">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        @endforeach
-    </div>
-    <div class="pagination-wrap">{{ $sites->links() }}</div>
-@endif
-
-{{-- Batch floating bar --}}
+{{-- Floating batch bar --}}
 <div class="batch-bar" id="batch-bar">
-    <span class="batch-bar__count" id="batch-count">0 обрано</span>
-    <div class="batch-bar__actions">
-        <form method="GET" action="{{ route('sites.batch.show') }}" id="form-batch-nav">
-            <div id="batch-ids-container"></div>
-            <button type="submit" class="btn-primary">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                </svg>
-                Batch дії
-            </button>
-        </form>
-        <button class="btn-ghost" onclick="batchClear()">Скасувати</button>
-    </div>
+    <span id="batch-count">0 сайтів обрано</span>
+    <form method="GET" action="{{ route('sites.batch.show') }}" id="form-batch-nav" style="display:flex;gap:8px;align-items:center;">
+        <div id="batch-ids-container"></div>
+        <button type="submit" class="btn-primary" style="font-size:12px;height:32px;">Batch дії</button>
+    </form>
+    <button class="btn-ghost" onclick="batchClear()" style="font-size:12px;height:32px;">Скасувати</button>
 </div>
 
 {{-- Create drawer --}}
 <div class="drawer-overlay" id="drawer-site-create-overlay" onclick="closeDrawer('drawer-site-create')"></div>
 <div class="drawer" id="drawer-site-create">
     <div class="drawer__header">
-        <span class="drawer__title">Новий сайт</span>
+        <span class="drawer__title">New site</span>
         <button class="btn-icon" onclick="closeDrawer('drawer-site-create')">✕</button>
     </div>
     <div class="drawer__body">
@@ -204,8 +218,8 @@
         </form>
     </div>
     <div class="drawer__footer">
-        <button type="button" class="btn-ghost" onclick="closeDrawer('drawer-site-create')">Скасувати</button>
-        <button type="submit" form="form-site-create" class="btn-primary">Додати</button>
+        <button type="button" class="btn-ghost" onclick="closeDrawer('drawer-site-create')">Cancel</button>
+        <button type="submit" form="form-site-create" class="btn-primary">Add site</button>
     </div>
 </div>
 
@@ -227,107 +241,97 @@
         <form method="POST" action="{{ route('sites.destroy', $site) }}" class="drawer__footer-left">
             @csrf @method('DELETE')
             <button type="submit" class="btn-danger"
-                    onclick="return confirm('Видалити сайт «{{ $site->name }}»?')">Видалити</button>
+                    onclick="return confirm('Delete site «{{ $site->name }}»?')">Delete</button>
         </form>
-        <button type="button" class="btn-ghost" onclick="closeDrawer('drawer-site-{{ $site->id }}')">Скасувати</button>
-        <button type="submit" form="form-site-{{ $site->id }}" class="btn-primary">Зберегти</button>
+        <button type="button" class="btn-ghost" onclick="closeDrawer('drawer-site-{{ $site->id }}')">Cancel</button>
+        <button type="submit" form="form-site-{{ $site->id }}" class="btn-primary">Save</button>
     </div>
 </div>
 @endforeach
 
 @push('scripts')
 <script>
-    initViewToggle('sites-view', 'sites-list', 'btn-view-list', 'btn-view-grid');
-    initClientSearch('site-search', '.site-card');
+    // Client-side search in table rows
+    document.getElementById('site-search').addEventListener('input', function() {
+        var q = this.value.toLowerCase().trim();
+        var rows = document.querySelectorAll('tbody tr[data-searchable]');
+        var visible = 0;
+        rows.forEach(function(row) {
+            var match = row.dataset.searchable.includes(q);
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+        var cnt = document.getElementById('visible-count');
+        if (cnt) cnt.textContent = visible + ' sites';
+    });
 
-    // Batch mode state
-    var batchMode = false;
+    // Row hover shows actions
+    document.querySelectorAll('tbody tr[data-searchable]').forEach(function(row) {
+        var actions = row.querySelector('.row-actions');
+        if (!actions) return;
+        row.addEventListener('mouseenter', function() { actions.style.opacity = '1'; });
+        row.addEventListener('mouseleave', function() { actions.style.opacity = '0'; });
+    });
 
-    function toggleBatchMode() {
-        batchMode = !batchMode;
-        var list = document.getElementById('sites-list');
-        var btn  = document.getElementById('btn-batch-toggle');
-        if (list) list.classList.toggle('is-batch-mode', batchMode);
-        if (btn)  btn.classList.toggle('is-active', batchMode);
-        if (!batchMode) {
-            document.querySelectorAll('.batch-cb').forEach(function(cb) { cb.checked = false; });
-            batchUpdateSelection();
-        }
+    // Row click: navigate
+    function handleRowClick(e, siteId, url) {
+        window.location = url;
     }
 
-    // Site card click: navigate or toggle selection depending on batch mode
-    function handleSiteCardClick(e, siteId, url) {
-        if (batchMode) {
-            var cb = e.currentTarget.querySelector('.batch-cb');
-            if (cb) { cb.checked = !cb.checked; batchUpdateSelection(); }
-        } else {
-            window.location = url;
-        }
+    // Toggle all checkboxes
+    function batchToggleAll(checked) {
+        document.querySelectorAll('.batch-cb').forEach(function(cb) {
+            cb.checked = checked;
+        });
+        batchUpdateSelection();
     }
 
-    // Batch: update count, show/hide bar, sync drawer
+    // Update batch state
     function batchUpdateSelection() {
         var checked = document.querySelectorAll('.batch-cb:checked');
-        var count = checked.length;
-
-        // Bar
-        var bar = document.getElementById('batch-bar');
+        var count   = checked.length;
+        var bar     = document.getElementById('batch-bar');
         var countEl = document.getElementById('batch-count');
-        if (bar) bar.classList.toggle('is-visible', count > 0);
-        if (countEl) countEl.textContent = count + ' ' + pluralSites(count);
+        var selCnt  = document.getElementById('sel-count');
+        var batchGo = document.getElementById('btn-batch-go');
+        var batchClearBtn = document.getElementById('btn-batch-clear');
 
-        // Drawer counter
-        var dc = document.getElementById('drawer-batch-count');
-        if (dc) dc.textContent = count;
+        if (bar)     bar.classList.toggle('is-visible', count > 0);
+        if (countEl) countEl.textContent = count + ' ' + pluralSites(count) + ' обрано';
+        if (selCnt)  { selCnt.textContent = count + ' selected'; selCnt.style.display = count > 0 ? '' : 'none'; }
+        if (batchGo) batchGo.style.display = count > 0 ? '' : 'none';
+        if (batchClearBtn) batchClearBtn.style.display = count > 0 ? '' : 'none';
 
-        // Submit label
-        var btn = document.getElementById('batch-submit-btn');
-        if (btn) btn.textContent = 'Застосувати до ' + count + ' ' + pluralSites(count);
-
-        // Hidden inputs
+        // Rebuild hidden ids for batch form
         var container = document.getElementById('batch-ids-container');
         if (container) {
             container.innerHTML = '';
             checked.forEach(function(cb) {
                 var inp = document.createElement('input');
-                inp.type = 'hidden';
-                inp.name = 'ids[]';
-                inp.value = cb.value;
+                inp.type = 'hidden'; inp.name = 'ids[]'; inp.value = cb.value;
                 container.appendChild(inp);
             });
         }
 
-        // Sites preview
-        var preview = document.getElementById('batch-sites-preview');
-        if (preview) {
-            preview.innerHTML = '';
-            checked.forEach(function(cb) {
-                var card = cb.closest('.site-card');
-                if (!card) return;
-                var name = card.querySelector('.site-card__name')?.textContent?.trim() || '#' + cb.value;
-                var chip = document.createElement('span');
-                chip.className = 'batch-site-chip';
-                chip.textContent = name;
-                preview.appendChild(chip);
-            });
+        // Header checkbox state
+        var allCbs = document.querySelectorAll('.batch-cb');
+        var cbAll  = document.getElementById('cb-all');
+        if (cbAll) {
+            cbAll.indeterminate = count > 0 && count < allCbs.length;
+            cbAll.checked = count === allCbs.length && allCbs.length > 0;
         }
 
-        // Highlight checked cards
-        document.querySelectorAll('.site-card').forEach(function(card) {
-            var cb = card.querySelector('.batch-cb');
-            card.classList.toggle('is-batch-selected', cb && cb.checked);
+        // Highlight rows
+        document.querySelectorAll('tbody tr[data-searchable]').forEach(function(row) {
+            var cb = row.querySelector('.batch-cb');
+            row.style.background = (cb && cb.checked) ? 'var(--accent-2)' : '';
         });
     }
 
-
-    // Batch: clear selection and exit batch mode
     function batchClear() {
-        batchMode = false;
-        var list = document.getElementById('sites-list');
-        var btn  = document.getElementById('btn-batch-toggle');
-        if (list) list.classList.remove('is-batch-mode');
-        if (btn)  btn.classList.remove('is-active');
         document.querySelectorAll('.batch-cb').forEach(function(cb) { cb.checked = false; });
+        var cbAll = document.getElementById('cb-all');
+        if (cbAll) { cbAll.checked = false; cbAll.indeterminate = false; }
         batchUpdateSelection();
     }
 

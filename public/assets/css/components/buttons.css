@@ -63,6 +63,8 @@
 }
 
 .btn-icon:hover { background: var(--panel-2); color: var(--text); }
+.btn-icon--danger { color: var(--danger); }
+.btn-icon--danger:hover { background: var(--danger-bg); color: var(--danger); }
 
 .btn-danger {
   display: inline-flex;

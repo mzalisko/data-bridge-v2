@@ -124,3 +124,181 @@
   gap: var(--space-md);
   margin-bottom: var(--space-lg);
 }
+
+/* ── Status dot (small inline) ── */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-3);
+  flex-shrink: 0;
+  display: inline-block;
+}
+.status-dot--ok  { background: var(--dot-ok); }
+.status-dot--off { background: var(--dot-off); }
+.status-dot--pause { background: var(--dot-pause); }
+
+/* ── Status badge ── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--panel-2);
+  color: var(--text-3);
+}
+.status-badge__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.status-badge--active   { background: var(--success-bg); color: var(--success); }
+.status-badge--disabled { background: var(--danger-bg);  color: var(--danger);  }
+.status-badge--pause    { background: var(--warning-bg); color: var(--warning); }
+
+/* ── Filter pills (tab-style filter row) ── */
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--duration-fast), color var(--duration-fast),
+              border-color var(--duration-fast);
+}
+.filter-pill:hover { background: var(--panel-2); color: var(--text); }
+.filter-pill.is-active { background: var(--accent-2); color: var(--accent); border-color: var(--accent); }
+
+.filter-pill__count {
+  font-size: 11px;
+  font-weight: 700;
+  color: inherit;
+  opacity: .75;
+}
+.filter-pill.is-active .filter-pill__count { opacity: 1; }
+
+.filter-pill__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.filter-pill-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+/* ── Group pill (inline colored group tag) ── */
+.group-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--pill-color, var(--text-3)) 12%, transparent);
+  color: var(--pill-color, var(--text-3));
+}
+
+/* ── Favorite button ── */
+.db-fav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: 16px;
+  line-height: 1;
+  transition: color var(--duration-fast), background var(--duration-fast);
+  flex-shrink: 0;
+}
+.db-fav-btn:hover { color: var(--warning); background: var(--warning-bg); }
+.db-fav-btn.is-fav { color: var(--warning); }
+
+/* ── Data badge (inline type tag) ── */
+.data-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--panel-2);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.data-badge--primary  { background: var(--accent-2);   color: var(--accent);  }
+.data-badge--currency { background: var(--success-bg); color: var(--success); }
+.data-badge--platform { background: var(--accent-2);   color: var(--accent-text); }
+.data-badge--hidden   { background: var(--danger-bg);  color: var(--danger);  }
+
+/* ── Geo badge (visibility indicator) ── */
+.geo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--panel-2);
+  color: var(--text-3);
+}
+.geo-badge--all     { background: var(--success-bg); color: var(--success); }
+.geo-badge--include { background: var(--accent-2);   color: var(--accent);  }
+.geo-badge--exclude { background: var(--warning-bg); color: var(--warning); }
+.geo-badge--hidden  { background: var(--danger-bg);  color: var(--danger);  }
+.geo-badge--sm { padding: 1px 6px; font-size: 10px; }
+
+/* ── Drawer ID chip ── */
+.drawer-id-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+}
+
+/* ── Empty page state ── */
+.empty-page {
+  padding: 80px 20px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 14px;
+}
+
+/* ── Alert (override shell.css inconsistency) ── */
+.alert--success { background: var(--success-bg); color: var(--success); border-color: var(--success-bg); }
+.alert--error   { background: var(--danger-bg);  color: var(--danger);  border-color: var(--danger-bg); }

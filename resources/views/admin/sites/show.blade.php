@@ -8,120 +8,149 @@
 
 @section('content')
 
+@php
+    $color  = $site->siteGroup?->color ?? '#708499';
+    $letter = strtoupper(substr($site->name, 0, 1));
+    $syncLog  = $site->latestSyncLog;
+    $syncOk   = $syncLog?->status === 'success';
+    $syncColor = $syncOk ? 'var(--success)' : ($syncLog ? 'var(--warning)' : 'var(--text-3)');
+@endphp
+
+{{-- Page head --}}
 <div class="page-toolbar">
-    <div style="display:flex;align-items:center;gap:var(--space-md);">
-        <a href="{{ route('sites.index') }}" class="btn-ghost">← Сайти</a>
-        <span class="status-dot status-dot--{{ $site->is_active ? 'ok' : 'off' }}"></span>
-        <h1 class="page-title">{{ $site->name }}</h1>
+    <div>
+        <div class="page-subtitle" style="margin-bottom:4px;">
+            <a href="{{ route('sites.index') }}" style="color:var(--text-3);text-decoration:none;">Sites</a>
+            <span style="color:var(--text-3);margin:0 6px;">/</span>
+            <span>{{ $site->name }}</span>
+        </div>
+        <h1 class="page-title" style="display:flex;align-items:center;gap:10px;">
+            <span class="site-card__favicon" data-site-favicon="{{ $site->name }}"
+                  style="width:28px;height:28px;font-size:11px;border-radius:8px;background:{{ $color }}22;color:{{ $color }};">
+                {{ $letter }}
+            </span>
+            {{ $site->name }}
+        </h1>
+        <div class="page-subtitle" style="font-family:var(--font-mono);">{{ $site->url }}</div>
     </div>
-    <div style="display:flex;gap:var(--space-sm);">
-        <a href="{{ $site->url }}" target="_blank" class="btn-ghost">↗ Відкрити</a>
-        <button class="btn-primary" onclick="openDrawer('drawer-site-edit')">Редагувати</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+        <a href="{{ $site->url }}" target="_blank" class="btn-ghost">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M14 4h6v6"/><path d="M20 4 10 14"/>
+                <path d="M20 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4"/>
+            </svg>
+            Open site
+        </a>
+        <button class="btn-primary" onclick="openDrawer('drawer-site-edit')">Edit site</button>
     </div>
 </div>
 
-@php
-    $color  = $site->siteGroup?->color ?? '#708499';
-    $letter = strtoupper(substr(parse_url($site->url, PHP_URL_HOST) ?: $site->name, 0, 1));
-    $syncLog  = $site->latestSyncLog;
-    $syncOk   = $syncLog?->status === 'success';
-    $syncWarn = $syncLog && !$syncOk;
-    $syncColor = $syncOk ? 'var(--dot-ok)' : ($syncWarn ? 'var(--dot-pause)' : 'var(--text-muted)');
-@endphp
-
-<div class="site-show">
-    {{-- Sidebar --}}
-    <div class="site-show__sidebar">
-        <div class="site-show__favicon"
-             style="background:{{ $color }}26;color:{{ $color }};">
-            {{ $letter }}
-        </div>
+{{-- Stats row (5 mini cards) --}}
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;">
+    <div class="card" style="padding:14px 16px;">
+        <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Status</div>
         <div>
-            <div class="site-show__name">{{ $site->name }}</div>
-            <div class="site-show__url">{{ $site->url }}</div>
+            <span class="status-badge {{ $site->is_active ? 'status-badge--active' : 'status-badge--disabled' }}" style="font-size:12px;">
+                <span class="status-badge__dot"></span>
+                {{ $site->is_active ? 'Active' : 'Disabled' }}
+            </span>
         </div>
-
-        <div class="site-show__info">
-            <div class="site-show__info-row">
-                <span class="site-show__info-label">Статус</span>
-                <span class="site-show__info-val"
-                      style="color:{{ $site->is_active ? 'var(--dot-ok)' : 'var(--dot-off)' }}">
-                    ● {{ $site->is_active ? 'Active' : 'Disabled' }}
-                </span>
-            </div>
-            <div class="site-show__info-row">
-                <span class="site-show__info-label">Група</span>
-                <span class="site-show__info-val">{{ $site->siteGroup?->name ?? '—' }}</span>
-            </div>
-            @if($syncLog)
-            <div class="site-show__info-row">
-                <span class="site-show__info-label">Sync</span>
-                <span class="site-show__info-val" style="color:{{ $syncColor }}">
-                    {{ $syncLog->created_at->diffForHumans() }}
-                </span>
-            </div>
+    </div>
+    <div class="card" style="padding:14px 16px;">
+        <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Group</div>
+        <div style="font-size:14px;font-weight:600;">
+            @if($site->siteGroup)
+                <span class="group-pill" style="--pill-color:{{ $color }};font-size:12px;">{{ $site->siteGroup->name }}</span>
+            @else
+                <span style="color:var(--text-3);">—</span>
             @endif
-            <div class="site-show__info-row">
-                <span class="site-show__info-label">Додано</span>
-                <span class="site-show__info-val">{{ $site->created_at->format('d.m.Y') }}</span>
-            </div>
         </div>
+    </div>
+    <div class="card" style="padding:14px 16px;">
+        <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Phones</div>
+        <div style="font-size:18px;font-weight:600;">{{ $site->phones->count() }}</div>
+    </div>
+    <div class="card" style="padding:14px 16px;">
+        <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Last sync</div>
+        <div style="font-size:13px;font-weight:600;color:{{ $syncColor }};">
+            {{ $syncLog?->created_at?->diffForHumans() ?? '—' }}
+        </div>
+    </div>
+    <div class="card" style="padding:14px 16px;">
+        <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Added</div>
+        <div style="font-size:13px;font-weight:600;">{{ $site->created_at->format('d.m.Y') }}</div>
+    </div>
+</div>
 
-        @include('admin.sites._api-key', ['site' => $site])
+{{-- Tab card --}}
+<div class="crm-table__wrap">
 
-        {{-- Navigation --}}
-        <nav class="site-show__nav">
-            <a class="site-show__nav-item {{ $tab === 'phones' ? 'is-active' : '' }}"
-               href="{{ route('sites.show', $site) }}?tab=phones">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l.72-.72a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.5 16a2 2 0 0 1 .42.92z"/>
-                </svg>
-                Телефони
-                <span class="site-show__nav-count">{{ $site->phones->count() ?: '—' }}</span>
-            </a>
-            <a class="site-show__nav-item {{ $tab === 'prices' ? 'is-active' : '' }}"
-               href="{{ route('sites.show', $site) }}?tab=prices">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="1" x2="12" y2="23"/>
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
-                Ціни
-                <span class="site-show__nav-count">{{ $site->prices->count() ?: '—' }}</span>
-            </a>
-            <a class="site-show__nav-item {{ $tab === 'addresses' ? 'is-active' : '' }}"
-               href="{{ route('sites.show', $site) }}?tab=addresses">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                    <circle cx="12" cy="10" r="3"/>
-                </svg>
-                Адреси
-                <span class="site-show__nav-count">{{ $site->addresses->count() ?: '—' }}</span>
-            </a>
-            <a class="site-show__nav-item {{ $tab === 'socials' ? 'is-active' : '' }}"
-               href="{{ route('sites.show', $site) }}?tab=socials">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                </svg>
-                Соцмережі
-                <span class="site-show__nav-count">{{ $site->socials->count() ?: '—' }}</span>
-            </a>
-        </nav>
+    {{-- Tab bar --}}
+    <div style="display:flex;border-bottom:1px solid var(--border-2);padding:0 16px;background:var(--panel);">
+        @foreach([
+            ['phones',    'Phones',    $site->phones->count()],
+            ['prices',    'Prices',    $site->prices->count()],
+            ['addresses', 'Addresses', $site->addresses->count()],
+            ['socials',   'Socials',   $site->socials->count()],
+        ] as [$key, $label, $count])
+        <a href="{{ route('sites.show', $site) }}?tab={{ $key }}"
+           style="display:inline-flex;align-items:center;gap:6px;padding:13px 14px;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap;
+                  border-bottom:2px solid {{ $tab === $key ? 'var(--accent)' : 'transparent' }};
+                  margin-bottom:-1px;
+                  color:{{ $tab === $key ? 'var(--text)' : 'var(--text-3)' }};
+                  transition:color .15s;">
+            {{ $label }}
+            <span style="font-size:11px;font-family:var(--font-mono);color:{{ $tab === $key ? 'var(--accent)' : 'var(--text-3)' }};">{{ $count ?: '' }}</span>
+        </a>
+        @endforeach
+
+        {{-- Overview tab --}}
+        <a href="{{ route('sites.show', $site) }}?tab=overview"
+           style="display:inline-flex;align-items:center;gap:6px;padding:13px 14px;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap;
+                  border-bottom:2px solid {{ $tab === 'overview' ? 'var(--accent)' : 'transparent' }};
+                  margin-bottom:-1px;
+                  color:{{ $tab === 'overview' ? 'var(--text)' : 'var(--text-3)' }};
+                  transition:color .15s;margin-left:auto;">
+            Overview
+        </a>
     </div>
 
-    {{-- Content --}}
-    <div class="site-show__content">
-        @if($tab === 'phones')
-            @include('admin.sites._tab-phones',    ['site' => $site, 'phones'    => $site->phones,    'countries' => $countries])
-        @elseif($tab === 'prices')
-            @include('admin.sites._tab-prices',    ['site' => $site, 'prices'    => $site->prices,    'countries' => $countries])
-        @elseif($tab === 'addresses')
-            @include('admin.sites._tab-addresses', ['site' => $site, 'addresses' => $site->addresses, 'countries' => $countries])
-        @elseif($tab === 'socials')
-            @include('admin.sites._tab-socials',   ['site' => $site, 'socials'   => $site->socials,   'countries' => $countries])
-        @endif
+    {{-- Tab content --}}
+    @if($tab === 'overview')
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
+        {{-- Site info --}}
+        <div style="background:var(--panel);padding:20px;">
+            <h4 style="margin:0 0 14px;font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Site info</h4>
+            @php
+            $kv = [
+                ['Domain', $site->url, true],
+                ['Group',  $site->siteGroup?->name ?? '—', false],
+                ['Status', $site->is_active ? 'Active' : 'Disabled', false],
+                ['Added',  $site->created_at->format('d M Y'), false],
+            ];
+            @endphp
+            @foreach($kv as [$k, $v, $mono])
+            <div style="display:grid;grid-template-columns:140px 1fr;gap:10px;padding:8px 0;font-size:13px;align-items:center;border-bottom:1px solid var(--border-2);">
+                <span style="color:var(--text-3);">{{ $k }}</span>
+                <span style="color:var(--text-2);{{ $mono ? 'font-family:var(--font-mono);font-size:12px;' : '' }}">{{ $v }}</span>
+            </div>
+            @endforeach
+        </div>
+        {{-- Sync / API --}}
+        <div style="background:var(--panel);padding:20px;">
+            <h4 style="margin:0 0 14px;font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Sync & API</h4>
+            @include('admin.sites._api-key', ['site' => $site])
+        </div>
     </div>
+    @elseif($tab === 'phones')
+        @include('admin.sites._tab-phones', ['site' => $site, 'phones' => $site->phones, 'countries' => $countries])
+    @elseif($tab === 'prices')
+        @include('admin.sites._tab-prices', ['site' => $site, 'prices' => $site->prices, 'countries' => $countries])
+    @elseif($tab === 'addresses')
+        @include('admin.sites._tab-addresses', ['site' => $site, 'addresses' => $site->addresses, 'countries' => $countries])
+    @elseif($tab === 'socials')
+        @include('admin.sites._tab-socials', ['site' => $site, 'socials' => $site->socials, 'countries' => $countries])
+    @endif
 </div>
 
 {{-- Edit drawer --}}
@@ -141,10 +170,10 @@
         <form method="POST" action="{{ route('sites.destroy', $site) }}" class="drawer__footer-left">
             @csrf @method('DELETE')
             <button type="submit" class="btn-danger"
-                    onclick="return confirm('Видалити сайт «{{ $site->name }}»?')">Видалити</button>
+                    onclick="return confirm('Delete site «{{ $site->name }}»?')">Delete</button>
         </form>
-        <button type="button" class="btn-ghost" onclick="closeDrawer('drawer-site-edit')">Скасувати</button>
-        <button type="submit" form="form-site-edit" class="btn-primary">Зберегти</button>
+        <button type="button" class="btn-ghost" onclick="closeDrawer('drawer-site-edit')">Cancel</button>
+        <button type="submit" form="form-site-edit" class="btn-primary">Save</button>
     </div>
 </div>
 

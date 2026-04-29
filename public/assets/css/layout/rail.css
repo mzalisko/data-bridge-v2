@@ -18,16 +18,37 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 18px 20px 16px;
-  font-weight: 700;
-  font-size: 16px;
+  padding: 16px 20px 14px;
   color: var(--text);
   text-decoration: none;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
-.sidebar-logo svg { color: var(--accent); flex-shrink: 0; }
+.sidebar-logo__icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-logo__name {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.sidebar-logo__sub {
+  font-size: 10px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  line-height: 1.2;
+}
 
 .sidebar-nav {
   flex: 1;

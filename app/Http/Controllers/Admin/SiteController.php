@@ -62,7 +62,7 @@ class SiteController extends Controller
 
     public function show(Request $request, Site $site): View
     {
-        $tab = $request->get('tab', 'phones');
+        $tab = $request->get('tab', 'overview');
         $site->load(['siteGroup', 'apiKey', 'phones', 'prices', 'addresses', 'socials']);
         $groups    = SiteGroup::orderBy('name')->get(['id', 'name', 'color']);
         $countries = Country::orderBy('sort_order')->orderBy('iso')->get(['iso', 'dial_code', 'name']);
