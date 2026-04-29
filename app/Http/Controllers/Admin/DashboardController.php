@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Site;
+use App\Models\SiteGroup;
 use App\Models\SyncLog;
 use App\Models\SystemLog;
 use Illuminate\View\View;
@@ -54,6 +55,14 @@ class DashboardController extends Controller
         // IDs of favorites for the star toggle
         $favoriteIds = $favoriteSites->pluck('id')->toArray();
 
+        // Stats for overview cards
+        $stats = [
+            'sites'    => Site::count(),
+            'active'   => Site::where('is_active', true)->count(),
+            'groups'   => SiteGroup::count(),
+            'problems' => $problemSites->count(),
+        ];
+
         return view('admin.dashboard', compact(
             'recentSyncs',
             'problemSites',
@@ -61,6 +70,7 @@ class DashboardController extends Controller
             'favoriteSites',
             'favoriteIds',
             'recentLogs',
+            'stats',
         ));
     }
 }
