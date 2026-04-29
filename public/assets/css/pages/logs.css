@@ -1,159 +1,144 @@
-/* DataBridge CRM — Logs pages */
+/* DataBridge CRM — Logs */
 
-/* Tab switcher */
+/* ── Log tabs ── */
 .logs-tabs {
-    display: flex;
-    gap: 4px;
-    margin-bottom: var(--space-lg);
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
 }
 
 .logs-tab {
-    padding: var(--space-sm) var(--space-lg);
-    border-radius: var(--radius-pill);
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: background var(--duration-fast) var(--ease-ui),
-                color var(--duration-fast) var(--ease-ui);
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color var(--duration-fast), border-color var(--duration-fast);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
-.logs-tab:hover {
-    background: var(--bg-card);
-    color: var(--text-primary);
+.logs-tab:hover { color: var(--text); }
+.logs-tab.is-active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── Log table ── */
+.log-table-wrap {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
 }
 
-.logs-tab.is-active {
-    background: var(--accent);
-    color: #fff;
-}
-
-/* Filter bar */
-.logs-filter {
-    display: flex;
-    gap: var(--space-sm);
-    align-items: center;
-    margin-bottom: var(--space-lg);
-    flex-wrap: wrap;
-}
-
-.logs-filter select,
-.logs-filter input[type="text"] {
-    height: 36px;
-    padding: 0 36px 0 var(--space-md);
-    border-radius: var(--radius-item);
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    font-size: var(--font-size-sm);
-    min-width: 160px;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238d8d93' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    transition: border-color var(--duration-fast) var(--ease-ui);
-}
-
-.logs-filter input[type="text"] {
-    background-image: none;
-    padding-right: var(--space-md);
-}
-
-.logs-filter select:focus,
-.logs-filter input[type="text"]:focus {
-    outline: none;
-    border-color: var(--border-focus);
-}
-
-/* Log table */
 .log-table {
-    width: 100%;
-    background: var(--bg-card);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
-    border-collapse: collapse;
-    overflow: hidden;
-    margin-bottom: var(--space-lg);
-}
-
-.log-table th,
-.log-table td {
-    padding: var(--space-md) var(--space-lg);
-    text-align: left;
-    font-size: var(--font-size-sm);
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
 }
 
 .log-table th {
-    color: var(--text-muted);
-    font-weight: 500;
-    border-bottom: 1px solid var(--border-color);
-    white-space: nowrap;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-2);
+  white-space: nowrap;
 }
 
 .log-table td {
-    color: var(--text-primary);
-    border-bottom: 1px solid var(--border-color);
-    vertical-align: middle;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-2);
+  color: var(--text);
+  vertical-align: top;
 }
 
-.log-table tr:last-child td {
-    border-bottom: none;
+.log-table tr:last-child td { border-bottom: none; }
+.log-table tbody tr:hover td { background: var(--panel-2); }
+
+/* ── Status pills ── */
+.log-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
-.log-table tbody tr:hover td {
-    background: var(--bg-hover);
+.log-status--ok      { background: var(--success-bg); color: var(--success); }
+.log-status--error   { background: var(--danger-bg);  color: var(--danger);  }
+.log-status--warning { background: var(--warning-bg); color: var(--warning); }
+.log-status--info    { background: var(--accent-2);   color: var(--accent);  }
+
+/* ── Timestamp ── */
+.log-ts {
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  white-space: nowrap;
 }
 
-/* Level badge */
-.level-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-size: var(--font-size-xs);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .04em;
+/* ── Message ── */
+.log-msg {
+  font-size: 12px;
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  max-width: 400px;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
-.level-badge--info    { background: rgba(99,102,241,.15);  color: #818cf8; }
-.level-badge--warning { background: rgba(251,191, 36,.15); color: #f59e0b; }
-.level-badge--error   { background: rgba(245,101,101,.15); color: #f56565; }
-.level-badge--debug   { background: rgba(156,163,175,.15); color: #9ca3af; }
-
-/* Status badge (sync) */
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-size: var(--font-size-xs);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .04em;
+/* ── Channel / level badge ── */
+.log-level {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
-.status-badge--success { background: rgba(72,187,120,.15);  color: #48bb78; }
-.status-badge--error   { background: rgba(245,101,101,.15); color: #f56565; }
-.status-badge--pending { background: rgba(156,163,175,.15); color: #9ca3af; }
+.log-level--info    { background: var(--accent-2);  color: var(--accent);  }
+.log-level--warning { background: var(--warning-bg); color: var(--warning); }
+.log-level--error   { background: var(--danger-bg);  color: var(--danger);  }
+.log-level--debug   { background: var(--panel-2);    color: var(--text-3);  }
 
-/* Muted cell */
-.log-table .cell-muted {
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
-    white-space: nowrap;
+/* ── Empty ── */
+.log-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-3);
+  font-size: 13px;
 }
 
-.log-table .cell-mono {
-    font-family: monospace;
-    font-size: var(--font-size-xs);
+/* ── Site link in log ── */
+.log-site-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  text-decoration: none;
 }
 
-/* Empty state */
-.logs-empty {
-    text-align: center;
-    padding: var(--space-xl) 0;
-    color: var(--text-muted);
-    font-size: var(--font-size-sm);
+.log-site-link:hover { color: var(--accent); }
+
+/* ── Pagination ── */
+.log-pager {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  border-top: 1px solid var(--border);
 }
