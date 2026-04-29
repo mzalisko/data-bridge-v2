@@ -1,131 +1,151 @@
 /* DataBridge CRM — Buttons */
 
 .btn-primary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-sm);
-    height: 40px;
-    padding: 0 var(--space-lg);
-    border-radius: var(--radius-item);
-    background: var(--accent);
-    color: #ffffff;
-    font-size: var(--font-size-base);
-    font-weight: 600;
-    transition: background var(--duration-fast) var(--ease-ui),
-                opacity var(--duration-fast) var(--ease-ui);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity var(--duration-fast) var(--ease-ui);
 }
 
-.btn-primary:hover {
-    background: var(--accent-hover);
-}
-
-.btn-primary:active {
-    opacity: .85;
-}
-
-.btn-primary--full {
-    width: 100%;
-}
+.btn-primary:hover   { opacity: .88; }
+.btn-primary:active  { opacity: .75; }
+.btn-primary--full   { width: 100%; height: 40px; font-size: 14px; }
 
 .btn-ghost {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-sm);
-    height: 36px;
-    padding: 0 var(--space-md);
-    border-radius: var(--radius-item);
-    background: transparent;
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    transition: background var(--duration-fast) var(--ease-ui),
-                color var(--duration-fast) var(--ease-ui);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--duration-fast) var(--ease-ui),
+              color var(--duration-fast) var(--ease-ui);
 }
 
-.btn-ghost:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-}
+.btn-ghost:hover { background: var(--panel-2); color: var(--text); }
 
 .btn-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radius-item);
-    background: transparent;
-    color: var(--text-secondary);
-    transition: background var(--duration-fast) var(--ease-ui),
-                color var(--duration-fast) var(--ease-ui);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-3);
+  border: none;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-ui),
+              color var(--duration-fast) var(--ease-ui);
 }
 
-.btn-icon:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-}
+.btn-icon:hover { background: var(--panel-2); color: var(--text); }
 
 .btn-danger {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-sm);
-    height: 36px;
-    padding: 0 var(--space-md);
-    border-radius: var(--radius-item);
-    background: transparent;
-    color: var(--dot-off);
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    transition: background var(--duration-fast) var(--ease-ui);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius);
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--duration-fast) var(--ease-ui);
 }
 
-.btn-danger:hover {
-    background: rgba(245, 101, 101, .1);
-}
+.btn-danger:hover { background: var(--danger); color: #fff; }
 
-/* ─── Button group (compact filter buttons) ─── */
+/* ── Segment / tab buttons ── */
 .btn-group {
-    display: inline-flex;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-item);
-    overflow: hidden;
-    flex-shrink: 0;
+  display: inline-flex;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .btn-group__btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 0 10px;
-    height: 32px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .02em;
-    color: var(--text-muted);
-    background: var(--bg-card);
-    border-right: 1px solid var(--border-color);
-    cursor: pointer;
-    white-space: nowrap;
-    text-decoration: none;
-    transition: background var(--duration-fast) var(--ease-ui),
-                color var(--duration-fast) var(--ease-ui);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  height: 32px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  font-family: var(--font-sans);
+  transition: background var(--duration-fast), color var(--duration-fast);
 }
 
 .btn-group__btn:last-child { border-right: none; }
-.btn-group__btn:hover      { background: var(--bg-hover); color: var(--text-primary); }
-.btn-group__btn.is-active  { background: var(--accent); color: #fff; border-color: transparent; }
+.btn-group__btn:hover      { background: var(--panel); color: var(--text); }
+.btn-group__btn.is-active  { background: var(--accent); color: #fff; }
 
-/* ─── Mobile touch targets ─── */
+/* ── View toggle ── */
+.view-toggle { display: inline-flex; }
+.view-toggle__btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  background: var(--panel); border: 1px solid var(--border);
+  color: var(--text-3); cursor: pointer;
+  transition: background var(--duration-fast), color var(--duration-fast);
+}
+.view-toggle__btn:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.view-toggle__btn:last-child  { border-radius: 0 var(--radius) var(--radius) 0; border-left: none; }
+.view-toggle__btn.is-active   { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ── Batch toggle ── */
+.btn-batch-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 32px; padding: 0 12px;
+  border-radius: var(--radius);
+  background: var(--panel); border: 1px solid var(--border);
+  color: var(--text-2); font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: var(--font-sans);
+  transition: background var(--duration-fast), color var(--duration-fast);
+}
+.btn-batch-toggle:hover { background: var(--panel-2); color: var(--text); }
+.btn-batch-toggle.is-active { background: var(--accent-2); color: var(--accent); border-color: var(--accent); }
+
+/* ── Responsive ── */
 @media (max-width: 768px) {
-    .btn-primary, .btn-ghost, .btn-danger {
-        min-height: 44px;
-        padding: 0 var(--space-md);
-    }
-    .btn-primary--full {
-        width: 100%;
-        justify-content: center;
-    }
+  .btn-primary, .btn-ghost, .btn-danger { min-height: 44px; }
+  .btn-primary--full { width: 100%; }
 }
