@@ -117,6 +117,7 @@
             </div>
 
             <div class="site-card__favicon"
+                 data-site-favicon="{{ $site->name }}"
                  style="background:{{ $color }}26;color:{{ $color }};">
                 {{ $letter }}
             </div>
