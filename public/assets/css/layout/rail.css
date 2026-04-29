@@ -1,160 +1,121 @@
-/* DataBridge CRM — CRM Rail */
+/* DataBridge CRM — Sidebar (vibeB) */
 
-.crm-rail {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    z-index: 100;
-    width: var(--rail-width);
-    background: var(--rail-bg);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: var(--space-md) 0;
-    flex-shrink: 0;
-    gap: var(--space-md);
-    transition: width var(--duration-base) var(--ease-ui), box-shadow var(--duration-base) var(--ease-ui);
-    overflow: hidden;
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  flex-shrink: 0;
+  z-index: 20;
 }
 
-@media (min-width: 769px) {
-    .crm-rail:hover {
-        width: 240px;
-        box-shadow: 4px 0 24px rgba(0,0,0,.5);
-    }
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 20px 16px;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
-.rail-logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 24px;
-    color: var(--accent);
-    margin-bottom: var(--space-sm);
-    line-height: 1;
-    flex-shrink: 0;
-    padding-left: 20px;
-    white-space: nowrap;
+.sidebar-logo svg { color: var(--accent); flex-shrink: 0; }
+
+.sidebar-nav {
+  flex: 1;
+  padding: 10px;
+  list-style: none;
+  margin: 0;
+  overflow-y: auto;
 }
 
-.rail-logo svg {
-    flex-shrink: 0;
-    min-width: 24px;
+.sidebar-nav li { margin-bottom: 2px; }
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background var(--duration-fast) var(--ease-ui),
+              color var(--duration-fast) var(--ease-ui);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-sans);
 }
 
-.rail-logo__text {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-primary);
-    opacity: 0;
-    transition: opacity var(--duration-fast);
+.sidebar-item:hover { background: var(--panel-2); color: var(--text); }
+
+.sidebar-item.is-active {
+  background: var(--accent-2);
+  color: var(--accent);
 }
 
-@media (min-width: 769px) {
-    .crm-rail:hover .rail-logo__text {
-        opacity: 1;
-    }
+.sidebar-item svg { flex-shrink: 0; }
+
+.sidebar-bottom {
+  padding: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
-.rail-nav {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 2px;
-    width: 100%;
-    padding: 0 var(--space-sm);
-}
+.sidebar-bottom form { width: 100%; }
 
-.rail-nav li {
-    width: 100%;
-    list-style: none;
-    position: relative;
-}
-
-.rail-bottom {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 2px;
-    width: 100%;
-    padding: 0 var(--space-sm);
-}
-
-.rail-bottom form {
-    width: 100%;
-}
-
-.rail-item {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    padding-left: 14px;
-    gap: 16px;
-    width: 100%;
-    height: 40px;
-    border-radius: var(--radius-item);
-    color: #636366;
-    background: none;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-    position: relative;
-    transition: background var(--duration-fast) var(--ease-ui),
-                color var(--duration-fast) var(--ease-ui);
-}
-
-.rail-item svg {
-    flex-shrink: 0;
-}
-
-.rail-item:hover {
-    background: rgba(255, 255, 255, .06);
-    color: #ebebf0;
-}
-
-.rail-item.is-active {
-    background: var(--accent);
-    color: #ffffff;
-}
-
-/* Expanded Labels */
-.rail-label {
-    opacity: 0;
-    font-size: var(--font-size-md);
-    font-weight: 500;
-    white-space: nowrap;
-    color: #f5f5f7;
-    pointer-events: none;
-    transition: opacity var(--duration-fast);
-}
-
-@media (min-width: 769px) {
-    .crm-rail:hover .rail-label {
-        opacity: 1;
-        transition-delay: 0.1s;
-    }
-}
-
-/* ─── Responsive Rail ─── */
+/* ── Responsive ── */
 @media (max-width: 768px) {
-    .crm-rail {
-        position: static;
-        width: 100%;
-        height: 64px;
-        flex-direction: row;
-        padding: 0 var(--space-md);
-        overflow-x: auto;
-        justify-content: flex-start;
-        align-items: center;
-    }
-    
-    .rail-logo { margin-bottom: 0; margin-right: var(--space-lg); flex-shrink: 0; padding-left: 0; }
-    .rail-logo__text { display: none; }
-    .rail-label { display: none; }
-    .rail-nav { flex-direction: row; align-items: center; justify-content: flex-start; gap: var(--space-sm); width: auto; padding: 0; flex-shrink: 0; }
-    .rail-nav li { width: auto; flex-shrink: 0; }
-    .rail-item { height: 40px; width: 40px; justify-content: center; padding-left: 0; }
-    .rail-bottom { flex-direction: row; width: auto; padding: 0; margin-left: auto; flex-shrink: 0; }
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-logo {
+    border-bottom: none;
+    border-right: 1px solid var(--border);
+    padding: 12px 16px;
+    white-space: nowrap;
+  }
+  .sidebar-nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 8px;
+    gap: 2px;
+    flex: 1;
+  }
+  .sidebar-nav li { margin-bottom: 0; }
+  .sidebar-item {
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+  .sidebar-bottom {
+    flex-direction: row;
+    padding: 8px;
+    border-top: none;
+    border-left: 1px solid var(--border);
+    margin-left: auto;
+    flex-shrink: 0;
+  }
 }
