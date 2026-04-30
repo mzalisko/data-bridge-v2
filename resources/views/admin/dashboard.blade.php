@@ -1,167 +1,150 @@
 @extends('layouts.app')
 
-@push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/pages/dashboard.css') }}?v={{ filemtime(public_path('assets/css/pages/dashboard.css')) }}">
-@endpush
-
-@section('title', 'Dashboard')
+@section('title', 'Overview')
 
 @section('content')
+<div class="page-stack">
 
-{{-- Page head --}}
-<div class="page-toolbar" style="margin-bottom:20px;">
-    <div>
-        <h1 class="page-title">Overview</h1>
-        <div class="page-subtitle">All sites, groups, and sync activity in one place.</div>
-    </div>
-    <div style="display:flex;gap:8px;">
-        <a href="{{ route('sites.index') }}" class="btn-ghost">All sites</a>
-        <a href="{{ route('site-groups.index') }}" class="btn-primary">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-            Add site
-        </a>
-    </div>
-</div>
-
-{{-- 4 Stat cards --}}
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;">
-    <div class="stat-card">
-        <div class="stat-card__label">Total sites</div>
-        <div class="stat-card__value">{{ $stats['sites'] }}</div>
-        <div class="stat-card__delta" style="color:var(--success);">{{ $stats['active'] }} online</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-card__label">Site groups</div>
-        <div class="stat-card__value">{{ $stats['groups'] }}</div>
-        <div class="stat-card__delta"><a href="{{ route('site-groups.index') }}" style="color:var(--accent);text-decoration:none;font-size:12px;">View all →</a></div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-card__label">Sync errors</div>
-        <div class="stat-card__value" style="{{ $stats['problems'] > 0 ? 'color:var(--danger)' : '' }}">{{ $stats['problems'] }}</div>
-        <div class="stat-card__delta" style="{{ $stats['problems'] > 0 ? 'color:var(--danger)' : 'color:var(--success)' }}">
-            {{ $stats['problems'] > 0 ? 'needs review' : 'all synced' }}
+    {{-- ========= PAGE HEAD ========= --}}
+    <div class="page-head">
+        <div>
+            <h1 class="page-head__title">Overview</h1>
+            <p class="page-head__subtitle">All sites, groups, and team activity in one place.</p>
+        </div>
+        <div class="page-head__actions">
+            <button class="btn btn--secondary btn--md">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 4v11"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/>
+                </svg>
+                Export
+            </button>
+            <a href="{{ route('sites.index') }}" class="btn btn--primary btn--md">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+                Add site
+            </a>
         </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-card__label">Favorites</div>
-        <div class="stat-card__value">{{ $favoriteSites->count() }}</div>
-        <div class="stat-card__delta">pinned sites</div>
-    </div>
-</div>
 
-{{-- 2-column layout: activity + sidebar --}}
-<div style="display:grid;grid-template-columns:1.7fr 1fr;gap:20px;">
-
-    {{-- Recent sync activity --}}
-    <div class="card" style="padding:0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border-2);">
-            <span style="font-size:14px;font-weight:600;">Recent sync activity</span>
-            <a href="{{ route('logs.sync') }}" style="color:var(--accent);font-size:12px;font-weight:500;text-decoration:none;">View all</a>
+    {{-- ========= 4 STAT CARDS ========= --}}
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+        <div class="stat-card">
+            <div class="stat-card__label">Sites</div>
+            <div class="stat-card__row">
+                <span class="stat-card__value">{{ $stats['sites'] ?? 0 }}</span>
+            </div>
+            <div class="stat-card__delta" style="color:var(--success);">{{ $stats['active'] ?? 0 }} online</div>
         </div>
-
-        @if($recentSyncs->isEmpty())
-            <div class="data-tab__empty">No sync events yet.</div>
-        @else
-            <div>
-                @foreach($recentSyncs->take(8) as $sync)
-                <div style="display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid var(--border-2);">
-                    <span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:{{ $sync->status === 'success' ? 'var(--success)' : 'var(--danger)' }};"></span>
-                    <div style="flex:1;min-width:0;">
-                        <div style="display:flex;align-items:center;gap:8px;">
-                            <a href="{{ route('sites.show', $sync->site_id) }}"
-                               style="font-size:13px;font-weight:500;color:var(--text);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">
-                                {{ $sync->site?->name ?? 'Unknown site' }}
-                            </a>
-                            @if($sync->status === 'error')
-                                <span class="status-badge status-badge--disabled" style="font-size:10px;padding:1px 6px;">error</span>
-                            @endif
-                        </div>
-                        <div style="font-size:11px;color:var(--text-3);margin-top:1px;">
-                            @if($sync->status === 'success')
-                                Synced successfully · {{ $sync->duration_ms ? $sync->duration_ms.'ms' : '' }}
-                            @else
-                                {{ $sync->error_msg ?? 'Sync error' }}
-                            @endif
-                        </div>
-                    </div>
-                    <span style="font-size:11px;color:var(--text-3);white-space:nowrap;flex-shrink:0;">
-                        {{ $sync->synced_at?->diffForHumans() ?? '' }}
-                    </span>
-                </div>
-                @endforeach
+        <div class="stat-card">
+            <div class="stat-card__label">Total contacts</div>
+            <div class="stat-card__row">
+                <span class="stat-card__value">{{ number_format($stats['contacts'] ?? 0) }}</span>
             </div>
-        @endif
+            <div class="stat-card__delta">across all sites</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__label">Conflicts</div>
+            <div class="stat-card__row">
+                <span class="stat-card__value" @if(($stats['problems'] ?? 0) > 0) style="color:var(--warning);" @endif>{{ $stats['problems'] ?? 0 }}</span>
+            </div>
+            <div class="stat-card__delta">{{ ($stats['problems'] ?? 0) > 0 ? 'needs review' : 'all synced' }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__label">Site groups</div>
+            <div class="stat-card__row">
+                <span class="stat-card__value">{{ $stats['groups'] ?? 0 }}</span>
+            </div>
+            <div class="stat-card__delta">organize your work</div>
+        </div>
     </div>
 
-    {{-- Right sidebar: problems + favorites + quick sites --}}
-    <div style="display:flex;flex-direction:column;gap:20px;">
+    {{-- ========= 2-COL: ACTIVITY + SIDEBAR ========= --}}
+    <div style="display:grid;grid-template-columns:1.7fr 1fr;gap:20px;">
 
-        {{-- Problems --}}
-        <div class="card" style="padding:0;">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border-2);">
-                <span style="font-size:14px;font-weight:600;">
-                    @if($problemSites->isEmpty())
-                        <span style="color:var(--success);">✓</span> All sites healthy
-                    @else
-                        <span style="color:var(--danger);">⚠</span> Problems ({{ $problemSites->count() }})
-                    @endif
-                </span>
+        {{-- LEFT: Recent activity --}}
+        <div class="card card--flush">
+            <div class="section-head">
+                <h3 class="section-head__title">Recent activity</h3>
+                <a href="{{ route('logs.system') }}" class="section-head__link">View all</a>
             </div>
-            @if($problemSites->isEmpty())
-                <div style="padding:16px 16px;font-size:12px;color:var(--text-3);">All sites are synced.</div>
+            @if($recentSyncs->isEmpty())
+                <div style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;border-top:1px solid var(--border-2);">No activity yet.</div>
             @else
-                @foreach($problemSites as $site)
-                <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border-2);">
-                    <div style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }}20;color:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }};flex-shrink:0;">
-                        {{ mb_strtoupper(mb_substr($site->name, 0, 1, 'UTF-8'), 'UTF-8') }}
+                @foreach($recentSyncs->take(6) as $sync)
+                    @php
+                        $kind = $sync->status === 'success' ? 'success' : ($sync->status === 'error' ? 'danger' : 'warning');
+                        $kindLabel = $sync->status === 'success' ? 'ok' : ($sync->status === 'error' ? 'error' : 'warning');
+                    @endphp
+                    <div class="activity-row">
+                        <span class="activity-row__when">{{ $sync->synced_at?->diffForHumans() ?? '—' }}</span>
+                        <div class="activity-row__body">
+                            <span class="dot dot--{{ $kind }}"></span>
+                            <span class="activity-row__who-system">system</span>
+                            <span class="activity-row__action">
+                                {{ $sync->status === 'success' ? 'synced' : 'failed to sync' }}
+                            </span>
+                            <a href="{{ route('sites.show', $sync->site_id) }}" class="activity-row__target">{{ $sync->site?->name ?? 'unknown' }}</a>
+                        </div>
+                        <span class="activity-row__kind">{{ $kindLabel }}</span>
                     </div>
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $site->name }}</div>
-                        <div style="font-size:11px;color:var(--danger);">{{ Str::limit($site->latestSyncLog?->error_msg ?? 'Connection error', 40) }}</div>
-                    </div>
-                    <a href="{{ route('sites.show', $site) }}" class="btn-icon" style="flex-shrink:0;" title="View">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="9 18 15 12 9 6"/></svg>
+                @endforeach
+            @endif
+        </div>
+
+        {{-- RIGHT: Plan mix + Top sites --}}
+        <div style="display:flex;flex-direction:column;gap:20px;">
+
+            {{-- Plan mix (groups breakdown) --}}
+            <div class="card card--flush">
+                <div class="section-head">
+                    <h3 class="section-head__title">Group mix</h3>
+                </div>
+                <div style="padding:4px 20px 20px;display:flex;flex-direction:column;gap:10px;">
+                    @php
+                        $groups = \App\Models\SiteGroup::withCount('sites')->orderByDesc('sites_count')->take(4)->get();
+                        $totalSites = max(1, $stats['sites'] ?? 1);
+                        $palette = ['var(--accent)', 'oklch(0.65 0.14 264)', 'oklch(0.7 0.05 264)', 'var(--warning)'];
+                    @endphp
+                    @forelse($groups as $i => $g)
+                        @php $pct = round(($g->sites_count / $totalSites) * 100); @endphp
+                        <div>
+                            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+                                <span style="color:var(--text-2);">{{ $g->name }}</span>
+                                <span style="color:var(--text-3);font-family:var(--font-mono);">{{ $g->sites_count }} · {{ $pct }}%</span>
+                            </div>
+                            <div style="height:6px;border-radius:99px;background:var(--panel-2);overflow:hidden;">
+                                <div style="width:{{ $pct }}%;height:100%;background:{{ $g->color ?? $palette[$i % 4] }};"></div>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="font-size:12px;color:var(--text-3);">No groups yet.</div>
+                    @endforelse
+                </div>
+            </div>
+
+            {{-- Top sites --}}
+            <div class="card card--flush">
+                <div class="section-head">
+                    <h3 class="section-head__title">Top sites</h3>
+                    <a href="{{ route('sites.index') }}" class="section-head__link">All sites</a>
+                </div>
+                @php $listSites = $favoriteSites->isNotEmpty() ? $favoriteSites : $quickSites; @endphp
+                @forelse($listSites->take(4) as $site)
+                    <a href="{{ route('sites.show', $site) }}" style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-top:1px solid var(--border-2);text-decoration:none;color:inherit;">
+                        <x-favicon :name="$site->name" :size="22"/>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $site->name }}</div>
+                            <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $site->url }}</div>
+                        </div>
+                        <span style="font-size:12px;color:var(--text-2);font-family:var(--font-mono);">{{ $site->phones_count ?? $site->phones?->count() ?? 0 }}</span>
                     </a>
-                </div>
-                @endforeach
-            @endif
-        </div>
-
-        {{-- Top sites (favorites or recent) --}}
-        <div class="card" style="padding:0;">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border-2);">
-                <span style="font-size:14px;font-weight:600;">
-                    {{ $favoriteSites->isNotEmpty() ? '★ Favorites' : 'Recent sites' }}
-                </span>
-                <a href="{{ route('sites.index') }}" style="color:var(--accent);font-size:12px;font-weight:500;text-decoration:none;">All sites</a>
+                @empty
+                    <div style="padding:20px;font-size:12px;color:var(--text-3);border-top:1px solid var(--border-2);">No sites yet.</div>
+                @endforelse
             </div>
-
-            @php $listSites = $favoriteSites->isNotEmpty() ? $favoriteSites : $quickSites; @endphp
-            @if($listSites->isEmpty())
-                <div style="padding:16px;font-size:12px;color:var(--text-3);">No recent sites.</div>
-            @else
-                @foreach($listSites->take(5) as $site)
-                @php $isFav = in_array($site->id, $favoriteIds); @endphp
-                <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border-2);cursor:pointer;"
-                     onclick="window.location='{{ route('sites.show', $site) }}'">
-                    <div style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }}20;color:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }};flex-shrink:0;"
-                         data-site-favicon="{{ $site->name }}">
-                        {{ mb_strtoupper(mb_substr($site->name, 0, 1, 'UTF-8'), 'UTF-8') }}
-                    </div>
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $site->name }}</div>
-                        <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $site->url }}</div>
-                    </div>
-                    <span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:{{ $site->latestSyncLog?->status === 'success' ? 'var(--success)' : ($site->latestSyncLog ? 'var(--danger)' : 'var(--border)') }};"></span>
-                    <button class="db-fav-btn {{ $isFav ? 'is-fav' : '' }}"
-                            onclick="event.stopPropagation(); toggleFavorite(event, this, {{ $site->id }})">★</button>
-                </div>
-                @endforeach
-            @endif
         </div>
+    </div>
 
-    </div>{{-- /right --}}
-
-</div>{{-- /2-col --}}
-
+</div>
 @endsection

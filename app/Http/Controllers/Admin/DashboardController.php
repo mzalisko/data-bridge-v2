@@ -61,6 +61,7 @@ class DashboardController extends Controller
             'active'   => Site::where('is_active', true)->count(),
             'groups'   => SiteGroup::count(),
             'problems' => $problemSites->count(),
+            'contacts' => \DB::table('site_phones')->count(),
         ];
 
         return view('admin.dashboard', compact(

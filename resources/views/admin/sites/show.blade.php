@@ -1,164 +1,571 @@
 @extends('layouts.app')
 
-@push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/pages/sites.css') }}?v={{ filemtime(public_path('assets/css/pages/sites.css')) }}">
-@endpush
-
 @section('title', $site->name)
 
 @section('content')
-
 @php
-    $color  = $site->siteGroup?->color ?? '#708499';
-    $letter = strtoupper(substr($site->name, 0, 1));
-    $syncLog  = $site->latestSyncLog;
-    $syncOk   = $syncLog?->status === 'success';
-    $syncColor = $syncOk ? 'var(--success)' : ($syncLog ? 'var(--warning)' : 'var(--text-3)');
+    $statusName = $site->is_active ? 'Online' : 'Offline';
+    $syncLog    = $site->latestSyncLog;
+    $syncWhen   = $syncLog?->synced_at?->diffForHumans() ?? '—';
+    // Sub-tab: overview | data | activity | settings  (default: overview)
+    $tab        = in_array(request('tab'), ['overview','data','activity','settings']) ? request('tab') : 'overview';
+    // Geo top-tab: all | ISO
+    $country    = request('country', 'all');
+
+    // Countries actually used
+    $usedIso = collect()
+        ->merge($site->phones->pluck('country_iso'))
+        ->merge($site->prices->pluck('country_iso'))
+        ->merge($site->addresses->pluck('country_iso'))
+        ->merge($site->socials->pluck('country_iso'))
+        ->filter()->unique()->values()->toArray();
+
+    $countriesByIso = $countries->keyBy('iso');
+
+    $filterByGeo = function ($collection) use ($country) {
+        if ($country === 'all') return $collection;
+        return $collection->filter(function ($item) use ($country) {
+            if ($item->country_iso === $country) return true;
+            $geoMode = $item->geo_mode ?? 'all';
+            $geoList = is_string($item->geo_countries ?? null)
+                ? (json_decode($item->geo_countries, true) ?? [])
+                : (array)($item->geo_countries ?? []);
+            if ($geoMode === 'all')     return false;
+            if ($geoMode === 'include') return in_array($country, $geoList, true);
+            if ($geoMode === 'exclude') return !in_array($country, $geoList, true);
+            return false;
+        })->values();
+    };
+
+    $shownPhones    = $filterByGeo($site->phones);
+    $shownPrices    = $filterByGeo($site->prices);
+    $shownAddresses = $filterByGeo($site->addresses);
+    $shownSocials   = $filterByGeo($site->socials);
+
+    $url = function($newParams) use ($site) {
+        return route('sites.show', $site) . '?' . http_build_query(array_merge(request()->query(), $newParams));
+    };
+
+    // Social platform → icon SVG + brand color
+    $socialIcon = [
+        'instagram' => ['c' => '#c2185b', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r="1" fill="currentColor"/></svg>'],
+        'facebook'  => ['c' => '#1877f2', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M13.5 21v-7.5h2.5l.4-3h-2.9V8.6c0-.9.3-1.5 1.6-1.5h1.5V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.2H8v3h2.5V21h3z"/></svg>'],
+        'telegram'  => ['c' => '#229ed9', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M21 4 2.5 11.5c-.7.3-.7 1.3 0 1.5l4.5 1.4 1.7 5.4c.2.6 1 .8 1.4.3l2.5-2.7 4.7 3.4c.5.4 1.3.1 1.5-.5L22 5c.2-.7-.5-1.3-1-1zM9.7 14.7l-.4 4 1.7-2.4 4.6-5.5-5.9 3.9z"/></svg>'],
+        'linkedin'  => ['c' => '#0a66c2', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M5 4.5A1.7 1.7 0 1 1 5 8a1.7 1.7 0 0 1 0-3.5zM3.5 9.5h3v11h-3v-11zM9 9.5h2.9v1.6c.4-.8 1.5-1.8 3.2-1.8 3.4 0 4 2.2 4 5.1v6.1h-3v-5.4c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9v5.5H9v-11z"/></svg>'],
+        'x'         => ['c' => 'var(--text)', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M17.5 3h3l-6.6 7.6L21.5 21h-6l-4.4-5.8L6 21H3l7-8.1L2.5 3h6.1l4 5.4L17.5 3z"/></svg>'],
+        'twitter'   => ['c' => 'var(--text)', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M17.5 3h3l-6.6 7.6L21.5 21h-6l-4.4-5.8L6 21H3l7-8.1L2.5 3h6.1l4 5.4L17.5 3z"/></svg>'],
+        'whatsapp'  => ['c' => '#25d366', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 20.5 4.8 16A8 8 0 1 1 8 19.4l-4.5 1.1z"/></svg>'],
+        'viber'     => ['c' => '#7360f2', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4h11a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3h-2l-3 3v-3H7a2 2 0 0 1-2-2V4z"/></svg>'],
+        'youtube'   => ['c' => '#ff0000', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2C2 8.8 2 12 2 12s0 3.2.4 4.8a2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8C22 15.2 22 12 22 12s0-3.2-.4-4.8zM10 15V9l5 3-5 3z"/></svg>'],
+    ];
 @endphp
 
-{{-- Page head --}}
-<div class="page-toolbar">
-    <div>
-        <div class="page-subtitle" style="margin-bottom:4px;">
-            <a href="{{ route('sites.index') }}" style="color:var(--text-3);text-decoration:none;">Sites</a>
-            <span style="color:var(--text-3);margin:0 6px;">/</span>
-            <span>{{ $site->name }}</span>
-        </div>
-        <h1 class="page-title" style="display:flex;align-items:center;gap:10px;">
-            <span class="site-card__favicon" data-site-favicon="{{ $site->name }}"
-                  style="width:28px;height:28px;font-size:11px;border-radius:8px;background:{{ $color }}22;color:{{ $color }};">
-                {{ $letter }}
-            </span>
-            {{ $site->name }}
-        </h1>
-        <div class="page-subtitle" style="font-family:var(--font-mono);">{{ $site->url }}</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-        <a href="{{ $site->url }}" target="_blank" class="btn-ghost">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M14 4h6v6"/><path d="M20 4 10 14"/>
-                <path d="M20 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4"/>
-            </svg>
-            Open site
-        </a>
-        <button class="btn-primary" onclick="openDrawer('drawer-site-edit')">Edit site</button>
-    </div>
-</div>
+<div class="page-stack">
 
-{{-- Stats row (5 mini cards) --}}
-<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;">
-    <div class="card" style="padding:14px 16px;">
-        <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Status</div>
+    {{-- ========= PAGE HEAD ========= --}}
+    <div class="page-head">
         <div>
-            <span class="status-badge {{ $site->is_active ? 'status-badge--active' : 'status-badge--disabled' }}" style="font-size:12px;">
-                <span class="status-badge__dot"></span>
-                {{ $site->is_active ? 'Active' : 'Disabled' }}
-            </span>
-        </div>
-    </div>
-    <div class="card" style="padding:14px 16px;">
-        <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Group</div>
-        <div style="font-size:14px;font-weight:600;">
-            @if($site->siteGroup)
-                <span class="group-pill" style="--pill-color:{{ $color }};font-size:12px;">{{ $site->siteGroup->name }}</span>
-            @else
-                <span style="color:var(--text-3);">—</span>
-            @endif
-        </div>
-    </div>
-    <div class="card" style="padding:14px 16px;">
-        <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Phones</div>
-        <div style="font-size:18px;font-weight:600;">{{ $site->phones->count() }}</div>
-    </div>
-    <div class="card" style="padding:14px 16px;">
-        <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Last sync</div>
-        <div style="font-size:13px;font-weight:600;color:{{ $syncColor }};">
-            {{ $syncLog?->created_at?->diffForHumans() ?? '—' }}
-        </div>
-    </div>
-    <div class="card" style="padding:14px 16px;">
-        <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Added</div>
-        <div style="font-size:13px;font-weight:600;">{{ $site->created_at->format('d.m.Y') }}</div>
-    </div>
-</div>
-
-{{-- Tab card --}}
-<div class="crm-table__wrap">
-
-    {{-- Tab bar --}}
-    <div style="display:flex;border-bottom:1px solid var(--border-2);padding:0 16px;background:var(--panel);">
-        @foreach([
-            ['phones',    'Phones',    $site->phones->count()],
-            ['prices',    'Prices',    $site->prices->count()],
-            ['addresses', 'Addresses', $site->addresses->count()],
-            ['socials',   'Socials',   $site->socials->count()],
-        ] as [$key, $label, $count])
-        <a href="{{ route('sites.show', $site) }}?tab={{ $key }}"
-           style="display:inline-flex;align-items:center;gap:6px;padding:13px 14px;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap;
-                  border-bottom:2px solid {{ $tab === $key ? 'var(--accent)' : 'transparent' }};
-                  margin-bottom:-1px;
-                  color:{{ $tab === $key ? 'var(--text)' : 'var(--text-3)' }};
-                  transition:color .15s;">
-            {{ $label }}
-            <span style="font-size:11px;font-family:var(--font-mono);color:{{ $tab === $key ? 'var(--accent)' : 'var(--text-3)' }};">{{ $count ?: '' }}</span>
-        </a>
-        @endforeach
-
-        {{-- Overview tab --}}
-        <a href="{{ route('sites.show', $site) }}?tab=overview"
-           style="display:inline-flex;align-items:center;gap:6px;padding:13px 14px;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap;
-                  border-bottom:2px solid {{ $tab === 'overview' ? 'var(--accent)' : 'transparent' }};
-                  margin-bottom:-1px;
-                  color:{{ $tab === 'overview' ? 'var(--text)' : 'var(--text-3)' }};
-                  transition:color .15s;margin-left:auto;">
-            Overview
-        </a>
-    </div>
-
-    {{-- Tab content --}}
-    @if($tab === 'overview')
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
-        {{-- Site info --}}
-        <div style="background:var(--panel);padding:20px;">
-            <h4 style="margin:0 0 14px;font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Site info</h4>
-            @php
-            $kv = [
-                ['Domain', $site->url, true],
-                ['Group',  $site->siteGroup?->name ?? '—', false],
-                ['Status', $site->is_active ? 'Active' : 'Disabled', false],
-                ['Added',  $site->created_at->format('d M Y'), false],
-            ];
-            @endphp
-            @foreach($kv as [$k, $v, $mono])
-            <div style="display:grid;grid-template-columns:140px 1fr;gap:10px;padding:8px 0;font-size:13px;align-items:center;border-bottom:1px solid var(--border-2);">
-                <span style="color:var(--text-3);">{{ $k }}</span>
-                <span style="color:var(--text-2);{{ $mono ? 'font-family:var(--font-mono);font-size:12px;' : '' }}">{{ $v }}</span>
+            <div class="page-head__crumb">
+                <a href="{{ route('sites.index') }}">Sites</a> / <span style="color:var(--text);">{{ $site->name }}</span>
             </div>
-            @endforeach
+            <h1 class="page-head__title">
+                <x-favicon :name="$site->name" :size="28"/>
+                {{ $site->name }}
+            </h1>
+            <p class="page-head__subtitle" style="font-family:var(--font-mono);">{{ $site->url }}</p>
         </div>
-        {{-- Sync / API --}}
-        <div style="background:var(--panel);padding:20px;">
-            <h4 style="margin:0 0 14px;font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Sync & API</h4>
-            @include('admin.sites._api-key', ['site' => $site])
+        <div class="page-head__actions">
+            @if($site->url)
+                <a href="{{ $site->url }}" target="_blank" class="btn btn--secondary btn--md">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 4h6v6"/><path d="M20 4 10 14"/>
+                        <path d="M20 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4"/>
+                    </svg>
+                    Open
+                </a>
+            @endif
+            <button class="btn btn--secondary btn--md">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 4v4h-4"/>
+                    <path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 20v-4h4"/>
+                </svg>
+                Resync
+            </button>
+            <button class="btn btn--primary btn--md" onclick="openDrawer('drawer-site-edit')">Push update</button>
         </div>
     </div>
-    @elseif($tab === 'phones')
-        @include('admin.sites._tab-phones', ['site' => $site, 'phones' => $site->phones, 'countries' => $countries])
-    @elseif($tab === 'prices')
-        @include('admin.sites._tab-prices', ['site' => $site, 'prices' => $site->prices, 'countries' => $countries])
-    @elseif($tab === 'addresses')
-        @include('admin.sites._tab-addresses', ['site' => $site, 'addresses' => $site->addresses, 'countries' => $countries])
-    @elseif($tab === 'socials')
-        @include('admin.sites._tab-socials', ['site' => $site, 'socials' => $site->socials, 'countries' => $countries])
-    @endif
+
+    {{-- ========= 5 MINI STATS ========= --}}
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;">
+        <div class="card" style="padding:14px 16px;">
+            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Status</div>
+            <div><x-status-pill :status="$statusName"/></div>
+        </div>
+        <div class="card" style="padding:14px 16px;">
+            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Group</div>
+            <div style="font-size:14px;font-weight:600;">
+                @if($site->siteGroup)
+                    <span class="group-chip">
+                        <span class="group-chip__dot" style="background:{{ $site->siteGroup->color ?? '#71717a' }}"></span>
+                        {{ $site->siteGroup->name }}
+                    </span>
+                @else
+                    <span style="color:var(--text-3);">—</span>
+                @endif
+            </div>
+        </div>
+        <div class="card" style="padding:14px 16px;">
+            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Geos</div>
+            <div style="font-size:18px;font-weight:600;color:var(--text);">{{ count($usedIso) }}</div>
+        </div>
+        <div class="card" style="padding:14px 16px;">
+            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Phones</div>
+            <div style="font-size:18px;font-weight:600;">{{ $site->phones->count() }}</div>
+        </div>
+        <div class="card" style="padding:14px 16px;">
+            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Last sync</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-2);">{{ $syncWhen }}</div>
+        </div>
+    </div>
+
+    {{-- ========= MAIN TAB CARD ========= --}}
+    <div class="card card--flush">
+
+        {{-- ========= TOP TABS — GEOS ========= --}}
+        <div style="display:flex;align-items:center;gap:2px;padding:10px 16px;border-bottom:1px solid var(--border-2);background:var(--panel-2);overflow-x:auto;">
+            <a href="{{ $url(['country' => 'all']) }}"
+               style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius);font-size:12px;text-decoration:none;white-space:nowrap;
+                      background:{{ $country === 'all' ? 'var(--panel)' : 'transparent' }};
+                      border:1px solid {{ $country === 'all' ? 'var(--border)' : 'transparent' }};
+                      color:{{ $country === 'all' ? 'var(--text)' : 'var(--text-3)' }};
+                      font-weight:{{ $country === 'all' ? '600' : '500' }};">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a13 13 0 0 1 0 18M12 3a13 13 0 0 0 0 18"/></svg>
+                All geos
+            </a>
+
+            @foreach($usedIso as $iso)
+                @php $cName = $countriesByIso[$iso]->name ?? $iso; @endphp
+                <a href="{{ $url(['country' => $iso]) }}" title="{{ $cName }}"
+                   style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius);font-size:12px;text-decoration:none;white-space:nowrap;font-family:var(--font-mono);
+                          background:{{ $country === $iso ? 'var(--panel)' : 'transparent' }};
+                          border:1px solid {{ $country === $iso ? 'var(--border)' : 'transparent' }};
+                          color:{{ $country === $iso ? 'var(--text)' : 'var(--text-3)' }};
+                          font-weight:{{ $country === $iso ? '700' : '600' }};">
+                    {{ $iso }}
+                </a>
+            @endforeach
+
+            <div style="flex:1"></div>
+
+            <a href="{{ $url(['tab' => 'data']) }}" class="btn btn--ghost btn--sm" style="white-space:nowrap;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                Add geo
+            </a>
+        </div>
+
+        {{-- ========= SUB TABS — OVERVIEW/DATA/ACTIVITY/SETTINGS ========= --}}
+        <div class="tabs">
+            <a href="{{ $url(['tab' => 'overview']) }}" class="tabs__item {{ $tab === 'overview' ? 'is-active' : '' }}">Overview</a>
+            <a href="{{ $url(['tab' => 'data']) }}"     class="tabs__item {{ $tab === 'data'     ? 'is-active' : '' }}">Data</a>
+            <a href="{{ $url(['tab' => 'activity']) }}" class="tabs__item {{ $tab === 'activity' ? 'is-active' : '' }}">Activity</a>
+            <a href="{{ $url(['tab' => 'settings']) }}" class="tabs__item {{ $tab === 'settings' ? 'is-active' : '' }}">Settings</a>
+        </div>
+
+        {{-- ========= OVERVIEW ========= --}}
+        @if($tab === 'overview')
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
+                <div style="background:var(--panel);padding:20px;">
+                    <h4 style="margin:0 0 12px;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Site info</h4>
+                    <div class="kv"><span class="kv__k">Domain</span><span class="kv__v mono">{{ $site->url }}</span></div>
+                    <div class="kv"><span class="kv__k">Group</span><span class="kv__v">{{ $site->siteGroup?->name ?? '—' }}</span></div>
+                    <div class="kv"><span class="kv__k">Status</span><span class="kv__v">{{ $statusName }}</span></div>
+                    <div class="kv"><span class="kv__k">Added</span><span class="kv__v">{{ $site->created_at->format('d M Y') }}</span></div>
+                </div>
+                <div style="background:var(--panel);padding:20px;">
+                    <h4 style="margin:0 0 12px;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Sync health</h4>
+                    <div class="kv"><span class="kv__k">Last sync</span><span class="kv__v">{{ $syncWhen }}</span></div>
+                    <div class="kv"><span class="kv__k">Sync status</span><span class="kv__v">
+                        @if($syncLog?->status === 'success')
+                            <span class="pill pill--success"><span class="dot dot--success"></span>OK</span>
+                        @elseif($syncLog?->status === 'error')
+                            <span class="pill pill--danger"><span class="dot dot--danger"></span>Error</span>
+                        @else
+                            <span class="pill pill--neutral">No data</span>
+                        @endif
+                    </span></div>
+                    <div class="kv"><span class="kv__k">Webhook</span><span class="kv__v">
+                        @if($site->plugin_webhook_url)
+                            <span class="pill pill--success"><span class="dot dot--success"></span>Active</span>
+                        @else
+                            <span class="pill pill--neutral">Not configured</span>
+                        @endif
+                    </span></div>
+                </div>
+            </div>
+
+            {{-- ===== Rich per-geo data view ===== --}}
+            @if(count($usedIso) > 0)
+                <div style="border-top:1px solid var(--border-2);padding:20px;display:flex;flex-direction:column;gap:16px;">
+                    <h4 style="margin:0;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Data by geo</h4>
+
+                    @foreach($usedIso as $iso)
+                        @php
+                            $cName     = $countriesByIso[$iso]->name ?? $iso;
+                            $geoPhones = $site->phones->where('country_iso', $iso);
+                            $geoPrices = $site->prices->where('country_iso', $iso);
+                            $geoAddrs  = $site->addresses->where('country_iso', $iso);
+                            $geoSocial = $site->socials->where('country_iso', $iso);
+                        @endphp
+                        <div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--panel);">
+                            {{-- Geo card header --}}
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--panel-2);border-bottom:1px solid var(--border-2);">
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="font-family:var(--font-mono);font-weight:700;font-size:12px;background:var(--accent-2);color:var(--accent-text);padding:3px 8px;border-radius:6px;">{{ $iso }}</span>
+                                    <span style="font-size:13px;font-weight:600;color:var(--text);">{{ $cName }}</span>
+                                </div>
+                                <div style="display:flex;gap:6px;align-items:center;">
+                                    <span class="pill pill--neutral">{{ $geoPhones->count() }} phones</span>
+                                    <span class="pill pill--neutral">{{ $geoPrices->count() }} prices</span>
+                                    <span class="pill pill--neutral">{{ $geoAddrs->count() }} addr</span>
+                                    <span class="pill pill--neutral">{{ $geoSocial->count() }} socials</span>
+                                    <a href="{{ $url(['country' => $iso, 'tab' => 'data']) }}" class="btn btn--ghost btn--sm">Manage →</a>
+                                </div>
+                            </div>
+
+                            {{-- Geo card body — 4 columns: phones / prices / addresses / socials --}}
+                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border-2);">
+
+                                {{-- Phones col --}}
+                                <div style="background:var(--panel);padding:14px 16px;min-height:80px;">
+                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Phones</div>
+                                    @forelse($geoPhones as $p)
+                                        <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-2);padding:3px 0;display:flex;align-items:center;gap:6px;">
+                                            <span>+{{ $p->dial_code }} {{ $p->number }}</span>
+                                            @if($p->is_primary)<span class="pill pill--accent" style="font-size:9px;padding:1px 5px;">P</span>@endif
+                                        </div>
+                                    @empty
+                                        <div style="font-size:11px;color:var(--text-3);">—</div>
+                                    @endforelse
+                                </div>
+
+                                {{-- Prices col --}}
+                                <div style="background:var(--panel);padding:14px 16px;min-height:80px;">
+                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Prices</div>
+                                    @forelse($geoPrices as $p)
+                                        <div style="font-size:12px;color:var(--text-2);padding:3px 0;">
+                                            @if($p->label)<span>{{ $p->label }} — </span>@endif
+                                            <span style="font-family:var(--font-mono);">{{ $p->amount }} {{ $p->currency }}</span>
+                                        </div>
+                                    @empty
+                                        <div style="font-size:11px;color:var(--text-3);">—</div>
+                                    @endforelse
+                                </div>
+
+                                {{-- Addresses col --}}
+                                <div style="background:var(--panel);padding:14px 16px;min-height:80px;">
+                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Addresses</div>
+                                    @forelse($geoAddrs as $a)
+                                        <div style="font-size:12px;color:var(--text-2);padding:3px 0;">
+                                            {{ trim(($a->city ?? '').' '.($a->street ?? '').' '.($a->building ?? '')) ?: '—' }}
+                                        </div>
+                                    @empty
+                                        <div style="font-size:11px;color:var(--text-3);">—</div>
+                                    @endforelse
+                                </div>
+
+                                {{-- Socials col --}}
+                                <div style="background:var(--panel);padding:14px 16px;min-height:80px;">
+                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Socials</div>
+                                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                                        @forelse($geoSocial as $s)
+                                            @php
+                                                $key = strtolower($s->platform ?? '');
+                                                $ic  = $socialIcon[$key] ?? ['c' => 'var(--text-3)', 'svg' => '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>'];
+                                            @endphp
+                                            <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:var(--panel-2);border:1px solid var(--border);border-radius:99px;font-size:11px;color:var(--text-2);">
+                                                <span style="color:{{ $ic['c'] }};display:inline-flex;">{!! $ic['svg'] !!}</span>
+                                                {{ $s->handle ?: $s->platform }}
+                                            </span>
+                                        @empty
+                                            <div style="font-size:11px;color:var(--text-3);">—</div>
+                                        @endforelse
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div style="border-top:1px solid var(--border-2);padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">
+                    No geo data yet. <a href="{{ $url(['tab' => 'data']) }}" style="color:var(--accent);">Add data →</a>
+                </div>
+            @endif
+        @endif
+
+        {{-- ========= DATA ========= --}}
+        @if($tab === 'data')
+            <div style="padding:20px;display:flex;flex-direction:column;gap:24px;">
+
+                {{-- Header --}}
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <h3 style="margin:0;font-size:15px;font-weight:600;color:var(--text);">
+                        @if($country === 'all') All geos @else {{ $countriesByIso[$country]->name ?? $country }} <span style="color:var(--text-3);font-weight:400;font-family:var(--font-mono);font-size:12px;margin-left:4px;">({{ $country }})</span> @endif
+                    </h3>
+                    <div style="display:flex;gap:6px;">
+                        <button class="btn btn--secondary btn--sm">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+                            Copy snippet
+                        </button>
+                    </div>
+                </div>
+
+                {{-- ===== PHONES ===== --}}
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Phones</span>
+                    @forelse($shownPhones as $p)
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <div class="input input--mono" style="flex:1;">
+                                <input type="text" value="+{{ $p->dial_code }} {{ $p->number }}" readonly>
+                            </div>
+                            @if($p->is_primary)
+                                <span class="pill pill--accent">Primary</span>
+                            @endif
+                            <button class="icon-btn" title="Copy">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+                            </button>
+                            <form method="POST" action="{{ route('phones.destroy', [$site, $p]) }}" style="margin:0;" onsubmit="return confirm('Delete this phone?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                                </button>
+                            </form>
+                        </div>
+                    @empty
+                        <div style="color:var(--text-3);font-size:12px;">No phones for this geo.</div>
+                    @endforelse
+                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Add phone
+                    </button>
+                </div>
+
+                {{-- ===== PRICES ===== --}}
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Prices</span>
+                    @forelse($shownPrices as $p)
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <div class="input" style="flex:1;">
+                                <input type="text" value="{{ $p->label ?? '' }}" placeholder="Label" readonly>
+                            </div>
+                            <div class="input input--mono" style="width:140px;">
+                                <input type="text" value="{{ $p->amount ?? '' }} {{ $p->currency ?? '' }}" readonly>
+                            </div>
+                            <button class="icon-btn" title="Copy">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+                            </button>
+                            <form method="POST" action="{{ route('prices.destroy', [$site, $p]) }}" style="margin:0;" onsubmit="return confirm('Delete this price?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                                </button>
+                            </form>
+                        </div>
+                    @empty
+                        <div style="color:var(--text-3);font-size:12px;">No prices for this geo.</div>
+                    @endforelse
+                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Add price
+                    </button>
+                </div>
+
+                {{-- ===== ADDRESSES ===== --}}
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Addresses</span>
+                    @forelse($shownAddresses as $a)
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <div class="input" style="flex:1;">
+                                <input type="text" value="{{ trim(($a->city ?? '').' '.($a->street ?? '').' '.($a->building ?? '')) }}" placeholder="Address" readonly>
+                            </div>
+                            <button class="icon-btn" title="Copy">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+                            </button>
+                            <form method="POST" action="{{ route('addresses.destroy', [$site, $a]) }}" style="margin:0;" onsubmit="return confirm('Delete this address?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                                </button>
+                            </form>
+                        </div>
+                    @empty
+                        <div style="color:var(--text-3);font-size:12px;">No addresses for this geo.</div>
+                    @endforelse
+                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Add address
+                    </button>
+                </div>
+
+                {{-- ===== SOCIAL MEDIA ===== --}}
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Social media</span>
+                    @forelse($shownSocials as $s)
+                        @php
+                            $key = strtolower($s->platform ?? '');
+                            $ic  = $socialIcon[$key] ?? ['c' => 'var(--text-3)', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>'];
+                        @endphp
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <div class="input" style="flex:1;">
+                                <span style="width:22px;height:22px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;background:var(--panel-2);color:{{ $ic['c'] }};border:1px solid var(--border);flex-shrink:0;">
+                                    {!! $ic['svg'] !!}
+                                </span>
+                                <input type="text" value="{{ $s->handle ?? $s->url ?? '' }}" readonly>
+                            </div>
+                            <button class="icon-btn" title="Copy">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+                            </button>
+                            <form method="POST" action="{{ route('socials.destroy', [$site, $s]) }}" style="margin:0;" onsubmit="return confirm('Delete this social link?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                                </button>
+                            </form>
+                        </div>
+                    @empty
+                        <div style="color:var(--text-3);font-size:12px;">No social links for this geo.</div>
+                    @endforelse
+                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Add social link
+                    </button>
+                </div>
+
+                {{-- Footer --}}
+                <div style="display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid var(--border-2);">
+                    <span style="font-size:12px;color:var(--text-3);">Last updated {{ $site->updated_at?->diffForHumans() ?? '—' }} · auto-pushed to site</span>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btn--ghost btn--md" type="button">Cancel</button>
+                        <button class="btn btn--primary btn--md" type="button">Save & push</button>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- ========= ACTIVITY ========= --}}
+        @if($tab === 'activity')
+            @php
+                $siteSyncs = \App\Models\SyncLog::where('site_id', $site->id)
+                    ->orderByDesc('synced_at')->take(20)->get();
+            @endphp
+            @forelse($siteSyncs as $sync)
+                @php
+                    $kind = $sync->status === 'success' ? 'success' : ($sync->status === 'error' ? 'danger' : 'warning');
+                @endphp
+                <div class="activity-row">
+                    <span class="activity-row__when">{{ $sync->synced_at?->diffForHumans() ?? '—' }}</span>
+                    <div class="activity-row__body">
+                        <span class="dot dot--{{ $kind }}"></span>
+                        <span class="activity-row__who-system">system</span>
+                        <span class="activity-row__action">
+                            {{ $sync->status === 'success' ? 'synced successfully' : ($sync->status === 'error' ? 'sync failed' : 'sync pending') }}
+                        </span>
+                        @if($sync->duration_ms)
+                            <span style="color:var(--text-3);font-size:12px;">· {{ $sync->duration_ms }}ms</span>
+                        @endif
+                        @if($sync->error_msg)
+                            <span style="color:var(--text-3);font-size:12px;">· {{ \Illuminate\Support\Str::limit($sync->error_msg, 60) }}</span>
+                        @endif
+                    </div>
+                    <span class="activity-row__kind">{{ $sync->status }}</span>
+                </div>
+            @empty
+                <div style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">No activity yet for this site</div>
+            @endforelse
+        @endif
+
+        {{-- ========= SETTINGS ========= --}}
+        @if($tab === 'settings')
+            <div style="padding:20px;display:flex;flex-direction:column;gap:0;">
+                {{-- Auto-sync --}}
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;">
+                    <div>
+                        <div style="font-size:13px;font-weight:500;color:var(--text);">Auto-sync</div>
+                        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Pull updates from this site automatically</div>
+                    </div>
+                    <button class="toggle is-on" type="button" onclick="this.classList.toggle('is-on')"></button>
+                </div>
+                {{-- Sync frequency --}}
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-top:1px solid var(--border-2);">
+                    <div>
+                        <div style="font-size:13px;font-weight:500;color:var(--text);">Sync frequency</div>
+                        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">How often to pull updates</div>
+                    </div>
+                    <div class="select-wrap">
+                        <select>
+                            <option>Every 5 min</option>
+                            <option>Every 15 min</option>
+                            <option>Hourly</option>
+                            <option>Manual only</option>
+                        </select>
+                        <span class="select-wrap__chevron"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 9 6 6 6-6"/></svg></span>
+                    </div>
+                </div>
+                {{-- Allow plugin to push --}}
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-top:1px solid var(--border-2);">
+                    <div>
+                        <div style="font-size:13px;font-weight:500;color:var(--text);">Allow plugin to push</div>
+                        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Let the WP plugin write back changes</div>
+                    </div>
+                    <button class="toggle" type="button" onclick="this.classList.toggle('is-on')"></button>
+                </div>
+                {{-- Notify on errors --}}
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-top:1px solid var(--border-2);">
+                    <div>
+                        <div style="font-size:13px;font-weight:500;color:var(--text);">Notify on errors</div>
+                        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Email the team if sync fails</div>
+                    </div>
+                    <button class="toggle is-on" type="button" onclick="this.classList.toggle('is-on')"></button>
+                </div>
+                {{-- Footer actions --}}
+                <div style="border-top:1px solid var(--border-2);margin-top:6px;padding-top:14px;display:flex;justify-content:space-between;">
+                    <form method="POST" action="{{ route('sites.destroy', $site) }}" onsubmit="return confirm('Delete site «{{ $site->name }}»?')" style="margin:0;">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="btn btn--danger btn--md">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                            Remove site
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ route('sites.api-key.generate', $site) }}" style="margin:0;">
+                        @csrf
+                        <button type="submit" class="btn btn--secondary btn--md">Rotate API key</button>
+                    </form>
+                </div>
+            </div>
+        @endif
+    </div>
 </div>
 
-{{-- Edit drawer --}}
+{{-- Toggle styles inline (small component) --}}
+<style>
+    .toggle {
+        width: 34px; height: 20px; border-radius: 99px; padding: 2px; border: 0; cursor: pointer;
+        background: var(--border); transition: background .15s; display: inline-flex;
+        flex-shrink: 0;
+    }
+    .toggle::after {
+        content: ""; width: 16px; height: 16px; border-radius: 99px; background: #fff;
+        transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.2);
+    }
+    .toggle.is-on { background: var(--accent); }
+    .toggle.is-on::after { transform: translateX(14px); }
+</style>
+
+{{-- ========= EDIT DRAWER ========= --}}
 <div class="drawer-overlay" id="drawer-site-edit-overlay" onclick="closeDrawer('drawer-site-edit')"></div>
 <div class="drawer" id="drawer-site-edit">
     <div class="drawer__header">
         <span class="drawer__title">{{ $site->name }}</span>
-        <button class="btn-icon" onclick="closeDrawer('drawer-site-edit')">✕</button>
+        <button class="icon-btn" onclick="closeDrawer('drawer-site-edit')">✕</button>
     </div>
     <div class="drawer__body">
         <form method="POST" action="{{ route('sites.update', $site) }}" class="form-stack" id="form-site-edit">
@@ -167,13 +574,8 @@
         </form>
     </div>
     <div class="drawer__footer">
-        <form method="POST" action="{{ route('sites.destroy', $site) }}" class="drawer__footer-left">
-            @csrf @method('DELETE')
-            <button type="submit" class="btn-danger"
-                    onclick="return confirm('Delete site «{{ $site->name }}»?')">Delete</button>
-        </form>
-        <button type="button" class="btn-ghost" onclick="closeDrawer('drawer-site-edit')">Cancel</button>
-        <button type="submit" form="form-site-edit" class="btn-primary">Save</button>
+        <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-site-edit')">Cancel</button>
+        <button type="submit" form="form-site-edit" class="btn btn--primary btn--md">Save</button>
     </div>
 </div>
 
