@@ -131,39 +131,7 @@
     {{-- ========= MAIN TAB CARD ========= --}}
     <div class="card card--flush">
 
-        {{-- ========= TOP TABS — GEOS ========= --}}
-        <div style="display:flex;align-items:center;gap:2px;padding:10px 16px;border-bottom:1px solid var(--border-2);background:var(--panel-2);overflow-x:auto;">
-            <a href="{{ $url(['country' => 'all']) }}"
-               style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius);font-size:12px;text-decoration:none;white-space:nowrap;
-                      background:{{ $country === 'all' ? 'var(--panel)' : 'transparent' }};
-                      border:1px solid {{ $country === 'all' ? 'var(--border)' : 'transparent' }};
-                      color:{{ $country === 'all' ? 'var(--text)' : 'var(--text-3)' }};
-                      font-weight:{{ $country === 'all' ? '600' : '500' }};">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a13 13 0 0 1 0 18M12 3a13 13 0 0 0 0 18"/></svg>
-                All geos
-            </a>
-
-            @foreach($usedIso as $iso)
-                @php $cName = $countriesByIso[$iso]->name ?? $iso; @endphp
-                <a href="{{ $url(['country' => $iso]) }}" title="{{ $cName }}"
-                   style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius);font-size:12px;text-decoration:none;white-space:nowrap;font-family:var(--font-mono);
-                          background:{{ $country === $iso ? 'var(--panel)' : 'transparent' }};
-                          border:1px solid {{ $country === $iso ? 'var(--border)' : 'transparent' }};
-                          color:{{ $country === $iso ? 'var(--text)' : 'var(--text-3)' }};
-                          font-weight:{{ $country === $iso ? '700' : '600' }};">
-                    {{ $iso }}
-                </a>
-            @endforeach
-
-            <div style="flex:1"></div>
-
-            <a href="{{ $url(['tab' => 'data']) }}" class="btn btn--ghost btn--sm" style="white-space:nowrap;">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                Add geo
-            </a>
-        </div>
-
-        {{-- ========= SUB TABS — OVERVIEW/DATA/ACTIVITY/SETTINGS ========= --}}
+        {{-- ========= TABS — OVERVIEW/DATA/ACTIVITY/SETTINGS ========= --}}
         <div class="tabs">
             <a href="{{ $url(['tab' => 'overview']) }}" class="tabs__item {{ $tab === 'overview' ? 'is-active' : '' }}">Overview</a>
             <a href="{{ $url(['tab' => 'data']) }}"     class="tabs__item {{ $tab === 'data'     ? 'is-active' : '' }}">Data</a>
@@ -203,8 +171,36 @@
                 </div>
             </div>
 
-            {{-- ===== Rich per-geo data view ===== --}}
+            {{-- ===== GEO COVERAGE — large country pills with totals ===== --}}
             @if(count($usedIso) > 0)
+                <div style="border-top:1px solid var(--border-2);padding:20px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                        <h4 style="margin:0;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Geo coverage</h4>
+                        <span style="font-size:12px;color:var(--text-3);">{{ count($usedIso) }} {{ count($usedIso) === 1 ? 'country' : 'countries' }}</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;">
+                        @foreach($usedIso as $iso)
+                            @php
+                                $cName  = $countriesByIso[$iso]->name ?? $iso;
+                                $totalG = $site->phones->where('country_iso', $iso)->count()
+                                        + $site->prices->where('country_iso', $iso)->count()
+                                        + $site->addresses->where('country_iso', $iso)->count()
+                                        + $site->socials->where('country_iso', $iso)->count();
+                            @endphp
+                            <a href="{{ $url(['country' => $iso, 'tab' => 'data']) }}"
+                               style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;color:inherit;transition:border-color .12s, box-shadow .12s;"
+                               onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px var(--accent-2)';"
+                               onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none';">
+                                <span style="width:34px;height:34px;border-radius:8px;background:var(--accent-2);color:var(--accent-text);font-family:var(--font-mono);font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">{{ $iso }}</span>
+                                <div style="min-width:0;flex:1;">
+                                    <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $cName }}</div>
+                                    <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);">{{ $totalG }} {{ $totalG === 1 ? 'item' : 'items' }}</div>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
                 <div style="border-top:1px solid var(--border-2);padding:20px;display:flex;flex-direction:column;gap:16px;">
                     <h4 style="margin:0;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Data by geo</h4>
 
@@ -304,12 +300,47 @@
 
         {{-- ========= DATA ========= --}}
         @if($tab === 'data')
+
+            {{-- Geo selector bar (only inside Data tab) --}}
+            <div style="display:flex;align-items:center;gap:2px;padding:10px 16px;border-bottom:1px solid var(--border-2);background:var(--panel-2);overflow-x:auto;">
+                <a href="{{ $url(['country' => 'all']) }}"
+                   style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius);font-size:12px;text-decoration:none;white-space:nowrap;
+                          background:{{ $country === 'all' ? 'var(--panel)' : 'transparent' }};
+                          border:1px solid {{ $country === 'all' ? 'var(--border)' : 'transparent' }};
+                          color:{{ $country === 'all' ? 'var(--text)' : 'var(--text-3)' }};
+                          font-weight:{{ $country === 'all' ? '600' : '500' }};">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a13 13 0 0 1 0 18M12 3a13 13 0 0 0 0 18"/></svg>
+                    All geos
+                </a>
+                @foreach($usedIso as $iso)
+                    @php $cName = $countriesByIso[$iso]->name ?? $iso; @endphp
+                    <a href="{{ $url(['country' => $iso]) }}" title="{{ $cName }}"
+                       style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius);font-size:12px;text-decoration:none;white-space:nowrap;font-family:var(--font-mono);
+                              background:{{ $country === $iso ? 'var(--panel)' : 'transparent' }};
+                              border:1px solid {{ $country === $iso ? 'var(--border)' : 'transparent' }};
+                              color:{{ $country === $iso ? 'var(--text)' : 'var(--text-3)' }};
+                              font-weight:{{ $country === $iso ? '700' : '600' }};">
+                        {{ $iso }}
+                    </a>
+                @endforeach
+                <div style="flex:1"></div>
+                <button class="btn btn--ghost btn--sm" type="button" style="white-space:nowrap;">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                    Add geo
+                </button>
+            </div>
+
             <div style="padding:20px;display:flex;flex-direction:column;gap:24px;">
 
                 {{-- Header --}}
                 <div style="display:flex;align-items:center;justify-content:space-between;">
                     <h3 style="margin:0;font-size:15px;font-weight:600;color:var(--text);">
-                        @if($country === 'all') All geos @else {{ $countriesByIso[$country]->name ?? $country }} <span style="color:var(--text-3);font-weight:400;font-family:var(--font-mono);font-size:12px;margin-left:4px;">({{ $country }})</span> @endif
+                        @if($country === 'all')
+                            All geos
+                        @else
+                            {{ $countriesByIso[$country]->name ?? $country }}
+                            <span style="color:var(--text-3);font-weight:400;font-family:var(--font-mono);font-size:12px;margin-left:4px;">{{ $country }}</span>
+                        @endif
                     </h3>
                     <div style="display:flex;gap:6px;">
                         <button class="btn btn--secondary btn--sm">
