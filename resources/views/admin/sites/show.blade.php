@@ -187,13 +187,14 @@
                                         + $site->addresses->where('country_iso', $iso)->count()
                                         + $site->socials->where('country_iso', $iso)->count();
                             @endphp
+                            @php $showCName = $cName && strcasecmp($cName, $iso) !== 0; @endphp
                             <a href="{{ $url(['country' => $iso, 'tab' => 'data']) }}"
                                style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;color:inherit;transition:border-color .12s, box-shadow .12s;"
                                onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px var(--accent-2)';"
                                onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none';">
                                 <span style="width:34px;height:34px;border-radius:8px;background:var(--accent-2);color:var(--accent-text);font-family:var(--font-mono);font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">{{ $iso }}</span>
                                 <div style="min-width:0;flex:1;">
-                                    <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $cName }}</div>
+                                    <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $showCName ? $cName : 'Country '.$iso }}</div>
                                     <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);">{{ $totalG }} {{ $totalG === 1 ? 'item' : 'items' }}</div>
                                 </div>
                             </a>
@@ -213,11 +214,12 @@
                             $geoSocial = $site->socials->where('country_iso', $iso);
                         @endphp
                         <div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--panel);">
+                            @php $showCName2 = $cName && strcasecmp($cName, $iso) !== 0; @endphp
                             {{-- Geo card header --}}
                             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--panel-2);border-bottom:1px solid var(--border-2);">
                                 <div style="display:flex;align-items:center;gap:10px;">
                                     <span style="font-family:var(--font-mono);font-weight:700;font-size:12px;background:var(--accent-2);color:var(--accent-text);padding:3px 8px;border-radius:6px;">{{ $iso }}</span>
-                                    <span style="font-size:13px;font-weight:600;color:var(--text);">{{ $cName }}</span>
+                                    @if($showCName2)<span style="font-size:13px;font-weight:600;color:var(--text);">{{ $cName }}</span>@endif
                                 </div>
                                 <div style="display:flex;gap:6px;align-items:center;">
                                     <span class="pill pill--neutral">{{ $geoPhones->count() }} phones</span>
@@ -334,12 +336,16 @@
 
                 {{-- Header --}}
                 <div style="display:flex;align-items:center;justify-content:space-between;">
-                    <h3 style="margin:0;font-size:15px;font-weight:600;color:var(--text);">
+                    @php
+                        $headerName = $countriesByIso[$country]->name ?? null;
+                        $showName   = $headerName && strcasecmp($headerName, $country) !== 0;
+                    @endphp
+                    <h3 style="margin:0;font-size:15px;font-weight:600;color:var(--text);display:inline-flex;align-items:center;gap:8px;">
                         @if($country === 'all')
                             All geos
                         @else
-                            {{ $countriesByIso[$country]->name ?? $country }}
-                            <span style="color:var(--text-3);font-weight:400;font-family:var(--font-mono);font-size:12px;margin-left:4px;">{{ $country }}</span>
+                            <span style="font-family:var(--font-mono);background:var(--accent-2);color:var(--accent-text);padding:2px 8px;border-radius:6px;font-size:13px;">{{ $country }}</span>
+                            @if($showName)<span>{{ $headerName }}</span>@endif
                         @endif
                     </h3>
                     <div style="display:flex;gap:6px;">
