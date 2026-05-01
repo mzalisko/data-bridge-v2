@@ -361,13 +361,14 @@
                     <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Phones</span>
                     @forelse($shownPhones as $p)
                         <div style="display:flex;gap:8px;align-items:center;">
-                            <div class="input input--mono" style="flex:1;">
-                                <input type="text" value="+{{ $p->dial_code }} {{ $p->number }}" readonly>
+                            <div class="input input--mono" style="flex:1;cursor:pointer;" onclick="openDrawer('drawer-phone-{{ $p->id }}')">
+                                <input type="text" value="+{{ $p->dial_code }} {{ $p->number }}" readonly style="cursor:pointer;">
                             </div>
-                            @if($p->is_primary)
-                                <span class="pill pill--accent">Primary</span>
-                            @endif
-                            <button class="icon-btn" title="Copy">
+                            @if($p->is_primary)<span class="pill pill--accent">Primary</span>@endif
+                            <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-phone-{{ $p->id }}')">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
+                            </button>
+                            <button class="icon-btn" type="button" title="Copy" onclick="navigator.clipboard?.writeText('+{{ $p->dial_code }} {{ $p->number }}')">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
                             </button>
                             <form method="POST" action="{{ route('phones.destroy', [$site, $p]) }}" style="margin:0;" onsubmit="return confirm('Delete this phone?')">
@@ -380,7 +381,7 @@
                     @empty
                         <div style="color:var(--text-3);font-size:12px;">No phones for this geo.</div>
                     @endforelse
-                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;">
+                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openDrawer('drawer-phone-create')">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                         Add phone
                     </button>
@@ -391,14 +392,14 @@
                     <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Prices</span>
                     @forelse($shownPrices as $p)
                         <div style="display:flex;gap:8px;align-items:center;">
-                            <div class="input" style="flex:1;">
-                                <input type="text" value="{{ $p->label ?? '' }}" placeholder="Label" readonly>
+                            <div class="input" style="flex:1;cursor:pointer;" onclick="openDrawer('drawer-price-{{ $p->id }}')">
+                                <input type="text" value="{{ $p->label ?? '' }}" placeholder="Label" readonly style="cursor:pointer;">
                             </div>
-                            <div class="input input--mono" style="width:140px;">
-                                <input type="text" value="{{ $p->amount ?? '' }} {{ $p->currency ?? '' }}" readonly>
+                            <div class="input input--mono" style="width:140px;cursor:pointer;" onclick="openDrawer('drawer-price-{{ $p->id }}')">
+                                <input type="text" value="{{ $p->amount ?? '' }} {{ $p->currency ?? '' }}" readonly style="cursor:pointer;">
                             </div>
-                            <button class="icon-btn" title="Copy">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+                            <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-price-{{ $p->id }}')">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
                             </button>
                             <form method="POST" action="{{ route('prices.destroy', [$site, $p]) }}" style="margin:0;" onsubmit="return confirm('Delete this price?')">
                                 @csrf @method('DELETE')
@@ -410,7 +411,7 @@
                     @empty
                         <div style="color:var(--text-3);font-size:12px;">No prices for this geo.</div>
                     @endforelse
-                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;">
+                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openDrawer('drawer-price-create')">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                         Add price
                     </button>
@@ -421,11 +422,11 @@
                     <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Addresses</span>
                     @forelse($shownAddresses as $a)
                         <div style="display:flex;gap:8px;align-items:center;">
-                            <div class="input" style="flex:1;">
-                                <input type="text" value="{{ trim(($a->city ?? '').' '.($a->street ?? '').' '.($a->building ?? '')) }}" placeholder="Address" readonly>
+                            <div class="input" style="flex:1;cursor:pointer;" onclick="openDrawer('drawer-addr-{{ $a->id }}')">
+                                <input type="text" value="{{ trim(($a->city ?? '').' '.($a->street ?? '').' '.($a->building ?? '')) }}" placeholder="Address" readonly style="cursor:pointer;">
                             </div>
-                            <button class="icon-btn" title="Copy">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+                            <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-addr-{{ $a->id }}')">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
                             </button>
                             <form method="POST" action="{{ route('addresses.destroy', [$site, $a]) }}" style="margin:0;" onsubmit="return confirm('Delete this address?')">
                                 @csrf @method('DELETE')
@@ -437,7 +438,7 @@
                     @empty
                         <div style="color:var(--text-3);font-size:12px;">No addresses for this geo.</div>
                     @endforelse
-                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;">
+                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openDrawer('drawer-addr-create')">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                         Add address
                     </button>
@@ -452,14 +453,14 @@
                             $ic  = $socialIcon[$key] ?? ['c' => 'var(--text-3)', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>'];
                         @endphp
                         <div style="display:flex;gap:8px;align-items:center;">
-                            <div class="input" style="flex:1;">
+                            <div class="input" style="flex:1;cursor:pointer;" onclick="openDrawer('drawer-soc-{{ $s->id }}')">
                                 <span style="width:22px;height:22px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;background:var(--panel-2);color:{{ $ic['c'] }};border:1px solid var(--border);flex-shrink:0;">
                                     {!! $ic['svg'] !!}
                                 </span>
-                                <input type="text" value="{{ $s->handle ?? $s->url ?? '' }}" readonly>
+                                <input type="text" value="{{ $s->handle ?? $s->url ?? '' }}" readonly style="cursor:pointer;">
                             </div>
-                            <button class="icon-btn" title="Copy">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+                            <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-soc-{{ $s->id }}')">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
                             </button>
                             <form method="POST" action="{{ route('socials.destroy', [$site, $s]) }}" style="margin:0;" onsubmit="return confirm('Delete this social link?')">
                                 @csrf @method('DELETE')
@@ -471,7 +472,7 @@
                     @empty
                         <div style="color:var(--text-3);font-size:12px;">No social links for this geo.</div>
                     @endforelse
-                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;">
+                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openDrawer('drawer-soc-create')">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                         Add social link
                     </button>
@@ -615,5 +616,186 @@
         <button type="submit" form="form-site-edit" class="btn btn--primary btn--md">Save</button>
     </div>
 </div>
+
+{{-- ===================== DATA CRUD DRAWERS (only on Data tab) ===================== --}}
+@if($tab === 'data')
+
+    {{-- ========= PHONE: create ========= --}}
+    <div class="drawer-overlay" id="drawer-phone-create-overlay" onclick="closeDrawer('drawer-phone-create')"></div>
+    <div class="drawer" id="drawer-phone-create">
+        <div class="drawer__header">
+            <span class="drawer__title">Add phone</span>
+            <button class="icon-btn" onclick="closeDrawer('drawer-phone-create')">✕</button>
+        </div>
+        <div class="drawer__body">
+            <form method="POST" action="{{ route('phones.store', $site) }}" id="form-phone-create">
+                @csrf
+                @include('admin.sites._form-phone', ['phone' => null, 'countries' => $countries])
+            </form>
+        </div>
+        <div class="drawer__footer">
+            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-phone-create')">Cancel</button>
+            <button type="submit" form="form-phone-create" class="btn btn--primary btn--md">Add phone</button>
+        </div>
+    </div>
+
+    {{-- ========= PHONE: edit ========= --}}
+    @foreach($site->phones as $p)
+        <div class="drawer-overlay" id="drawer-phone-{{ $p->id }}-overlay" onclick="closeDrawer('drawer-phone-{{ $p->id }}')"></div>
+        <div class="drawer" id="drawer-phone-{{ $p->id }}">
+            <div class="drawer__header">
+                <span class="drawer__title">Edit phone</span>
+                <button class="icon-btn" onclick="closeDrawer('drawer-phone-{{ $p->id }}')">✕</button>
+            </div>
+            <div class="drawer__body">
+                <form method="POST" action="{{ route('phones.update', [$site, $p]) }}" id="form-phone-{{ $p->id }}">
+                    @csrf @method('PUT')
+                    @include('admin.sites._form-phone', ['phone' => $p, 'countries' => $countries])
+                </form>
+            </div>
+            <div class="drawer__footer">
+                <form method="POST" action="{{ route('phones.destroy', [$site, $p]) }}" class="drawer__footer-left" onsubmit="return confirm('Delete this phone?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn--danger btn--md">Delete</button>
+                </form>
+                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-phone-{{ $p->id }}')">Cancel</button>
+                <button type="submit" form="form-phone-{{ $p->id }}" class="btn btn--primary btn--md">Save</button>
+            </div>
+        </div>
+    @endforeach
+
+    {{-- ========= PRICE: create ========= --}}
+    <div class="drawer-overlay" id="drawer-price-create-overlay" onclick="closeDrawer('drawer-price-create')"></div>
+    <div class="drawer" id="drawer-price-create">
+        <div class="drawer__header">
+            <span class="drawer__title">Add price</span>
+            <button class="icon-btn" onclick="closeDrawer('drawer-price-create')">✕</button>
+        </div>
+        <div class="drawer__body">
+            <form method="POST" action="{{ route('prices.store', $site) }}" id="form-price-create">
+                @csrf
+                @include('admin.sites._form-price', ['price' => null])
+            </form>
+        </div>
+        <div class="drawer__footer">
+            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-price-create')">Cancel</button>
+            <button type="submit" form="form-price-create" class="btn btn--primary btn--md">Add price</button>
+        </div>
+    </div>
+
+    {{-- ========= PRICE: edit ========= --}}
+    @foreach($site->prices as $p)
+        <div class="drawer-overlay" id="drawer-price-{{ $p->id }}-overlay" onclick="closeDrawer('drawer-price-{{ $p->id }}')"></div>
+        <div class="drawer" id="drawer-price-{{ $p->id }}">
+            <div class="drawer__header">
+                <span class="drawer__title">Edit price</span>
+                <button class="icon-btn" onclick="closeDrawer('drawer-price-{{ $p->id }}')">✕</button>
+            </div>
+            <div class="drawer__body">
+                <form method="POST" action="{{ route('prices.update', [$site, $p]) }}" id="form-price-{{ $p->id }}">
+                    @csrf @method('PUT')
+                    @include('admin.sites._form-price', ['price' => $p])
+                </form>
+            </div>
+            <div class="drawer__footer">
+                <form method="POST" action="{{ route('prices.destroy', [$site, $p]) }}" class="drawer__footer-left" onsubmit="return confirm('Delete this price?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn--danger btn--md">Delete</button>
+                </form>
+                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-price-{{ $p->id }}')">Cancel</button>
+                <button type="submit" form="form-price-{{ $p->id }}" class="btn btn--primary btn--md">Save</button>
+            </div>
+        </div>
+    @endforeach
+
+    {{-- ========= ADDRESS: create ========= --}}
+    <div class="drawer-overlay" id="drawer-addr-create-overlay" onclick="closeDrawer('drawer-addr-create')"></div>
+    <div class="drawer" id="drawer-addr-create">
+        <div class="drawer__header">
+            <span class="drawer__title">Add address</span>
+            <button class="icon-btn" onclick="closeDrawer('drawer-addr-create')">✕</button>
+        </div>
+        <div class="drawer__body">
+            <form method="POST" action="{{ route('addresses.store', $site) }}" id="form-addr-create">
+                @csrf
+                @include('admin.sites._form-address', ['address' => null, 'countries' => $countries])
+            </form>
+        </div>
+        <div class="drawer__footer">
+            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-addr-create')">Cancel</button>
+            <button type="submit" form="form-addr-create" class="btn btn--primary btn--md">Add address</button>
+        </div>
+    </div>
+
+    {{-- ========= ADDRESS: edit ========= --}}
+    @foreach($site->addresses as $a)
+        <div class="drawer-overlay" id="drawer-addr-{{ $a->id }}-overlay" onclick="closeDrawer('drawer-addr-{{ $a->id }}')"></div>
+        <div class="drawer" id="drawer-addr-{{ $a->id }}">
+            <div class="drawer__header">
+                <span class="drawer__title">Edit address</span>
+                <button class="icon-btn" onclick="closeDrawer('drawer-addr-{{ $a->id }}')">✕</button>
+            </div>
+            <div class="drawer__body">
+                <form method="POST" action="{{ route('addresses.update', [$site, $a]) }}" id="form-addr-{{ $a->id }}">
+                    @csrf @method('PUT')
+                    @include('admin.sites._form-address', ['address' => $a, 'countries' => $countries])
+                </form>
+            </div>
+            <div class="drawer__footer">
+                <form method="POST" action="{{ route('addresses.destroy', [$site, $a]) }}" class="drawer__footer-left" onsubmit="return confirm('Delete this address?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn--danger btn--md">Delete</button>
+                </form>
+                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-addr-{{ $a->id }}')">Cancel</button>
+                <button type="submit" form="form-addr-{{ $a->id }}" class="btn btn--primary btn--md">Save</button>
+            </div>
+        </div>
+    @endforeach
+
+    {{-- ========= SOCIAL: create ========= --}}
+    <div class="drawer-overlay" id="drawer-soc-create-overlay" onclick="closeDrawer('drawer-soc-create')"></div>
+    <div class="drawer" id="drawer-soc-create">
+        <div class="drawer__header">
+            <span class="drawer__title">Add social link</span>
+            <button class="icon-btn" onclick="closeDrawer('drawer-soc-create')">✕</button>
+        </div>
+        <div class="drawer__body">
+            <form method="POST" action="{{ route('socials.store', $site) }}" id="form-soc-create">
+                @csrf
+                @include('admin.sites._form-social', ['social' => null])
+            </form>
+        </div>
+        <div class="drawer__footer">
+            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-soc-create')">Cancel</button>
+            <button type="submit" form="form-soc-create" class="btn btn--primary btn--md">Add link</button>
+        </div>
+    </div>
+
+    {{-- ========= SOCIAL: edit ========= --}}
+    @foreach($site->socials as $s)
+        <div class="drawer-overlay" id="drawer-soc-{{ $s->id }}-overlay" onclick="closeDrawer('drawer-soc-{{ $s->id }}')"></div>
+        <div class="drawer" id="drawer-soc-{{ $s->id }}">
+            <div class="drawer__header">
+                <span class="drawer__title">Edit social link</span>
+                <button class="icon-btn" onclick="closeDrawer('drawer-soc-{{ $s->id }}')">✕</button>
+            </div>
+            <div class="drawer__body">
+                <form method="POST" action="{{ route('socials.update', [$site, $s]) }}" id="form-soc-{{ $s->id }}">
+                    @csrf @method('PUT')
+                    @include('admin.sites._form-social', ['social' => $s])
+                </form>
+            </div>
+            <div class="drawer__footer">
+                <form method="POST" action="{{ route('socials.destroy', [$site, $s]) }}" class="drawer__footer-left" onsubmit="return confirm('Delete this link?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn--danger btn--md">Delete</button>
+                </form>
+                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-soc-{{ $s->id }}')">Cancel</button>
+                <button type="submit" form="form-soc-{{ $s->id }}" class="btn btn--primary btn--md">Save</button>
+            </div>
+        </div>
+    @endforeach
+
+@endif
 
 @endsection

@@ -66,6 +66,13 @@
                 </svg>
                 <span>Site groups</span>
             </a>
+            <a href="{{ route('users.index') }}"
+               class="sidebar-item {{ request()->routeIs('users.*') ? 'is-active' : '' }}">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span>Team</span>
+            </a>
             <a href="{{ route('logs.system') }}"
                class="sidebar-item {{ request()->routeIs('logs.*') ? 'is-active' : '' }}">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
