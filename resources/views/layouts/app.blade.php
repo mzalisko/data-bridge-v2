@@ -7,6 +7,16 @@
     <title>@yield('title', 'DataBridge CRM')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    {{-- Inline theme bootstrap — runs before CSS to avoid flash --}}
+    <script>
+        (function(){
+            try {
+                var ck = document.cookie.split('; ').find(function(r){return r.indexOf('theme=')===0;});
+                var theme = ck ? ck.split('=')[1] : (localStorage.getItem('theme') || 'light');
+                if (theme === 'dark') document.documentElement.setAttribute('data-theme','dark');
+            } catch(e) {}
+        })();
+    </script>
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}?v={{ filemtime(public_path('assets/css/app.css')) }}">
     @stack('styles')
 </head>
@@ -157,15 +167,13 @@
 function toggleTheme() {
     var html = document.documentElement;
     var isDark = html.getAttribute('data-theme') === 'dark';
-    if (isDark) {
-        html.removeAttribute('data-theme');
-        document.cookie = 'theme=light; path=/; max-age=31536000';
-        document.getElementById('theme-icon').textContent = '☾';
-    } else {
-        html.setAttribute('data-theme', 'dark');
-        document.cookie = 'theme=dark; path=/; max-age=31536000';
-        document.getElementById('theme-icon').textContent = '☀';
-    }
+    var next = isDark ? 'light' : 'dark';
+    if (next === 'dark') html.setAttribute('data-theme', 'dark');
+    else                 html.removeAttribute('data-theme');
+    document.cookie = 'theme=' + next + '; path=/; max-age=31536000; SameSite=Lax';
+    try { localStorage.setItem('theme', next); } catch(e) {}
+    var icon = document.getElementById('theme-icon');
+    if (icon) icon.textContent = next === 'dark' ? '☀' : '☾';
 }
 function openDrawer(id) {
     var ov = document.getElementById(id + '-overlay');

@@ -326,7 +326,7 @@
                     </a>
                 @endforeach
                 <div style="flex:1"></div>
-                <button class="btn btn--ghost btn--sm" type="button" style="white-space:nowrap;">
+                <button class="btn btn--ghost btn--sm" type="button" style="white-space:nowrap;" onclick="openDrawer('drawer-geo-add')">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                     Add geo
                 </button>
@@ -768,6 +768,76 @@
         <div class="drawer__footer">
             <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-soc-create')">Cancel</button>
             <button type="submit" form="form-soc-create" class="btn btn--primary btn--md">Add link</button>
+        </div>
+    </div>
+
+    {{-- Auto-open Add Phone drawer with country pre-selected when ?add=phone&country=XX --}}
+    @if(request('add') === 'phone' && $country !== 'all')
+        <script>
+            window.addEventListener('DOMContentLoaded', function() {
+                var sel = document.getElementById('ph-iso-new');
+                if (sel) {
+                    sel.value = '{{ $country }}';
+                    sel.dispatchEvent(new Event('change'));
+                }
+                openDrawer('drawer-phone-create');
+            });
+        </script>
+    @endif
+
+    {{-- ========= ADD GEO ========= --}}
+    @php
+        $availableCountries = $countries->reject(fn($c) => in_array($c->iso, $usedIso, true))->values();
+    @endphp
+    <div class="drawer-overlay" id="drawer-geo-add-overlay" onclick="closeDrawer('drawer-geo-add')"></div>
+    <div class="drawer" id="drawer-geo-add">
+        <div class="drawer__header">
+            <span class="drawer__title">Add geo</span>
+            <button class="icon-btn" onclick="closeDrawer('drawer-geo-add')">✕</button>
+        </div>
+        <div class="drawer__body">
+            <p style="font-size:13px;color:var(--text-2);margin:0 0 14px;">
+                Pick a country to start adding data for. After selection you'll see the Data tab filtered to that geo — use the «Add phone / address / …» buttons to populate it.
+            </p>
+            <div class="field">
+                <label class="field__label" for="geo-pick">Country</label>
+                <select id="geo-pick" class="field__input">
+                    @forelse($availableCountries as $c)
+                        <option value="{{ $c->iso }}">
+                            {{ $c->iso }} {{ ($c->name && strcasecmp($c->name, $c->iso) !== 0) ? '— '.$c->name : '' }}
+                        </option>
+                    @empty
+                        <option value="">All countries already added</option>
+                    @endforelse
+                </select>
+            </div>
+
+            @if($availableCountries->isNotEmpty())
+                <div style="margin-top:18px;">
+                    <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Quick pick</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                        @foreach($availableCountries->take(20) as $c)
+                            <button type="button"
+                                    onclick="document.getElementById('geo-pick').value='{{ $c->iso }}';"
+                                    style="padding:5px 10px;background:var(--panel-2);border:1px solid var(--border);border-radius:99px;font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-2);cursor:pointer;">
+                                {{ $c->iso }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        </div>
+        <div class="drawer__footer">
+            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-geo-add')">Cancel</button>
+            <button type="button" class="btn btn--primary btn--md" onclick="(function(){
+                var iso = document.getElementById('geo-pick').value;
+                if (!iso) return;
+                var u = new URL(window.location.href);
+                u.searchParams.set('country', iso);
+                u.searchParams.set('tab', 'data');
+                u.searchParams.set('add', 'phone');
+                window.location.href = u.toString();
+            })()">Continue →</button>
         </div>
     </div>
 

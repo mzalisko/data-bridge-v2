@@ -16,7 +16,7 @@ class SitePhoneController extends Controller
         $data['is_primary'] = $request->boolean('is_primary');
         $site->phones()->create($data);
 
-        return redirect(route('sites.show', $site) . '?tab=phones')
+        return back()
             ->with('success', 'Телефон додано');
     }
 
@@ -26,7 +26,7 @@ class SitePhoneController extends Controller
         $data['is_primary'] = $request->boolean('is_primary');
         $phone->update($data);
 
-        return redirect(route('sites.show', $site) . '?tab=phones')
+        return back()
             ->with('success', 'Телефон оновлено');
     }
 
@@ -34,7 +34,7 @@ class SitePhoneController extends Controller
     {
         $phone->delete();
 
-        return redirect(route('sites.show', $site) . '?tab=phones')
+        return back()
             ->with('success', 'Телефон видалено');
     }
 }

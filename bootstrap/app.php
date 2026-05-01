@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
 
+        // 'theme' cookie is set client-side via JS — exclude from encryption.
+        $middleware->encryptCookies(except: ['theme']);
+
         $middleware->alias([
             'api.key' => ApiKeyAuth::class,
         ]);

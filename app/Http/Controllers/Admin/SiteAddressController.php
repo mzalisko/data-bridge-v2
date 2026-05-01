@@ -15,7 +15,7 @@ class SiteAddressController extends Controller
         $data = $request->validated();
         $data['is_primary'] = $request->boolean('is_primary');
         $site->addresses()->create($data);
-        return redirect(route('sites.show', $site) . '?tab=addresses')
+        return back()
             ->with('success', 'Адресу додано');
     }
 
@@ -24,14 +24,14 @@ class SiteAddressController extends Controller
         $data = $request->validated();
         $data['is_primary'] = $request->boolean('is_primary');
         $address->update($data);
-        return redirect(route('sites.show', $site) . '?tab=addresses')
+        return back()
             ->with('success', 'Адресу оновлено');
     }
 
     public function destroy(Site $site, SiteAddress $address): RedirectResponse
     {
         $address->delete();
-        return redirect(route('sites.show', $site) . '?tab=addresses')
+        return back()
             ->with('success', 'Адресу видалено');
     }
 }

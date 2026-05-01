@@ -15,7 +15,7 @@ class SitePriceController extends Controller
         $data = $request->validated();
         $data['is_visible'] = $request->boolean('is_visible', true);
         $site->prices()->create($data);
-        return redirect(route('sites.show', $site) . '?tab=prices')
+        return back()
             ->with('success', 'Ціну додано');
     }
 
@@ -24,14 +24,14 @@ class SitePriceController extends Controller
         $data = $request->validated();
         $data['is_visible'] = $request->boolean('is_visible', true);
         $price->update($data);
-        return redirect(route('sites.show', $site) . '?tab=prices')
+        return back()
             ->with('success', 'Ціну оновлено');
     }
 
     public function destroy(Site $site, SitePrice $price): RedirectResponse
     {
         $price->delete();
-        return redirect(route('sites.show', $site) . '?tab=prices')
+        return back()
             ->with('success', 'Ціну видалено');
     }
 }

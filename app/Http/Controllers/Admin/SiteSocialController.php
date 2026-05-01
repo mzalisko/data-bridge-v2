@@ -13,21 +13,21 @@ class SiteSocialController extends Controller
     public function store(StoreSocialRequest $request, Site $site): RedirectResponse
     {
         $site->socials()->create($request->validated());
-        return redirect(route('sites.show', $site) . '?tab=socials')
+        return back()
             ->with('success', 'Соцмережу додано');
     }
 
     public function update(UpdateSocialRequest $request, Site $site, SiteSocial $social): RedirectResponse
     {
         $social->update($request->validated());
-        return redirect(route('sites.show', $site) . '?tab=socials')
+        return back()
             ->with('success', 'Соцмережу оновлено');
     }
 
     public function destroy(Site $site, SiteSocial $social): RedirectResponse
     {
         $social->delete();
-        return redirect(route('sites.show', $site) . '?tab=socials')
+        return back()
             ->with('success', 'Соцмережу видалено');
     }
 }

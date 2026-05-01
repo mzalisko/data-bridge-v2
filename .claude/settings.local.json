@@ -7,5 +7,6 @@
       "Bash(mkdir -p M:/Projects/CC/data-bridge-v2/public/assets/css/base M:/Projects/CC/data-bridge-v2/public/assets/css/layout M:/Projects/CC/data-bridge-v2/public/assets/css/components M:/Projects/CC/data-bridge-v2/public/assets/js M:/Projects/CC/data-bridge-v2/public/assets/img)"
     ]
   },
-  "spinnerTipsEnabled": true
+  "spinnerTipsEnabled": true,
+  "model": "opus"
 }
