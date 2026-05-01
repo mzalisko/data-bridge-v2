@@ -12,28 +12,34 @@
     // Geo top-tab: all | ISO
     $country    = request('country', 'all');
 
-    // Countries actually used
-    $usedIso = collect()
+    // Countries used in actual data + countries explicitly added via Add geo
+    $dataIso = collect()
         ->merge($site->phones->pluck('country_iso'))
-        ->merge($site->prices->pluck('country_iso'))
         ->merge($site->addresses->pluck('country_iso'))
-        ->merge($site->socials->pluck('country_iso'))
         ->filter()->unique()->values()->toArray();
+    $activeGeos = (array) ($site->active_geos ?? []);
+    $usedIso = array_values(array_unique(array_merge($dataIso, $activeGeos)));
+    sort($usedIso);
 
     $countriesByIso = $countries->keyBy('iso');
 
-    $filterByGeo = function ($collection) use ($country) {
+    // Geo rules: visitor-country → list of allowed data-country isos.
+    // Default rule (when no entry): show records whose country_iso === visitor.
+    $geoRules = (array) ($site->geo_rules ?? []);
+    $allowedFor = function ($visitor) use ($geoRules) {
+        return array_key_exists($visitor, $geoRules)
+            ? (array) $geoRules[$visitor]
+            : [$visitor];
+    };
+
+    // Filter records by selected country tab (uses geo_rules; falls back to country_iso match).
+    // Records WITHOUT country_iso (e.g., prices/socials currently) are treated as "global" and always shown.
+    $filterByGeo = function ($collection) use ($country, $allowedFor) {
         if ($country === 'all') return $collection;
-        return $collection->filter(function ($item) use ($country) {
-            if ($item->country_iso === $country) return true;
-            $geoMode = $item->geo_mode ?? 'all';
-            $geoList = is_string($item->geo_countries ?? null)
-                ? (json_decode($item->geo_countries, true) ?? [])
-                : (array)($item->geo_countries ?? []);
-            if ($geoMode === 'all')     return false;
-            if ($geoMode === 'include') return in_array($country, $geoList, true);
-            if ($geoMode === 'exclude') return !in_array($country, $geoList, true);
-            return false;
+        $allowed = $allowedFor($country);
+        return $collection->filter(function ($item) use ($allowed) {
+            $iso = $item->country_iso ?? null;
+            return $iso === null || in_array($iso, $allowed, true);
         })->values();
     };
 
@@ -326,6 +332,17 @@
                     </a>
                 @endforeach
                 <div style="flex:1"></div>
+
+                @if($country !== 'all')
+                    <form method="POST" action="{{ route('sites.geos.remove', [$site, $country]) }}" style="margin:0;" onsubmit="return confirm('Remove geo {{ $country }}? Tagged data records remain but the tab disappears.')">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="btn btn--ghost btn--sm" style="white-space:nowrap;color:var(--danger);">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                            Remove {{ $country }}
+                        </button>
+                    </form>
+                @endif
+
                 <button class="btn btn--ghost btn--sm" type="button" style="white-space:nowrap;" onclick="openDrawer('drawer-geo-add')">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                     Add geo
@@ -335,26 +352,18 @@
             <div style="padding:20px;display:flex;flex-direction:column;gap:24px;">
 
                 {{-- Header --}}
-                <div style="display:flex;align-items:center;justify-content:space-between;">
-                    @php
-                        $headerName = $countriesByIso[$country]->name ?? null;
-                        $showName   = $headerName && strcasecmp($headerName, $country) !== 0;
-                    @endphp
-                    <h3 style="margin:0;font-size:15px;font-weight:600;color:var(--text);display:inline-flex;align-items:center;gap:8px;">
-                        @if($country === 'all')
-                            All geos
-                        @else
-                            <span style="font-family:var(--font-mono);background:var(--accent-2);color:var(--accent-text);padding:2px 8px;border-radius:6px;font-size:13px;">{{ $country }}</span>
-                            @if($showName)<span>{{ $headerName }}</span>@endif
-                        @endif
-                    </h3>
-                    <div style="display:flex;gap:6px;">
-                        <button class="btn btn--secondary btn--sm">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
-                            Copy snippet
-                        </button>
-                    </div>
-                </div>
+                @php
+                    $headerName = $countriesByIso[$country]->name ?? null;
+                    $showName   = $headerName && strcasecmp($headerName, $country) !== 0;
+                @endphp
+                <h3 style="margin:0;font-size:15px;font-weight:600;color:var(--text);display:inline-flex;align-items:center;gap:8px;">
+                    @if($country === 'all')
+                        All geos
+                    @else
+                        <span style="font-family:var(--font-mono);background:var(--accent-2);color:var(--accent-text);padding:2px 8px;border-radius:6px;font-size:13px;">{{ $country }}</span>
+                        @if($showName)<span>{{ $headerName }}</span>@endif
+                    @endif
+                </h3>
 
                 {{-- ===== PHONES ===== --}}
                 <div style="display:flex;flex-direction:column;gap:8px;">
@@ -368,9 +377,16 @@
                             <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-phone-{{ $p->id }}')">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
                             </button>
-                            <button class="icon-btn" type="button" title="Copy" onclick="navigator.clipboard?.writeText('+{{ $p->dial_code }} {{ $p->number }}')">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
-                            </button>
+                            <form method="POST" action="{{ route('sites.visibility.toggle', [$site, 'phones', $p->id]) }}" style="margin:0;">
+                                @csrf
+                                <button type="submit" class="icon-btn" title="{{ ($p->is_visible ?? true) ? 'Hide on site' : 'Show on site' }}" style="color:{{ ($p->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
+                                    @if($p->is_visible ?? true)
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    @else
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                    @endif
+                                </button>
+                            </form>
                             <form method="POST" action="{{ route('phones.destroy', [$site, $p]) }}" style="margin:0;" onsubmit="return confirm('Delete this phone?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
@@ -401,6 +417,16 @@
                             <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-price-{{ $p->id }}')">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
                             </button>
+                            <form method="POST" action="{{ route('sites.visibility.toggle', [$site, 'prices', $p->id]) }}" style="margin:0;">
+                                @csrf
+                                <button type="submit" class="icon-btn" title="{{ ($p->is_visible ?? true) ? 'Hide' : 'Show' }}" style="color:{{ ($p->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
+                                    @if($p->is_visible ?? true)
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    @else
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                    @endif
+                                </button>
+                            </form>
                             <form method="POST" action="{{ route('prices.destroy', [$site, $p]) }}" style="margin:0;" onsubmit="return confirm('Delete this price?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
@@ -428,6 +454,16 @@
                             <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-addr-{{ $a->id }}')">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
                             </button>
+                            <form method="POST" action="{{ route('sites.visibility.toggle', [$site, 'addresses', $a->id]) }}" style="margin:0;">
+                                @csrf
+                                <button type="submit" class="icon-btn" title="{{ ($a->is_visible ?? true) ? 'Hide' : 'Show' }}" style="color:{{ ($a->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
+                                    @if($a->is_visible ?? true)
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    @else
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                    @endif
+                                </button>
+                            </form>
                             <form method="POST" action="{{ route('addresses.destroy', [$site, $a]) }}" style="margin:0;" onsubmit="return confirm('Delete this address?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
@@ -462,6 +498,16 @@
                             <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-soc-{{ $s->id }}')">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
                             </button>
+                            <form method="POST" action="{{ route('sites.visibility.toggle', [$site, 'socials', $s->id]) }}" style="margin:0;">
+                                @csrf
+                                <button type="submit" class="icon-btn" title="{{ ($s->is_visible ?? true) ? 'Hide' : 'Show' }}" style="color:{{ ($s->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
+                                    @if($s->is_visible ?? true)
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    @else
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                    @endif
+                                </button>
+                            </form>
                             <form method="POST" action="{{ route('socials.destroy', [$site, $s]) }}" style="margin:0;" onsubmit="return confirm('Delete this social link?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
@@ -479,9 +525,9 @@
                 </div>
 
                 {{-- Footer --}}
-                <div style="display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid var(--border-2);">
-                    <span style="font-size:12px;color:var(--text-3);">Last updated {{ $site->updated_at?->diffForHumans() ?? '—' }} · auto-pushed to site</span>
-                    <div style="display:flex;gap:8px;">
+                <div style="display:flex;justify-content:flex-start;align-items:center;padding-top:14px;border-top:1px solid var(--border-2);">
+                    <span style="font-size:12px;color:var(--text-3);">Last updated {{ $site->updated_at?->diffForHumans() ?? '—' }} · changes auto-push to site</span>
+                    <div style="display:none;">
                         <button class="btn btn--ghost btn--md" type="button">Cancel</button>
                         <button class="btn btn--primary btn--md" type="button">Save & push</button>
                     </div>
@@ -523,6 +569,75 @@
 
         {{-- ========= SETTINGS ========= --}}
         @if($tab === 'settings')
+
+            {{-- ===== Geo rules ===== --}}
+            <div style="padding:20px;border-bottom:1px solid var(--border-2);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                    <h4 style="margin:0;font-size:13px;font-weight:600;color:var(--text);">Geo visibility rules</h4>
+                    <span style="font-size:11px;color:var(--text-3);">{{ count($usedIso) }} {{ count($usedIso) === 1 ? 'geo' : 'geos' }} active</span>
+                </div>
+                <p style="font-size:12px;color:var(--text-3);margin:0 0 14px;">
+                    For each visitor country, choose which data is shown on the site. Empty row = show only data tagged for that country (default).
+                </p>
+
+                @if(count($usedIso) === 0)
+                    <div style="padding:16px;background:var(--panel-2);border-radius:var(--radius);font-size:12px;color:var(--text-3);">
+                        No active geos. Open the Data tab and click «Add geo» first.
+                    </div>
+                @else
+                    <form method="POST" action="{{ route('sites.geo-rules.save', $site) }}" id="form-geo-rules">
+                        @csrf
+                        <div style="overflow:auto;border:1px solid var(--border);border-radius:var(--radius);">
+                            <table class="crm-table" style="font-size:12px;">
+                                <thead>
+                                    <tr>
+                                        <th style="width:140px;">Visitor from</th>
+                                        @foreach($usedIso as $col)
+                                            <th style="text-align:center;">
+                                                <span style="font-family:var(--font-mono);font-weight:700;background:var(--accent-2);color:var(--accent-text);padding:2px 6px;border-radius:4px;">{{ $col }}</span>
+                                            </th>
+                                        @endforeach
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($usedIso as $row)
+                                        @php
+                                            $current = (array) ($geoRules[$row] ?? [$row]);
+                                        @endphp
+                                        <tr style="cursor:default;">
+                                            <td>
+                                                <span style="display:inline-flex;align-items:center;gap:6px;">
+                                                    <span style="font-family:var(--font-mono);font-weight:700;font-size:11px;background:var(--panel-2);padding:2px 6px;border-radius:4px;color:var(--text-2);">{{ $row }}</span>
+                                                    <span style="font-size:11px;color:var(--text-3);">{{ $countriesByIso[$row]->name ?? '' }}</span>
+                                                </span>
+                                            </td>
+                                            @foreach($usedIso as $col)
+                                                @php $checked = in_array($col, $current, true); @endphp
+                                                <td style="text-align:center;">
+                                                    <label style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer;width:24px;height:24px;border-radius:6px;{{ $row === $col ? 'background:var(--accent-2);' : '' }}">
+                                                        <input type="checkbox" name="rules[{{ $row }}][]" value="{{ $col }}"
+                                                               {{ $checked ? 'checked' : '' }}
+                                                               style="accent-color:var(--accent);width:14px;height:14px;cursor:pointer;">
+                                                    </label>
+                                                </td>
+                                            @endforeach
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+                            <span style="font-size:11px;color:var(--text-3);">
+                                Diagonal cells (highlighted) — visitor sees their own country data.
+                                Example: «UA → UA, BY» means visitors from Ukraine see records tagged UA and BY.
+                            </span>
+                            <button type="submit" class="btn btn--primary btn--sm">Save rules</button>
+                        </div>
+                    </form>
+                @endif
+            </div>
+
+            {{-- ===== Sync settings ===== --}}
             <div style="padding:20px;display:flex;flex-direction:column;gap:0;">
                 {{-- Auto-sync --}}
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;">
@@ -771,74 +886,55 @@
         </div>
     </div>
 
-    {{-- Auto-open Add Phone drawer with country pre-selected when ?add=phone&country=XX --}}
-    @if(request('add') === 'phone' && $country !== 'all')
-        <script>
-            window.addEventListener('DOMContentLoaded', function() {
-                var sel = document.getElementById('ph-iso-new');
-                if (sel) {
-                    sel.value = '{{ $country }}';
-                    sel.dispatchEvent(new Event('change'));
-                }
-                openDrawer('drawer-phone-create');
-            });
-        </script>
-    @endif
-
     {{-- ========= ADD GEO ========= --}}
     @php
         $availableCountries = $countries->reject(fn($c) => in_array($c->iso, $usedIso, true))->values();
     @endphp
     <div class="drawer-overlay" id="drawer-geo-add-overlay" onclick="closeDrawer('drawer-geo-add')"></div>
     <div class="drawer" id="drawer-geo-add">
-        <div class="drawer__header">
-            <span class="drawer__title">Add geo</span>
-            <button class="icon-btn" onclick="closeDrawer('drawer-geo-add')">✕</button>
-        </div>
-        <div class="drawer__body">
-            <p style="font-size:13px;color:var(--text-2);margin:0 0 14px;">
-                Pick a country to start adding data for. After selection you'll see the Data tab filtered to that geo — use the «Add phone / address / …» buttons to populate it.
-            </p>
-            <div class="field">
-                <label class="field__label" for="geo-pick">Country</label>
-                <select id="geo-pick" class="field__input">
-                    @forelse($availableCountries as $c)
-                        <option value="{{ $c->iso }}">
-                            {{ $c->iso }} {{ ($c->name && strcasecmp($c->name, $c->iso) !== 0) ? '— '.$c->name : '' }}
-                        </option>
-                    @empty
-                        <option value="">All countries already added</option>
-                    @endforelse
-                </select>
+        <form method="POST" action="{{ route('sites.geos.add', $site) }}" id="form-geo-add">
+            @csrf
+            <div class="drawer__header">
+                <span class="drawer__title">Add geo</span>
+                <button class="icon-btn" type="button" onclick="closeDrawer('drawer-geo-add')">✕</button>
             </div>
-
-            @if($availableCountries->isNotEmpty())
-                <div style="margin-top:18px;">
-                    <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Quick pick</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                        @foreach($availableCountries->take(20) as $c)
-                            <button type="button"
-                                    onclick="document.getElementById('geo-pick').value='{{ $c->iso }}';"
-                                    style="padding:5px 10px;background:var(--panel-2);border:1px solid var(--border);border-radius:99px;font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-2);cursor:pointer;">
-                                {{ $c->iso }}
-                            </button>
-                        @endforeach
-                    </div>
+            <div class="drawer__body">
+                <p style="font-size:13px;color:var(--text-2);margin:0 0 14px;">
+                    Pick a country to add to this site. The new geo will appear as a tab — you can then add phones, addresses and other data tagged to it.
+                </p>
+                <div class="field">
+                    <label class="field__label" for="geo-pick">Country</label>
+                    <select name="country_iso" id="geo-pick" class="field__input" required>
+                        @forelse($availableCountries as $c)
+                            <option value="{{ $c->iso }}">
+                                {{ $c->iso }} {{ ($c->name && strcasecmp($c->name, $c->iso) !== 0) ? '— '.$c->name : '' }}
+                            </option>
+                        @empty
+                            <option value="">All countries already added</option>
+                        @endforelse
+                    </select>
                 </div>
-            @endif
-        </div>
-        <div class="drawer__footer">
-            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-geo-add')">Cancel</button>
-            <button type="button" class="btn btn--primary btn--md" onclick="(function(){
-                var iso = document.getElementById('geo-pick').value;
-                if (!iso) return;
-                var u = new URL(window.location.href);
-                u.searchParams.set('country', iso);
-                u.searchParams.set('tab', 'data');
-                u.searchParams.set('add', 'phone');
-                window.location.href = u.toString();
-            })()">Continue →</button>
-        </div>
+
+                @if($availableCountries->isNotEmpty())
+                    <div style="margin-top:18px;">
+                        <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Quick pick</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                            @foreach($availableCountries->take(24) as $c)
+                                <button type="button"
+                                        onclick="document.getElementById('geo-pick').value='{{ $c->iso }}';"
+                                        style="padding:5px 10px;background:var(--panel-2);border:1px solid var(--border);border-radius:99px;font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-2);cursor:pointer;">
+                                    {{ $c->iso }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
+            <div class="drawer__footer">
+                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-geo-add')">Cancel</button>
+                <button type="submit" class="btn btn--primary btn--md" {{ $availableCountries->isEmpty() ? 'disabled' : '' }}>Add geo</button>
+            </div>
+        </form>
     </div>
 
     {{-- ========= SOCIAL: edit ========= --}}

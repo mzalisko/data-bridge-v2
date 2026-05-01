@@ -16,6 +16,7 @@ class SitePhone extends Model
         'dial_code',
         'number',
         'is_primary',
+        'is_visible',
         'sort_order',
         'geo_mode',
         'geo_countries',
@@ -25,6 +26,7 @@ class SitePhone extends Model
     {
         return [
             'is_primary' => 'boolean',
+            'is_visible' => 'boolean',
         ];
     }
 

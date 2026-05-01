@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\SitePhoneController;
 use App\Http\Controllers\Admin\SitePriceController;
 use App\Http\Controllers\Admin\SiteAddressController;
 use App\Http\Controllers\Admin\SiteSocialController;
+use App\Http\Controllers\Admin\SiteGeoController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\BatchController;
 use App\Http\Controllers\Admin\DataBrowserController;
@@ -63,6 +64,12 @@ Route::middleware('auth')->group(function () {
     Route::post(  'sites/{site}/socials',             [SiteSocialController::class,  'store']  )->name('socials.store');
     Route::put(   'sites/{site}/socials/{social}',    [SiteSocialController::class,  'update'] )->name('socials.update');
     Route::delete('sites/{site}/socials/{social}',    [SiteSocialController::class,  'destroy'])->name('socials.destroy');
+
+    // Geo management (active geos + rules + visibility toggle)
+    Route::post(  'sites/{site}/geos',              [SiteGeoController::class, 'addGeo'])->name('sites.geos.add');
+    Route::delete('sites/{site}/geos/{iso}',        [SiteGeoController::class, 'removeGeo'])->name('sites.geos.remove');
+    Route::post(  'sites/{site}/geo-rules',         [SiteGeoController::class, 'saveRules'])->name('sites.geo-rules.save');
+    Route::post(  'sites/{site}/visibility/{type}/{id}', [SiteGeoController::class, 'toggleVisibility'])->name('sites.visibility.toggle');
 
     Route::resource('users', UserController::class)
         ->only(['index', 'store', 'update', 'destroy']);

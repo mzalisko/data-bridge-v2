@@ -1,128 +1,126 @@
 @extends('layouts.app')
 
-@push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/pages/site-groups.css') }}?v={{ filemtime(public_path('assets/css/pages/site-groups.css')) }}">
-<link rel="stylesheet" href="{{ asset('assets/css/pages/sites.css') }}?v={{ filemtime(public_path('assets/css/pages/sites.css')) }}">
-@endpush
-
 @section('title', $siteGroup->name)
 
 @section('content')
+@php
+    $color = $siteGroup->color ?? '#71717a';
+    $activeSites   = $sites->where('is_active', true)->count();
+    $inactiveSites = $sites->count() - $activeSites;
+@endphp
 
-<div class="page-toolbar">
-    <div style="display:flex;align-items:center;gap:var(--space-md);">
-        <a href="{{ route('site-groups.index') }}" class="btn-ghost">← Групи</a>
-        <div style="display:flex;align-items:center;gap:var(--space-sm);">
-            <span class="group-card__dot" style="background:{{ $siteGroup->color ?? '#706f70' }};width:12px;height:12px;border-radius:50%;display:inline-block;"></span>
-            <h1 class="page-title">{{ $siteGroup->name }}</h1>
-        </div>
-        <span class="role-badge" style="background:rgba(129,140,248,.12);color:var(--accent);">{{ $siteGroup->sites_count }} сайтів</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:var(--space-sm);">
-        <div class="view-toggle">
-            <button id="btn-sg-view-list" class="view-toggle__btn is-active" title="Список">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-                    <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-                </svg>
-            </button>
-            <button id="btn-sg-view-grid" class="view-toggle__btn" title="Сітка">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                </svg>
-            </button>
-        </div>
-        <button class="btn-primary" onclick="openDrawer('drawer-group-edit')">Редагувати</button>
-    </div>
-</div>
+<div class="page-stack">
 
-@if($siteGroup->description)
-    <p style="color:var(--text-secondary);font-size:var(--font-size-sm);margin-bottom:var(--space-lg);">{{ $siteGroup->description }}</p>
-@endif
-
-{{-- Group nav --}}
-<div class="page-controls__pills" style="margin-bottom: var(--space-lg); overflow-x: auto; padding-bottom: 4px; flex-wrap: nowrap;">
-    @foreach($allGroups as $g)
-    <a href="{{ route('site-groups.show', $g) }}"
-       class="filter-pill {{ $g->id === $siteGroup->id ? 'is-active' : '' }}">
-        <span class="filter-pill__dot" style="background:{{ $g->color ?? '#706f70' }}"></span>
-        {{ $g->name }}
-    </a>
-    @endforeach
-</div>
-
-{{-- Sites in group --}}
-@if($sites->isEmpty())
-    <div class="empty-page">
-        <p>У цій групі ще немає сайтів.</p>
-    </div>
-@else
-    <div class="sites-list" id="sg-sites-list">
-        @foreach($sites as $site)
-        @php
-            $color = $siteGroup->color ?? '#708499';
-            $letter = strtoupper(substr(parse_url($site->url, PHP_URL_HOST) ?: $site->name, 0, 1));
-        @endphp
-        <div class="site-card {{ !$site->is_active ? 'site-card--disabled' : '' }}" onclick="window.location='{{ route('sites.show', $site) }}'">
-            <div class="site-card__favicon"
-                 style="background:{{ $color }}26;color:{{ $color }};">
-                {{ $letter }}
+    {{-- ========= PAGE HEAD ========= --}}
+    <div class="page-head">
+        <div>
+            <div class="page-head__crumb">
+                <a href="{{ route('site-groups.index') }}">Site groups</a> /
+                <span style="color:var(--text);">{{ $siteGroup->name }}</span>
             </div>
-            <div class="site-card__info">
-                <div class="site-card__name-row">
-                    <span class="site-card__name">{{ $site->name }}</span>
-                </div>
-                <div class="site-card__meta-row">
-                    <span class="site-card__url">{{ $site->url }}</span>
-                </div>
-            </div>
-            <div class="site-card__status">
-                <span class="status-badge status-badge--{{ $site->is_active ? 'active' : 'disabled' }}">
-                    <span class="status-badge__dot"></span>{{ $site->is_active ? 'Active' : 'Disabled' }}
+            <h1 class="page-head__title">
+                <span style="width:32px;height:32px;border-radius:8px;background:{{ $color }}22;color:{{ $color }};display:inline-flex;align-items:center;justify-content:center;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+                </span>
+                {{ $siteGroup->name }}
+            </h1>
+            @if($siteGroup->description)
+                <p class="page-head__subtitle">{{ $siteGroup->description }}</p>
+            @endif
+        </div>
+        <div class="page-head__actions">
+            <a href="{{ route('site-groups.index') }}" class="btn btn--ghost btn--md">← Back</a>
+            <button class="btn btn--primary btn--md" onclick="openDrawer('drawer-group-edit')">Edit group</button>
+        </div>
+    </div>
+
+    @if(session('success'))<div class="alert alert--success">{{ session('success') }}</div>@endif
+
+    {{-- ========= STAT CARDS ========= --}}
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+        <div class="stat-card">
+            <div class="stat-card__label">Total sites</div>
+            <div class="stat-card__row"><span class="stat-card__value">{{ $sites->count() }}</span></div>
+            <div class="stat-card__delta">in this group</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__label">Active</div>
+            <div class="stat-card__row"><span class="stat-card__value" style="color:var(--success);">{{ $activeSites }}</span></div>
+            <div class="stat-card__delta">{{ $inactiveSites }} disabled</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__label">Color</div>
+            <div class="stat-card__row" style="margin-top:8px;">
+                <span style="display:inline-flex;align-items:center;gap:8px;">
+                    <span style="width:24px;height:24px;border-radius:6px;background:{{ $color }};border:1px solid var(--border);"></span>
+                    <span style="font-family:var(--font-mono);font-size:12px;color:var(--text-2);">{{ $color }}</span>
                 </span>
             </div>
-            <span class="site-card__date" style="margin-left: auto;">{{ $site->created_at->format('d.m.Y') }}</span>
         </div>
-        @endforeach
     </div>
-@endif
 
-{{-- Edit group drawer --}}
+    {{-- ========= SITES IN GROUP ========= --}}
+    <div class="card card--flush">
+        <div class="section-head">
+            <h3 class="section-head__title">Sites in this group</h3>
+            <a href="{{ route('sites.index', ['group_id' => $siteGroup->id]) }}" class="section-head__link">All sites with filter →</a>
+        </div>
+        <div style="overflow:auto;">
+            <table class="crm-table">
+                <thead>
+                    <tr>
+                        <th>Site</th>
+                        <th>Status</th>
+                        <th>Added</th>
+                        <th style="width:40px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($sites as $site)
+                        <tr onclick="window.location='{{ route('sites.show', $site) }}'">
+                            <td>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <x-favicon :name="$site->name" :size="22"/>
+                                    <div>
+                                        <div style="font-weight:500;color:var(--text);">{{ $site->name }}</div>
+                                        <div style="color:var(--text-3);font-size:11px;font-family:var(--font-mono);">{{ $site->url ? (parse_url($site->url, PHP_URL_HOST) ?: $site->url) : '—' }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><x-status-pill :status="$site->is_active ? 'Online' : 'Offline'"/></td>
+                            <td style="color:var(--text-3);font-size:12px;">{{ $site->created_at->format('d M Y') }}</td>
+                            <td><span style="color:var(--text-3);font-size:12px;">→</span></td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="4" style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">No sites in this group yet</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{{-- ========= EDIT DRAWER ========= --}}
 <div class="drawer-overlay" id="drawer-group-edit-overlay" onclick="closeDrawer('drawer-group-edit')"></div>
 <div class="drawer" id="drawer-group-edit">
     <div class="drawer__header">
         <span class="drawer__title">{{ $siteGroup->name }}</span>
-        <button class="btn-icon" onclick="closeDrawer('drawer-group-edit')">✕</button>
+        <button class="icon-btn" onclick="closeDrawer('drawer-group-edit')">✕</button>
     </div>
     <div class="drawer__body">
-        <form method="POST"
-              action="{{ route('site-groups.update', $siteGroup) }}"
-              class="form-stack"
-              id="form-group-edit">
-            @csrf
-            @method('PUT')
+        <form method="POST" action="{{ route('site-groups.update', $siteGroup) }}" id="form-group-edit">
+            @csrf @method('PUT')
             @include('admin.site-groups._form', ['group' => $siteGroup])
         </form>
     </div>
     <div class="drawer__footer">
-        <form method="POST" action="{{ route('site-groups.destroy', $siteGroup) }}" class="drawer__footer-left">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn-danger"
-                    onclick="return confirm('Видалити групу «{{ $siteGroup->name }}»?')">
-                Видалити
-            </button>
+        <form method="POST" action="{{ route('site-groups.destroy', $siteGroup) }}" class="drawer__footer-left" onsubmit="return confirm('Delete group «{{ $siteGroup->name }}»?')">
+            @csrf @method('DELETE')
+            <button type="submit" class="btn btn--danger btn--md">Delete</button>
         </form>
-        <button type="button" class="btn-ghost" onclick="closeDrawer('drawer-group-edit')">Скасувати</button>
-        <button type="submit" form="form-group-edit" class="btn-primary">Зберегти</button>
+        <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-group-edit')">Cancel</button>
+        <button type="submit" form="form-group-edit" class="btn btn--primary btn--md">Save</button>
     </div>
 </div>
-
-@push('scripts')
-<script>
-    initViewToggle('sg-sites-view', 'sg-sites-list', 'btn-sg-view-list', 'btn-sg-view-grid');
-</script>
-@endpush
 
 @endsection

@@ -14,10 +14,16 @@ class SiteSocial extends Model
         'platform',
         'handle',
         'url',
+        'is_visible',
         'sort_order',
         'geo_mode',
         'geo_countries',
     ];
+
+    protected function casts(): array
+    {
+        return ['is_visible' => 'boolean'];
+    }
 
     public function site(): BelongsTo
     {

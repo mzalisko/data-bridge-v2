@@ -51,7 +51,9 @@
                             </span>
                             <div>
                                 <div style="font-size:15px;font-weight:600;color:var(--text);">{{ $group->name }}</div>
-                                <div style="font-size:12px;color:var(--text-3);margin-top:2px;">{{ $group->description ? \Illuminate\Support\Str::limit($group->description, 60) : 'No description' }}</div>
+                                @if($group->description)
+                                    <div style="font-size:12px;color:var(--text-3);margin-top:2px;">{{ \Illuminate\Support\Str::limit($group->description, 60) }}</div>
+                                @endif
                             </div>
                         </div>
                         <button class="icon-btn" onclick="event.stopPropagation(); openDrawer('drawer-group-{{ $group->id }}')" title="Edit">

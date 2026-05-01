@@ -20,6 +20,7 @@ class SiteAddress extends Model
         'latitude',
         'longitude',
         'is_primary',
+        'is_visible',
         'sort_order',
         'geo_mode',
         'geo_countries',
@@ -31,6 +32,7 @@ class SiteAddress extends Model
             'latitude'   => 'decimal:7',
             'longitude'  => 'decimal:7',
             'is_primary' => 'boolean',
+            'is_visible' => 'boolean',
         ];
     }
 
