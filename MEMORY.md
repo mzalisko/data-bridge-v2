@@ -7,10 +7,10 @@
 ## 📍 Поточний стан
 
 - **Версія:** 0.3.0 (Laravel + Sync API, merged to main)
-- **Активний спринт:** Sprint 04 — WP Plugin
-- **CRM гілка:** `feature/task-plugin-rework` (не злита в main)
-- **CRM дизайн гілка:** `feature/crm-redesign` — **vibeB Blade redesign ЗАВЕРШЕНО** (всі 11 задач виконані)
-- **CRM дизайн refresh:** `feature/crm-design-refresh` (Blade UI оновлення, stash — superseded by crm-redesign)
+- **Активний спринт:** Sprint 04 — WP Plugin + CRM Blade redesign V2
+- **Активна гілка:** `feature/crm-redesign` — vibeB Blade redesign V2 (full 1:1 match React archive)
+- **Останній комміт:** `07c65f9` — fix: persist dark theme + Add geo flow + group form redesign
+- **CRM logic гілка:** `feature/task-plugin-rework` (не злита)
 - **Plugin гілка:** `feature/plugin-redesign-3pages`
 - **Наступний крок:** мерж `feature/crm-redesign` → main + мерж `feature/task-plugin-rework` → main
 
@@ -45,7 +45,16 @@
 | Plugin: Fix custom_fields — field_value замість value/label | plugin feature/plugin-redesign-3pages | ✅ |
 | Plugin: Fix socials — прибрати неіснуючий $r['label'] | plugin feature/plugin-redesign-3pages | ✅ |
 | CRM redesign: standalone React SPA (vibeB, CDN React+Babel) | feature/crm-redesign | ✅ |
-| CRM redesign: vibeB Blade redesign — всі сторінки (токени, sidebar, компоненти, сторінки) | feature/crm-redesign | ✅ |
+| CRM redesign V1: vibeB Blade redesign — всі сторінки (токени, sidebar, компоненти) | feature/crm-redesign | ✅ |
+| CRM redesign V2: full 1:1 React archive (consolidated app.css, нові x-favicon/x-status-pill, login card) | feature/crm-redesign | ✅ |
+| CRM site detail: top tabs Overview/Data/Activity/Settings + geo selector в Data tab | feature/crm-redesign | ✅ |
+| CRM site detail Overview: Geo coverage block (great country pills) + Data by geo (4-col rich) | feature/crm-redesign | ✅ |
+| CRM site detail Data: контактний layout з add/edit drawer-ами (phones/prices/addresses/socials) | feature/crm-redesign | ✅ |
+| CRM Users page (Team): table з role/status pills + invite/edit/permissions drawers | feature/crm-redesign | ✅ |
+| CRM site groups: новий form з color palette + textarea + emoji icon | feature/crm-redesign | ✅ |
+| CRM Add geo flow: drawer з country picker → auto-open Add phone з pre-selected ISO | feature/crm-redesign | ✅ |
+| CRM dark theme persist: encryptCookies except 'theme' + inline bootstrap script (no flash) | feature/crm-redesign | ✅ |
+| CRM site* controllers: redirect via back() замість захардкодженого ?tab=phones | feature/crm-redesign | ✅ |
 
 ## 🔲 Залишилось (Sprint 04)
 
@@ -60,7 +69,7 @@
 ## 🌿 Git стан
 
 - **CRM remote:** `git@github.com:mzalisko/data-bridge-v2.git`
-- **CRM активна гілка:** `feature/crm-redesign` (standalone React CRM)
+- **CRM активна гілка:** `feature/crm-redesign` (Blade redesign V2 + standalone React reference)
 - **Plugin repo:** `M:\Projects\CC\data-bridge-v2-plugin\` (git init, remote потрібно)
 - **Plugin активна гілка:** `feature/plugin-redesign-3pages`
 - **Теги повернення:** `v0.3.0-sprint03-complete`, `v0.2.0-sprint02-complete`, `v0.1-vanilla-php-foundation`
@@ -80,7 +89,10 @@
 | API auth | Bearer → key_prefix (12) → Hash::check() |
 | API permissions | JSON array в api_keys.permissions (nullable) |
 | Rate limit | RateLimiter 60/min per token, bootstrap/app.php booted() |
-| Tab routing (Laravel) | `?tab=phones\|prices\|addresses\|socials` — server-side |
+| Tab routing (Laravel) | `?tab=overview\|data\|activity\|settings` — server-side; geo subtab `?country=XX` |
+| Site Data CRUD | Drawer-based (add/edit) для phones/prices/addresses/socials. Controller redirect via `back()` |
+| Theme cookie | Plain `theme=light\|dark` (whitelisted in `encryptCookies(except)`); inline `<head>` script читає до CSS |
+| Design system V2 | Single `public/assets/css/app.css` (~530 рядків) — vibeB tokens 1:1 з `src/styles/crm-theme.css` |
 | Plugin sync | CRM→Plugin: pull на page load (>60s) + optional webhook ping |
 | Plugin DB | DATABRIDGE_DB_VERSION='1.2.0'; dbDelta на plugins_loaded prio 5 |
 | Plugin geo | geo_mode/geo_countries у phones/prices/addresses/socials; fail-open |
@@ -106,4 +118,4 @@
 
 ---
 
-*Оновлено: 2026-04-29 | Сесія: crm-redesign-standalone-react*
+*Оновлено: 2026-05-01 | Сесія: crm-redesign-V2-blade-1to1-react*
