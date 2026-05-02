@@ -12,13 +12,10 @@
     // Geo top-tab: all | ISO
     $country    = request('country', 'all');
 
-    // Countries used in actual data + countries explicitly added via Add geo
-    $dataIso = collect()
-        ->merge($site->phones->pluck('country_iso'))
-        ->merge($site->addresses->pluck('country_iso'))
-        ->filter()->unique()->values()->toArray();
+    // Tabs = only explicitly added geos (active_geos). Removing one makes the tab disappear.
+    // Data records without a matching geo still appear under "All geos".
     $activeGeos = (array) ($site->active_geos ?? []);
-    $usedIso = array_values(array_unique(array_merge($dataIso, $activeGeos)));
+    $usedIso    = $activeGeos;
     sort($usedIso);
 
     $countriesByIso = $countries->keyBy('iso');
@@ -27,26 +24,13 @@
     // Structure: { "UA": { "mode": "all|include|exclude", "countries": ["RU","BY"] } }
     $geoRules = (array) ($site->geo_rules ?? []);
 
-    // Can the current visitor ($country) see data tagged with $dataIso?
-    $canVisitorSeeGeo = function (string $dataIso) use ($country, $geoRules): bool {
-        if ($country === 'all') return true;
-        if (!isset($geoRules[$dataIso])) return true; // no rule = visible to everyone
-        $rule = (array) $geoRules[$dataIso];
-        $mode = $rule['mode'] ?? 'all';
-        $ruleCountries = (array) ($rule['countries'] ?? []);
-        return match ($mode) {
-            'include' => in_array($country, $ruleCountries, true),
-            'exclude' => !in_array($country, $ruleCountries, true),
-            default   => true,
-        };
-    };
-
-    // Filter collection: records with no country_iso are always shown; others filtered by geo rule.
-    $filterByGeo = function ($collection) use ($country, $canVisitorSeeGeo) {
+    // Each tab shows only records tagged to THAT tab (country_iso === tab ISO).
+    // "All geos" shows everything. Records with no country_iso appear everywhere.
+    $filterByGeo = function ($collection) use ($country) {
         if ($country === 'all') return $collection;
-        return $collection->filter(function ($item) use ($canVisitorSeeGeo) {
+        return $collection->filter(function ($item) use ($country) {
             $iso = $item->country_iso ?? null;
-            return $iso === null || $canVisitorSeeGeo($iso);
+            return $iso === null || $iso === $country;
         })->values();
     };
 
@@ -922,8 +906,7 @@
             'CA'=>'Canada','AU'=>'Australia','BR'=>'Brazil','MX'=>'Mexico',
             'ZA'=>'South Africa','NG'=>'Nigeria','EG'=>'Egypt',
         ];
-        $quickPickIsos = ['UA','RU','BY','PL','RO','DE','CZ','SK','HU','MD',
-                          'LT','LV','EE','BG','HR','RS','TR','KZ','GE','AT','FR','GB','US'];
+        $quickPickIsos  = ['UA', 'RU', 'BY', 'RO'];
         $availableQuick = array_values(array_filter($quickPickIsos, fn($iso) => !in_array($iso, $usedIso, true)));
     @endphp
     <div class="drawer-overlay" id="drawer-geo-add-overlay" onclick="closeDrawer('drawer-geo-add')"></div>
