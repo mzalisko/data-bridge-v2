@@ -39,11 +39,15 @@ class SiteGeoController extends Controller
         $list = array_values(array_filter($site->active_geos ?? [], fn ($x) => $x !== $iso));
         $site->active_geos = $list;
 
-        // Also drop the geo from any rules
+        // Also drop the geo from any rules (new data-centric structure)
         $rules = $site->geo_rules ?? [];
         unset($rules[$iso]);
         foreach ($rules as $k => $v) {
-            $rules[$k] = array_values(array_filter((array) $v, fn ($x) => $x !== $iso));
+            if (isset($v['countries'])) {
+                $rules[$k]['countries'] = array_values(
+                    array_filter((array) $v['countries'], fn ($x) => $x !== $iso)
+                );
+            }
         }
         $site->geo_rules = $rules;
         $site->save();
@@ -52,20 +56,24 @@ class SiteGeoController extends Controller
     }
 
     /**
-     * Save geo rules: visitor-country → list of allowed data-country isos.
-     * Posted as rules[VISITOR_ISO][] = ALLOWED_ISO
+     * Save geo rules: data-geo → { mode, countries[] } — who can see each geo tab's data.
+     * Posted as geo[ISO][mode] = all|include|exclude and geo[ISO][countries][] = ISO
      */
     public function saveRules(Request $request, Site $site): RedirectResponse
     {
-        $rules = (array) $request->input('rules', []);
+        $input = (array) $request->input('geo', []);
         $clean = [];
-        foreach ($rules as $visitor => $allowed) {
-            $visitor = strtoupper((string) $visitor);
-            if (!preg_match('/^[A-Z]{2}$/', $visitor)) continue;
-            $clean[$visitor] = array_values(array_filter(
-                array_map(fn ($x) => strtoupper((string) $x), (array) $allowed),
+        foreach ($input as $dataIso => $cfg) {
+            $dataIso = strtoupper((string) $dataIso);
+            if (!preg_match('/^[A-Z]{2}$/', $dataIso)) continue;
+            $mode = in_array($cfg['mode'] ?? '', ['all', 'include', 'exclude'])
+                ? $cfg['mode']
+                : 'all';
+            $countries = array_values(array_filter(
+                array_map(fn ($x) => strtoupper((string) $x), (array) ($cfg['countries'] ?? [])),
                 fn ($x) => preg_match('/^[A-Z]{2}$/', $x)
             ));
+            $clean[$dataIso] = ['mode' => $mode, 'countries' => $countries];
         }
         $site->geo_rules = $clean;
         $site->save();

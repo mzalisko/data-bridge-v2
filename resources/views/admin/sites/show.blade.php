@@ -23,23 +23,30 @@
 
     $countriesByIso = $countries->keyBy('iso');
 
-    // Geo rules: visitor-country → list of allowed data-country isos.
-    // Default rule (when no entry): show records whose country_iso === visitor.
+    // Geo rules: data-centric — for each geo tab's data, which visitors can see it.
+    // Structure: { "UA": { "mode": "all|include|exclude", "countries": ["RU","BY"] } }
     $geoRules = (array) ($site->geo_rules ?? []);
-    $allowedFor = function ($visitor) use ($geoRules) {
-        return array_key_exists($visitor, $geoRules)
-            ? (array) $geoRules[$visitor]
-            : [$visitor];
+
+    // Can the current visitor ($country) see data tagged with $dataIso?
+    $canVisitorSeeGeo = function (string $dataIso) use ($country, $geoRules): bool {
+        if ($country === 'all') return true;
+        if (!isset($geoRules[$dataIso])) return true; // no rule = visible to everyone
+        $rule = (array) $geoRules[$dataIso];
+        $mode = $rule['mode'] ?? 'all';
+        $ruleCountries = (array) ($rule['countries'] ?? []);
+        return match ($mode) {
+            'include' => in_array($country, $ruleCountries, true),
+            'exclude' => !in_array($country, $ruleCountries, true),
+            default   => true,
+        };
     };
 
-    // Filter records by selected country tab (uses geo_rules; falls back to country_iso match).
-    // Records WITHOUT country_iso (e.g., prices/socials currently) are treated as "global" and always shown.
-    $filterByGeo = function ($collection) use ($country, $allowedFor) {
+    // Filter collection: records with no country_iso are always shown; others filtered by geo rule.
+    $filterByGeo = function ($collection) use ($country, $canVisitorSeeGeo) {
         if ($country === 'all') return $collection;
-        $allowed = $allowedFor($country);
-        return $collection->filter(function ($item) use ($allowed) {
+        return $collection->filter(function ($item) use ($canVisitorSeeGeo) {
             $iso = $item->country_iso ?? null;
-            return $iso === null || in_array($iso, $allowed, true);
+            return $iso === null || $canVisitorSeeGeo($iso);
         })->values();
     };
 
@@ -334,13 +341,10 @@
                 <div style="flex:1"></div>
 
                 @if($country !== 'all')
-                    <form method="POST" action="{{ route('sites.geos.remove', [$site, $country]) }}" style="margin:0;" onsubmit="return confirm('Remove geo {{ $country }}? Tagged data records remain but the tab disappears.')">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="btn btn--ghost btn--sm" style="white-space:nowrap;color:var(--danger);">
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
-                            Remove {{ $country }}
-                        </button>
-                    </form>
+                    <button type="button" class="btn btn--ghost btn--sm" style="white-space:nowrap;color:var(--danger);" onclick="openDrawer('drawer-geo-remove-{{ $country }}')">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                        Remove {{ $country }}
+                    </button>
                 @endif
 
                 <button class="btn btn--ghost btn--sm" type="button" style="white-space:nowrap;" onclick="openDrawer('drawer-geo-add')">
@@ -397,7 +401,7 @@
                     @empty
                         <div style="color:var(--text-3);font-size:12px;">No phones for this geo.</div>
                     @endforelse
-                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openDrawer('drawer-phone-create')">
+                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openPhoneCreate('{{ $country }}')">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                         Add phone
                     </button>
@@ -570,14 +574,15 @@
         {{-- ========= SETTINGS ========= --}}
         @if($tab === 'settings')
 
-            {{-- ===== Geo rules ===== --}}
+            {{-- ===== Geo visibility rules ===== --}}
             <div style="padding:20px;border-bottom:1px solid var(--border-2);">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
                     <h4 style="margin:0;font-size:13px;font-weight:600;color:var(--text);">Geo visibility rules</h4>
                     <span style="font-size:11px;color:var(--text-3);">{{ count($usedIso) }} {{ count($usedIso) === 1 ? 'geo' : 'geos' }} active</span>
                 </div>
-                <p style="font-size:12px;color:var(--text-3);margin:0 0 14px;">
-                    For each visitor country, choose which data is shown on the site. Empty row = show only data tagged for that country (default).
+                <p style="font-size:12px;color:var(--text-3);margin:0 0 16px;">
+                    For each data geo tab, define which <strong>visitor countries</strong> can see it.
+                    Example: UA data → All except RU, BY. BY data → Only for: RU, BY.
                 </p>
 
                 @if(count($usedIso) === 0)
@@ -587,50 +592,59 @@
                 @else
                     <form method="POST" action="{{ route('sites.geo-rules.save', $site) }}" id="form-geo-rules">
                         @csrf
-                        <div style="overflow:auto;border:1px solid var(--border);border-radius:var(--radius);">
-                            <table class="crm-table" style="font-size:12px;">
-                                <thead>
-                                    <tr>
-                                        <th style="width:140px;">Visitor from</th>
-                                        @foreach($usedIso as $col)
-                                            <th style="text-align:center;">
-                                                <span style="font-family:var(--font-mono);font-weight:700;background:var(--accent-2);color:var(--accent-text);padding:2px 6px;border-radius:4px;">{{ $col }}</span>
-                                            </th>
+                        <div style="display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+                            @foreach($usedIso as $ruleIso)
+                                @php
+                                    $ruleData   = (array) ($geoRules[$ruleIso] ?? []);
+                                    $ruleMode   = $ruleData['mode'] ?? 'all';
+                                    $ruleCtries = (array) ($ruleData['countries'] ?? []);
+                                    $prefix     = 'gr-' . $ruleIso;
+                                @endphp
+                                <div style="padding:14px 16px;{{ !$loop->last ? 'border-bottom:1px solid var(--border-2);' : '' }}">
+                                    {{-- Geo label --}}
+                                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                                        <span style="font-family:var(--font-mono);font-weight:700;font-size:12px;background:var(--accent-2);color:var(--accent-text);padding:2px 8px;border-radius:6px;">{{ $ruleIso }}</span>
+                                        @if(isset($countriesByIso[$ruleIso]))
+                                            <span style="font-size:12px;color:var(--text-3);">{{ $countriesByIso[$ruleIso]->name ?? '' }}</span>
+                                        @endif
+                                        <span style="font-size:11px;color:var(--text-3);margin-left:auto;">data visible to…</span>
+                                    </div>
+                                    {{-- Mode radio group --}}
+                                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:0;" id="{{ $prefix }}-modes">
+                                        @foreach(['all' => 'All visitors', 'include' => 'Only for', 'exclude' => 'All except'] as $mVal => $mLabel)
+                                            <label style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--border);border-radius:99px;cursor:pointer;font-size:12px;
+                                                          {{ $ruleMode === $mVal ? 'background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;' : 'background:var(--panel-2);color:var(--text-2);' }}">
+                                                <input type="radio" name="geo[{{ $ruleIso }}][mode]" value="{{ $mVal }}"
+                                                       {{ $ruleMode === $mVal ? 'checked' : '' }}
+                                                       style="display:none;"
+                                                       onchange="geoRuleToggle('{{ $prefix }}','{{ $mVal }}')">
+                                                {{ $mLabel }}
+                                            </label>
                                         @endforeach
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($usedIso as $row)
-                                        @php
-                                            $current = (array) ($geoRules[$row] ?? [$row]);
-                                        @endphp
-                                        <tr style="cursor:default;">
-                                            <td>
-                                                <span style="display:inline-flex;align-items:center;gap:6px;">
-                                                    <span style="font-family:var(--font-mono);font-weight:700;font-size:11px;background:var(--panel-2);padding:2px 6px;border-radius:4px;color:var(--text-2);">{{ $row }}</span>
-                                                    <span style="font-size:11px;color:var(--text-3);">{{ $countriesByIso[$row]->name ?? '' }}</span>
-                                                </span>
-                                            </td>
-                                            @foreach($usedIso as $col)
-                                                @php $checked = in_array($col, $current, true); @endphp
-                                                <td style="text-align:center;">
-                                                    <label style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer;width:24px;height:24px;border-radius:6px;{{ $row === $col ? 'background:var(--accent-2);' : '' }}">
-                                                        <input type="checkbox" name="rules[{{ $row }}][]" value="{{ $col }}"
-                                                               {{ $checked ? 'checked' : '' }}
-                                                               style="accent-color:var(--accent);width:14px;height:14px;cursor:pointer;">
-                                                    </label>
-                                                </td>
+                                    </div>
+                                    {{-- Country chips (shown for include/exclude) --}}
+                                    <div id="{{ $prefix }}-chips" style="{{ in_array($ruleMode, ['include','exclude']) ? '' : 'display:none;' }} margin-top:10px;">
+                                        <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                                            @foreach($countries as $c)
+                                                <label style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border:1px solid var(--border);border-radius:99px;cursor:pointer;font-size:11px;font-family:var(--font-mono);font-weight:600;
+                                                              {{ in_array($c->iso, $ruleCtries, true) ? 'background:var(--accent-2);color:var(--accent-text);border-color:var(--accent-2);' : 'background:var(--panel-2);color:var(--text-2);' }}"
+                                                      id="{{ $prefix }}-chip-{{ $c->iso }}">
+                                                    <input type="checkbox" name="geo[{{ $ruleIso }}][countries][]" value="{{ $c->iso }}"
+                                                           {{ in_array($c->iso, $ruleCtries, true) ? 'checked' : '' }}
+                                                           style="display:none;"
+                                                           onchange="geoRuleChipToggle('{{ $prefix }}','{{ $c->iso }}',this)">
+                                                    {{ $c->iso }}
+                                                </label>
                                             @endforeach
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                        </div>
+                                        <p style="font-size:11px;color:var(--text-3);margin:6px 0 0;">
+                                            Select visitor countries from your configured list. Any unlisted country follows the default rule.
+                                        </p>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
-                            <span style="font-size:11px;color:var(--text-3);">
-                                Diagonal cells (highlighted) — visitor sees their own country data.
-                                Example: «UA → UA, BY» means visitors from Ukraine see records tagged UA and BY.
-                            </span>
+                        <div style="display:flex;justify-content:flex-end;margin-top:12px;">
                             <button type="submit" class="btn btn--primary btn--sm">Save rules</button>
                         </div>
                     </form>
@@ -888,7 +902,29 @@
 
     {{-- ========= ADD GEO ========= --}}
     @php
-        $availableCountries = $countries->reject(fn($c) => in_array($c->iso, $usedIso, true))->values();
+        $allIsoCountries = [
+            'AL'=>'Albania','AM'=>'Armenia','AT'=>'Austria','AZ'=>'Azerbaijan',
+            'BA'=>'Bosnia and Herzegovina','BE'=>'Belgium','BG'=>'Bulgaria','BY'=>'Belarus',
+            'CH'=>'Switzerland','CY'=>'Cyprus','CZ'=>'Czech Republic',
+            'DE'=>'Germany','DK'=>'Denmark','EE'=>'Estonia','ES'=>'Spain',
+            'FI'=>'Finland','FR'=>'France','GB'=>'United Kingdom','GE'=>'Georgia',
+            'GR'=>'Greece','HR'=>'Croatia','HU'=>'Hungary','IE'=>'Ireland',
+            'IL'=>'Israel','IT'=>'Italy','KG'=>'Kyrgyzstan','KZ'=>'Kazakhstan',
+            'LT'=>'Lithuania','LU'=>'Luxembourg','LV'=>'Latvia',
+            'MD'=>'Moldova','ME'=>'Montenegro','MK'=>'North Macedonia','MT'=>'Malta',
+            'NL'=>'Netherlands','NO'=>'Norway','PL'=>'Poland','PT'=>'Portugal',
+            'RO'=>'Romania','RS'=>'Serbia','RU'=>'Russia',
+            'SE'=>'Sweden','SI'=>'Slovenia','SK'=>'Slovakia',
+            'TJ'=>'Tajikistan','TM'=>'Turkmenistan','TR'=>'Turkey',
+            'UA'=>'Ukraine','UZ'=>'Uzbekistan',
+            'AE'=>'UAE','SA'=>'Saudi Arabia','CN'=>'China','IN'=>'India',
+            'JP'=>'Japan','KR'=>'South Korea','US'=>'United States',
+            'CA'=>'Canada','AU'=>'Australia','BR'=>'Brazil','MX'=>'Mexico',
+            'ZA'=>'South Africa','NG'=>'Nigeria','EG'=>'Egypt',
+        ];
+        $quickPickIsos = ['UA','RU','BY','PL','RO','DE','CZ','SK','HU','MD',
+                          'LT','LV','EE','BG','HR','RS','TR','KZ','GE','AT','FR','GB','US'];
+        $availableQuick = array_values(array_filter($quickPickIsos, fn($iso) => !in_array($iso, $usedIso, true)));
     @endphp
     <div class="drawer-overlay" id="drawer-geo-add-overlay" onclick="closeDrawer('drawer-geo-add')"></div>
     <div class="drawer" id="drawer-geo-add">
@@ -899,31 +935,37 @@
                 <button class="icon-btn" type="button" onclick="closeDrawer('drawer-geo-add')">✕</button>
             </div>
             <div class="drawer__body">
-                <p style="font-size:13px;color:var(--text-2);margin:0 0 14px;">
-                    Pick a country to add to this site. The new geo will appear as a tab — you can then add phones, addresses and other data tagged to it.
+                <p style="font-size:13px;color:var(--text-2);margin:0 0 16px;">
+                    Pick a country — it appears as a tab where you can add phones, addresses and other data tagged to it.
                 </p>
                 <div class="field">
                     <label class="field__label" for="geo-pick">Country</label>
-                    <select name="country_iso" id="geo-pick" class="field__input" required>
-                        @forelse($availableCountries as $c)
-                            <option value="{{ $c->iso }}">
-                                {{ $c->iso }} {{ ($c->name && strcasecmp($c->name, $c->iso) !== 0) ? '— '.$c->name : '' }}
-                            </option>
-                        @empty
-                            <option value="">All countries already added</option>
-                        @endforelse
-                    </select>
+                    <input type="text" name="country_iso" id="geo-pick" class="field__input"
+                           list="geo-all-iso" placeholder="Type code or name — UA, Romania, DE…"
+                           maxlength="2" required autocomplete="off"
+                           oninput="this.value=this.value.toUpperCase()"
+                           style="font-family:var(--font-mono);font-weight:700;letter-spacing:.05em;">
+                    <datalist id="geo-all-iso">
+                        @foreach($allIsoCountries as $iso => $name)
+                            @if(!in_array($iso, $usedIso, true))
+                                <option value="{{ $iso }}">{{ $iso }} — {{ $name }}</option>
+                            @endif
+                        @endforeach
+                    </datalist>
+                    <span style="font-size:11px;color:var(--text-3);margin-top:4px;display:block;">
+                        Any valid ISO 3166-1 alpha-2 code (2 letters).
+                    </span>
                 </div>
 
-                @if($availableCountries->isNotEmpty())
+                @if(count($availableQuick) > 0)
                     <div style="margin-top:18px;">
                         <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Quick pick</div>
                         <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                            @foreach($availableCountries->take(24) as $c)
+                            @foreach($availableQuick as $iso)
                                 <button type="button"
-                                        onclick="document.getElementById('geo-pick').value='{{ $c->iso }}';"
+                                        onclick="document.getElementById('geo-pick').value='{{ $iso }}';"
                                         style="padding:5px 10px;background:var(--panel-2);border:1px solid var(--border);border-radius:99px;font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-2);cursor:pointer;">
-                                    {{ $c->iso }}
+                                    {{ $iso }}
                                 </button>
                             @endforeach
                         </div>
@@ -932,10 +974,46 @@
             </div>
             <div class="drawer__footer">
                 <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-geo-add')">Cancel</button>
-                <button type="submit" class="btn btn--primary btn--md" {{ $availableCountries->isEmpty() ? 'disabled' : '' }}>Add geo</button>
+                <button type="submit" class="btn btn--primary btn--md">Add geo</button>
             </div>
         </form>
     </div>
+
+    {{-- ========= REMOVE GEO: confirmation drawers (one per active geo) ========= --}}
+    @foreach($usedIso as $removeIso)
+        <div class="drawer-overlay" id="drawer-geo-remove-{{ $removeIso }}-overlay" onclick="closeDrawer('drawer-geo-remove-{{ $removeIso }}')"></div>
+        <div class="drawer" id="drawer-geo-remove-{{ $removeIso }}">
+            <div class="drawer__header">
+                <span class="drawer__title" style="color:var(--danger);">Remove geo</span>
+                <button class="icon-btn" type="button" onclick="closeDrawer('drawer-geo-remove-{{ $removeIso }}')">✕</button>
+            </div>
+            <div class="drawer__body">
+                <p style="font-size:13px;color:var(--text-2);margin:0 0 16px;">
+                    You are about to remove the <strong style="font-family:var(--font-mono);">{{ $removeIso }}</strong> tab.
+                    All data records tagged to this geo remain in the database — only the tab disappears.
+                </p>
+                <div class="field">
+                    <label class="field__label" for="geo-remove-confirm-{{ $removeIso }}">
+                        Type <strong style="font-family:var(--font-mono);color:var(--danger);">{{ $removeIso }}</strong> to confirm
+                    </label>
+                    <input type="text" id="geo-remove-confirm-{{ $removeIso }}"
+                           class="field__input" placeholder="{{ $removeIso }}"
+                           autocomplete="off" maxlength="2"
+                           oninput="this.value=this.value.toUpperCase();document.getElementById('btn-geo-remove-{{ $removeIso }}').disabled=this.value!=='{{ $removeIso }}';"
+                           style="font-family:var(--font-mono);font-weight:700;font-size:18px;letter-spacing:.1em;text-align:center;">
+                </div>
+            </div>
+            <div class="drawer__footer">
+                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-geo-remove-{{ $removeIso }}')">Cancel</button>
+                <form method="POST" action="{{ route('sites.geos.remove', [$site, $removeIso]) }}" style="margin:0;">
+                    @csrf @method('DELETE')
+                    <button type="submit" id="btn-geo-remove-{{ $removeIso }}" class="btn btn--danger btn--md" disabled>
+                        Remove {{ $removeIso }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    @endforeach
 
     {{-- ========= SOCIAL: edit ========= --}}
     @foreach($site->socials as $s)
@@ -965,3 +1043,43 @@
 @endif
 
 @endsection
+
+@push('scripts')
+<script>
+function openPhoneCreate(geoIso) {
+    openDrawer('drawer-phone-create');
+    if (!geoIso || geoIso === 'all') return;
+    var sel = document.getElementById('ph-iso-new');
+    if (!sel) return;
+    sel.value = geoIso;
+    sel.dispatchEvent(new Event('change'));
+}
+
+// Geo rules UI helpers
+function geoRuleToggle(prefix, mode) {
+    // Update label styles
+    var group = document.getElementById(prefix + '-modes');
+    if (!group) return;
+    group.querySelectorAll('label').forEach(function(lbl) {
+        var radio = lbl.querySelector('input[type=radio]');
+        var isActive = radio && radio.value === mode;
+        lbl.style.background    = isActive ? 'var(--accent)'   : 'var(--panel-2)';
+        lbl.style.color         = isActive ? '#fff'            : 'var(--text-2)';
+        lbl.style.borderColor   = isActive ? 'var(--accent)'   : 'var(--border)';
+        lbl.style.fontWeight    = isActive ? '600'             : '400';
+        if (radio) radio.checked = isActive;
+    });
+    // Show/hide chips
+    var chips = document.getElementById(prefix + '-chips');
+    if (chips) chips.style.display = (mode === 'include' || mode === 'exclude') ? '' : 'none';
+}
+
+function geoRuleChipToggle(prefix, iso, checkbox) {
+    var lbl = document.getElementById(prefix + '-chip-' + iso);
+    if (!lbl) return;
+    lbl.style.background   = checkbox.checked ? 'var(--accent-2)' : 'var(--panel-2)';
+    lbl.style.color        = checkbox.checked ? 'var(--accent-text)' : 'var(--text-2)';
+    lbl.style.borderColor  = checkbox.checked ? 'var(--accent-2)' : 'var(--border)';
+}
+</script>
+@endpush
