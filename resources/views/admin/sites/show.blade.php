@@ -12,10 +12,12 @@
     // Geo top-tab: all | ISO
     $country    = request('country', 'all');
 
-    // Tabs = only explicitly added geos (active_geos). Removing one makes the tab disappear.
-    // Data records without a matching geo still appear under "All geos".
-    $activeGeos = (array) ($site->active_geos ?? []);
-    $usedIso    = $activeGeos;
+    // active_geos is {"UA":"Ukraine","RO":"Romania"} or legacy ["UA","RO"] — normalize to assoc.
+    $activeGeosRaw = (array) ($site->active_geos ?? []);
+    $geoNames = array_is_list($activeGeosRaw)
+        ? array_fill_keys($activeGeosRaw, '')
+        : $activeGeosRaw;
+    $usedIso  = array_keys($geoNames);
     sort($usedIso);
 
     $countriesByIso = $countries->keyBy('iso');
@@ -312,7 +314,7 @@
                     All geos
                 </a>
                 @foreach($usedIso as $iso)
-                    @php $cName = $countriesByIso[$iso]->name ?? $iso; @endphp
+                    @php $cName = ($geoNames[$iso] && $geoNames[$iso] !== $iso) ? $geoNames[$iso] : ($countriesByIso[$iso]->name ?? $iso); @endphp
                     <a href="{{ $url(['country' => $iso]) }}" title="{{ $cName }}"
                        style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius);font-size:12px;text-decoration:none;white-space:nowrap;font-family:var(--font-mono);
                               background:{{ $country === $iso ? 'var(--panel)' : 'transparent' }};
@@ -743,7 +745,9 @@
         <div class="drawer__body">
             <form method="POST" action="{{ route('phones.store', $site) }}" id="form-phone-create">
                 @csrf
-                @include('admin.sites._form-phone', ['phone' => null, 'countries' => $countries])
+                <input type="hidden" name="country_iso" id="ph-iso-hidden">
+                <input type="hidden" name="dial_code" id="ph-dialcode-hidden">
+                @include('admin.sites._form-phone', ['phone' => null])
             </form>
         </div>
         <div class="drawer__footer">
@@ -763,7 +767,9 @@
             <div class="drawer__body">
                 <form method="POST" action="{{ route('phones.update', [$site, $p]) }}" id="form-phone-{{ $p->id }}">
                     @csrf @method('PUT')
-                    @include('admin.sites._form-phone', ['phone' => $p, 'countries' => $countries])
+                    <input type="hidden" name="country_iso" value="{{ $p->country_iso }}">
+                    <input type="hidden" name="dial_code" value="{{ $p->dial_code }}">
+                    @include('admin.sites._form-phone', ['phone' => $p])
                 </form>
             </div>
             <div class="drawer__footer">
@@ -921,23 +927,26 @@
                 <p style="font-size:13px;color:var(--text-2);margin:0 0 16px;">
                     Pick a country — it appears as a tab where you can add phones, addresses and other data tagged to it.
                 </p>
-                <div class="field">
-                    <label class="field__label" for="geo-pick">Country</label>
-                    <input type="text" name="country_iso" id="geo-pick" class="field__input"
-                           list="geo-all-iso" placeholder="Type code or name — UA, Romania, DE…"
-                           maxlength="2" required autocomplete="off"
-                           oninput="this.value=this.value.toUpperCase()"
-                           style="font-family:var(--font-mono);font-weight:700;letter-spacing:.05em;">
-                    <datalist id="geo-all-iso">
-                        @foreach($allIsoCountries as $iso => $name)
-                            @if(!in_array($iso, $usedIso, true))
-                                <option value="{{ $iso }}">{{ $iso }} — {{ $name }}</option>
-                            @endif
-                        @endforeach
-                    </datalist>
-                    <span style="font-size:11px;color:var(--text-3);margin-top:4px;display:block;">
-                        Any valid ISO 3166-1 alpha-2 code (2 letters).
-                    </span>
+                <div style="display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:end;">
+                    <div class="field" style="margin:0;">
+                        <label class="field__label" for="geo-pick">ISO code</label>
+                        <input type="text" name="country_iso" id="geo-pick" class="field__input"
+                               list="geo-all-iso" placeholder="UA" maxlength="2" required autocomplete="off"
+                               oninput="this.value=this.value.toUpperCase();geoPickAutoName(this.value)"
+                               style="font-family:var(--font-mono);font-weight:700;letter-spacing:.1em;text-align:center;">
+                        <datalist id="geo-all-iso">
+                            @foreach($allIsoCountries as $iso => $name)
+                                @if(!in_array($iso, $usedIso, true))
+                                    <option value="{{ $iso }}">{{ $iso }} — {{ $name }}</option>
+                                @endif
+                            @endforeach
+                        </datalist>
+                    </div>
+                    <div class="field" style="margin:0;">
+                        <label class="field__label" for="geo-name">Country name</label>
+                        <input type="text" name="country_name" id="geo-name" class="field__input"
+                               placeholder="Ukraine, Romania…" maxlength="60" autocomplete="off">
+                    </div>
                 </div>
 
                 @if(count($availableQuick) > 0)
@@ -1029,13 +1038,25 @@
 
 @push('scripts')
 <script>
+var isoNames = @json($allIsoCountries);
+function geoPickAutoName(iso) {
+    var nameInput = document.getElementById('geo-name');
+    if (!nameInput || nameInput.value) return;
+    if (isoNames[iso]) nameInput.value = isoNames[iso];
+}
+
+var dialCodeMap = {UA:380,RU:7,BY:375,RO:40,PL:48,DE:49,AT:43,BE:32,BG:359,
+    CH:41,CZ:420,DK:45,EE:372,ES:34,FI:358,FR:33,GB:44,GE:995,GR:30,
+    HR:385,HU:36,IE:353,IL:972,IT:39,KZ:7,LT:370,LU:352,LV:371,MD:373,
+    ME:382,MK:389,MT:356,NL:31,NO:47,PT:351,RS:381,SE:46,SI:386,SK:421,
+    TR:90,AE:971,SA:966,CN:86,IN:91,US:1,CA:1,AU:61,BR:55};
+
 function openPhoneCreate(geoIso) {
     openDrawer('drawer-phone-create');
-    if (!geoIso || geoIso === 'all') return;
-    var sel = document.getElementById('ph-iso-new');
-    if (!sel) return;
-    sel.value = geoIso;
-    sel.dispatchEvent(new Event('change'));
+    var isoInput  = document.getElementById('ph-iso-hidden');
+    var dialInput = document.getElementById('ph-dialcode-hidden');
+    if (isoInput)  isoInput.value  = (geoIso && geoIso !== 'all') ? geoIso : '';
+    if (dialInput) dialInput.value = (geoIso && dialCodeMap[geoIso]) ? dialCodeMap[geoIso] : '';
 }
 
 // Geo rules UI helpers

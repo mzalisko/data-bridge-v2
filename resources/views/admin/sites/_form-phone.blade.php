@@ -8,31 +8,6 @@
            value="{{ old('label', $p?->label) }}" placeholder="Main reception, Sales, …">
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-    <div class="field">
-        <label class="field__label" for="ph-iso-{{ $pid }}">Country</label>
-        <select id="ph-iso-{{ $pid }}" name="country_iso" class="field__input" required onchange="(function(sel){
-            var opt = sel.options[sel.selectedIndex];
-            var dial = opt.getAttribute('data-dial');
-            var dialInput = document.getElementById('ph-dial-{{ $pid }}');
-            if (dial && !dialInput.value) dialInput.value = dial;
-        })(this)">
-            <option value="">—</option>
-            @foreach($countries as $c)
-                <option value="{{ $c->iso }}" data-dial="{{ $c->dial_code }}"
-                    {{ old('country_iso', $p?->country_iso) === $c->iso ? 'selected' : '' }}>
-                    {{ $c->iso }} {{ ($c->name && strcasecmp($c->name, $c->iso) !== 0) ? '— '.$c->name : '' }}
-                </option>
-            @endforeach
-        </select>
-    </div>
-    <div class="field">
-        <label class="field__label" for="ph-dial-{{ $pid }}">Dial code</label>
-        <input type="text" id="ph-dial-{{ $pid }}" name="dial_code" class="field__input" required
-               placeholder="380" value="{{ old('dial_code', $p?->dial_code) }}">
-    </div>
-</div>
-
 <div class="field">
     <label class="field__label" for="ph-num-{{ $pid }}">Phone number</label>
     <input type="text" id="ph-num-{{ $pid }}" name="number" class="field__input" required

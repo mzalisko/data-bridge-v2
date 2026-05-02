@@ -10,19 +10,21 @@ use Illuminate\Http\Request;
 class SiteGeoController extends Controller
 {
     /**
-     * Add a country to the site's active_geos list.
+     * Add a country to the site's active_geos map: { "UA": "Ukraine", "RO": "Romania" }
      */
     public function addGeo(Request $request, Site $site): RedirectResponse
     {
-        $iso = strtoupper((string) $request->input('country_iso'));
+        $iso  = strtoupper(trim((string) $request->input('country_iso')));
+        $name = trim((string) $request->input('country_name', ''));
+
         if (!preg_match('/^[A-Z]{2}$/', $iso)) {
-            return back()->with('error', 'Invalid country code');
+            return back()->with('error', 'Invalid ISO code (must be 2 uppercase letters)');
         }
 
-        $list = $site->active_geos ?? [];
-        if (!in_array($iso, $list, true)) {
-            $list[] = $iso;
-            $site->active_geos = $list;
+        $geos = $this->normalizeGeos($site->active_geos);
+        if (!isset($geos[$iso])) {
+            $geos[$iso] = $name ?: $iso;
+            $site->active_geos = $geos;
             $site->save();
         }
 
@@ -35,11 +37,12 @@ class SiteGeoController extends Controller
      */
     public function removeGeo(Site $site, string $iso): RedirectResponse
     {
-        $iso = strtoupper($iso);
-        $list = array_values(array_filter($site->active_geos ?? [], fn ($x) => $x !== $iso));
-        $site->active_geos = $list;
+        $iso  = strtoupper($iso);
+        $geos = $this->normalizeGeos($site->active_geos);
+        unset($geos[$iso]);
+        $site->active_geos = $geos;
 
-        // Also drop the geo from any rules (new data-centric structure)
+        // Drop from rules
         $rules = $site->geo_rules ?? [];
         unset($rules[$iso]);
         foreach ($rules as $k => $v) {
@@ -53,6 +56,16 @@ class SiteGeoController extends Controller
         $site->save();
 
         return back()->with('success', "Geo {$iso} removed");
+    }
+
+    /** Normalize active_geos: old ["UA","RO"] → new {"UA":"UA","RO":"RO"} */
+    private function normalizeGeos(mixed $raw): array
+    {
+        $arr = (array) ($raw ?? []);
+        if (array_is_list($arr)) {
+            return array_fill_keys($arr, '');
+        }
+        return $arr;
     }
 
     /**
