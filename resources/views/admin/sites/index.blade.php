@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Sites')
+@section('title', 'Сайти')
 
 @section('content')
 <div class="page-stack">
@@ -8,21 +8,21 @@
     {{-- ========= PAGE HEAD ========= --}}
     <div class="page-head">
         <div>
-            <h1 class="page-head__title">Sites</h1>
-            <p class="page-head__subtitle">{{ $totalCount }} sites across {{ $groups->count() }} groups</p>
+            <h1 class="page-head__title">Сайти</h1>
+            <p class="page-head__subtitle">{{ $totalCount }} сайтів в {{ $groups->count() }} групах</p>
         </div>
         <div class="page-head__actions">
             <button class="btn btn--secondary btn--md">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 4v11"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/>
                 </svg>
-                Export
+                Експорт
             </button>
             <button class="btn btn--primary btn--md" onclick="openDrawer('drawer-site-create')">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                     <path d="M12 5v14M5 12h14"/>
                 </svg>
-                Add site
+                Додати сайт
             </button>
         </div>
     </div>
@@ -42,11 +42,11 @@
                         <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
                     </svg>
                 </span>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search sites by name or domain…">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Пошук сайту за назвою або доменом…">
             </div>
             <div class="select-wrap">
                 <select name="group_id" onchange="this.form.submit()">
-                    <option value="">All groups</option>
+                    <option value="">Всі групи</option>
                     @foreach($groups as $g)
                         <option value="{{ $g->id }}" {{ (string)request('group_id') === (string)$g->id ? 'selected' : '' }}>{{ $g->name }}</option>
                     @endforeach
@@ -57,16 +57,16 @@
             </div>
             <div class="select-wrap">
                 <select name="status" onchange="this.form.submit()">
-                    <option value="">All statuses</option>
-                    <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Online</option>
-                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Offline</option>
+                    <option value="">Всі статуси</option>
+                    <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Онлайн</option>
+                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Офлайн</option>
                 </select>
                 <span class="select-wrap__chevron">
                     <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                 </span>
             </div>
             <div style="flex:1"></div>
-            <span style="font-size:12px;color:var(--text-3);">{{ $sites->total() }} of {{ $totalCount }}</span>
+            <span style="font-size:12px;color:var(--text-3);">{{ $sites->total() }} з {{ $totalCount }}</span>
         </form>
 
         {{-- Table --}}
@@ -75,18 +75,18 @@
                 <thead>
                     <tr>
                         <th style="width:36px;"><input type="checkbox" id="check-all"></th>
-                        <th>Site</th>
-                        <th>Group</th>
-                        <th>Status</th>
-                        <th>Phones</th>
-                        <th>Last sync</th>
+                        <th>Сайт</th>
+                        <th>Група</th>
+                        <th>Статус</th>
+                        <th>Телефони</th>
+                        <th>Остання синхронізація</th>
                         <th style="width:40px;"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($sites as $site)
                         @php
-                            $statusName = $site->is_active ? 'Online' : 'Offline';
+                            $statusName = $site->is_active ? 'Онлайн' : 'Офлайн';
                             $syncLog    = $site->latestSyncLog;
                             $syncWhen   = $syncLog?->synced_at?->diffForHumans() ?? '—';
                             $groupColor = $site->siteGroup?->color ?? '#71717a';
@@ -122,7 +122,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">No sites match the current filters</td></tr>
+                        <tr><td colspan="7" style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">Немає сайтів за вибраними фільтрами</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -139,7 +139,7 @@
 <div class="drawer-overlay" id="drawer-site-create-overlay" onclick="closeDrawer('drawer-site-create')"></div>
 <div class="drawer" id="drawer-site-create">
     <div class="drawer__header">
-        <span class="drawer__title">Add site</span>
+        <span class="drawer__title">Додати сайт</span>
         <button class="icon-btn" onclick="closeDrawer('drawer-site-create')">✕</button>
     </div>
     <div class="drawer__body">
@@ -149,8 +149,8 @@
         </form>
     </div>
     <div class="drawer__footer">
-        <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-site-create')">Cancel</button>
-        <button type="submit" form="form-site-create" class="btn btn--primary btn--md">Create</button>
+        <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-site-create')">Скасувати</button>
+        <button type="submit" form="form-site-create" class="btn btn--primary btn--md">Створити</button>
     </div>
 </div>
 

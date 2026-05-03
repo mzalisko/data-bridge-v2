@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Overview')
+@section('title', 'Огляд')
 
 @section('content')
 <div class="page-stack">
@@ -8,21 +8,20 @@
     {{-- ========= PAGE HEAD ========= --}}
     <div class="page-head">
         <div>
-            <h1 class="page-head__title">Overview</h1>
-            <p class="page-head__subtitle">All sites, groups, and team activity in one place.</p>
+            <h1 class="page-head__title">Огляд</h1>
         </div>
         <div class="page-head__actions">
             <button class="btn btn--secondary btn--md">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 4v11"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/>
                 </svg>
-                Export
+                Експорт
             </button>
             <a href="{{ route('sites.index') }}" class="btn btn--primary btn--md">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                     <path d="M12 5v14M5 12h14"/>
                 </svg>
-                Add site
+                Додати сайт
             </a>
         </div>
     </div>
@@ -30,32 +29,32 @@
     {{-- ========= 4 STAT CARDS ========= --}}
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
         <div class="stat-card">
-            <div class="stat-card__label">Sites</div>
+            <div class="stat-card__label">Сайти</div>
             <div class="stat-card__row">
                 <span class="stat-card__value">{{ $stats['sites'] ?? 0 }}</span>
             </div>
-            <div class="stat-card__delta" style="color:var(--success);">{{ $stats['active'] ?? 0 }} online</div>
+            <div class="stat-card__delta" style="color:var(--success);">{{ $stats['active'] ?? 0 }} онлайн</div>
         </div>
         <div class="stat-card">
-            <div class="stat-card__label">Total contacts</div>
+            <div class="stat-card__label">Всього контактів</div>
             <div class="stat-card__row">
                 <span class="stat-card__value">{{ number_format($stats['contacts'] ?? 0) }}</span>
             </div>
-            <div class="stat-card__delta">across all sites</div>
+            <div class="stat-card__delta">по всіх сайтах</div>
         </div>
         <div class="stat-card">
-            <div class="stat-card__label">Conflicts</div>
+            <div class="stat-card__label">Конфлікти</div>
             <div class="stat-card__row">
                 <span class="stat-card__value" @if(($stats['problems'] ?? 0) > 0) style="color:var(--warning);" @endif>{{ $stats['problems'] ?? 0 }}</span>
             </div>
-            <div class="stat-card__delta">{{ ($stats['problems'] ?? 0) > 0 ? 'needs review' : 'all synced' }}</div>
+            <div class="stat-card__delta">{{ ($stats['problems'] ?? 0) > 0 ? 'потребує перевірки' : 'все синхронізовано' }}</div>
         </div>
         <div class="stat-card">
-            <div class="stat-card__label">Site groups</div>
+            <div class="stat-card__label">Групи сайтів</div>
             <div class="stat-card__row">
                 <span class="stat-card__value">{{ $stats['groups'] ?? 0 }}</span>
             </div>
-            <div class="stat-card__delta">organize your work</div>
+            <div class="stat-card__delta">організуйте роботу</div>
         </div>
     </div>
 
@@ -65,26 +64,26 @@
         {{-- LEFT: Recent activity --}}
         <div class="card card--flush">
             <div class="section-head">
-                <h3 class="section-head__title">Recent activity</h3>
-                <a href="{{ route('logs.system') }}" class="section-head__link">View all</a>
+                <h3 class="section-head__title">Остання активність</h3>
+                <a href="{{ route('logs.system') }}" class="section-head__link">Переглянути всі</a>
             </div>
             @if($recentSyncs->isEmpty())
-                <div style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;border-top:1px solid var(--border-2);">No activity yet.</div>
+                <div style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;border-top:1px solid var(--border-2);">Активності ще немає.</div>
             @else
                 @foreach($recentSyncs->take(6) as $sync)
                     @php
                         $kind = $sync->status === 'success' ? 'success' : ($sync->status === 'error' ? 'danger' : 'warning');
-                        $kindLabel = $sync->status === 'success' ? 'ok' : ($sync->status === 'error' ? 'error' : 'warning');
+                        $kindLabel = $sync->status === 'success' ? 'ок' : ($sync->status === 'error' ? 'помилка' : 'попередження');
                     @endphp
                     <div class="activity-row">
                         <span class="activity-row__when">{{ $sync->synced_at?->diffForHumans() ?? '—' }}</span>
                         <div class="activity-row__body">
                             <span class="dot dot--{{ $kind }}"></span>
-                            <span class="activity-row__who-system">system</span>
+                            <span class="activity-row__who-system">система</span>
                             <span class="activity-row__action">
-                                {{ $sync->status === 'success' ? 'synced' : 'failed to sync' }}
+                                {{ $sync->status === 'success' ? 'синхронізовано' : 'помилка синхронізації' }}
                             </span>
-                            <a href="{{ route('sites.show', $sync->site_id) }}" class="activity-row__target">{{ $sync->site?->name ?? 'unknown' }}</a>
+                            <a href="{{ route('sites.show', $sync->site_id) }}" class="activity-row__target">{{ $sync->site?->name ?? 'невідомо' }}</a>
                         </div>
                         <span class="activity-row__kind">{{ $kindLabel }}</span>
                     </div>
@@ -98,7 +97,7 @@
             {{-- Plan mix (groups breakdown) --}}
             <div class="card card--flush">
                 <div class="section-head">
-                    <h3 class="section-head__title">Group mix</h3>
+                    <h3 class="section-head__title">Розподіл по групах</h3>
                 </div>
                 <div style="padding:4px 20px 20px;display:flex;flex-direction:column;gap:10px;">
                     @php
@@ -118,7 +117,7 @@
                             </div>
                         </div>
                     @empty
-                        <div style="font-size:12px;color:var(--text-3);">No groups yet.</div>
+                        <div style="font-size:12px;color:var(--text-3);">Груп ще немає.</div>
                     @endforelse
                 </div>
             </div>
@@ -126,8 +125,8 @@
             {{-- Top sites --}}
             <div class="card card--flush">
                 <div class="section-head">
-                    <h3 class="section-head__title">Top sites</h3>
-                    <a href="{{ route('sites.index') }}" class="section-head__link">All sites</a>
+                    <h3 class="section-head__title">Топ сайти</h3>
+                    <a href="{{ route('sites.index') }}" class="section-head__link">Всі сайти</a>
                 </div>
                 @php $listSites = $favoriteSites->isNotEmpty() ? $favoriteSites : $quickSites; @endphp
                 @forelse($listSites->take(4) as $site)
@@ -140,7 +139,7 @@
                         <span style="font-size:12px;color:var(--text-2);font-family:var(--font-mono);">{{ $site->phones_count ?? $site->phones?->count() ?? 0 }}</span>
                     </a>
                 @empty
-                    <div style="padding:20px;font-size:12px;color:var(--text-3);border-top:1px solid var(--border-2);">No sites yet.</div>
+                    <div style="padding:20px;font-size:12px;color:var(--text-3);border-top:1px solid var(--border-2);">Сайтів ще немає.</div>
                 @endforelse
             </div>
         </div>

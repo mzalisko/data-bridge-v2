@@ -55,6 +55,12 @@
 | CRM Add geo flow: drawer з country picker → auto-open Add phone з pre-selected ISO | feature/crm-redesign | ✅ |
 | CRM dark theme persist: encryptCookies except 'theme' + inline bootstrap script (no flash) | feature/crm-redesign | ✅ |
 | CRM site* controllers: redirect via back() замість захардкодженого ?tab=phones | feature/crm-redesign | ✅ |
+| CRM Geo V2: eye-toggle is_visible на phones/addresses/socials (migration 2026_05_01) | feature/crm-redesign | ✅ |
+| CRM Geo V2: sites.active_geos + geo_rules JSON (migration + SiteGeoController) | feature/crm-redesign | ✅ |
+| CRM Geo V2: SiteGeoController — addGeo/removeGeo/saveRules/toggleVisibility | feature/crm-redesign | ✅ |
+| CRM Geo V2: geo rules matrix UI в Settings tab + remove geo button в Data tab | feature/crm-redesign | ✅ |
+| CRM Users: permissions form redesign (_perm_form.blade.php vibeB grid layout) | feature/crm-redesign | ✅ |
+| CRM site groups show: повний rewrite (видалені .page-toolbar/.role-badge класи) | feature/crm-redesign | ✅ |
 
 ## 🔲 Залишилось (Sprint 04)
 
@@ -89,10 +95,12 @@
 | API auth | Bearer → key_prefix (12) → Hash::check() |
 | API permissions | JSON array в api_keys.permissions (nullable) |
 | Rate limit | RateLimiter 60/min per token, bootstrap/app.php booted() |
-| Tab routing (Laravel) | `?tab=overview\|data\|activity\|settings` — server-side; geo subtab `?country=XX` |
+| Tab routing (Laravel) | `?tab=overview/data/activity/settings` — server-side; geo subtab `?country=XX` |
 | Site Data CRUD | Drawer-based (add/edit) для phones/prices/addresses/socials. Controller redirect via `back()` |
-| Theme cookie | Plain `theme=light\|dark` (whitelisted in `encryptCookies(except)`); inline `<head>` script читає до CSS |
+| Theme cookie | Plain `theme=light/dark` (whitelisted в `encryptCookies(except)`); inline `<head>` script читає до CSS |
 | Design system V2 | Single `public/assets/css/app.css` (~530 рядків) — vibeB tokens 1:1 з `src/styles/crm-theme.css` |
+| Geo system V2 | `sites.active_geos` (JSON ISO array) + `sites.geo_rules` (JSON map visitor→data). Old `geo_mode/geo_countries` збережені для backward-compat з плагіном |
+| Eye-toggle | `is_visible` BOOL DEFAULT 1 на site_phones, site_addresses, site_socials. POST /visibility/{type}/{id} |
 | Plugin sync | CRM→Plugin: pull на page load (>60s) + optional webhook ping |
 | Plugin DB | DATABRIDGE_DB_VERSION='1.2.0'; dbDelta на plugins_loaded prio 5 |
 | Plugin geo | geo_mode/geo_countries у phones/prices/addresses/socials; fail-open |
@@ -118,4 +126,4 @@
 
 ---
 
-*Оновлено: 2026-05-01 | Сесія: crm-redesign-V2-blade-1to1-react*
+*Оновлено: 2026-05-01 | Сесія: crm-redesign-geo-v2-visibility-perms*

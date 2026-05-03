@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Site groups')
+@section('title', 'Групи сайтів')
 
 @section('content')
 <div class="page-stack">
@@ -8,15 +8,15 @@
     {{-- ========= PAGE HEAD ========= --}}
     <div class="page-head">
         <div>
-            <h1 class="page-head__title">Site groups</h1>
-            <p class="page-head__subtitle">Organize sites by agency, client, or purpose.</p>
+            <h1 class="page-head__title">Групи сайтів</h1>
+            <p class="page-head__subtitle">Організуйте сайти за агентством, клієнтом або призначенням.</p>
         </div>
         <div class="page-head__actions">
             <button class="btn btn--primary btn--md" onclick="openDrawer('drawer-group-create')">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                     <path d="M12 5v14M5 12h14"/>
                 </svg>
-                New group
+                Нова група
             </button>
         </div>
     </div>
@@ -28,7 +28,7 @@
     {{-- ========= 2-COL CARDS ========= --}}
     @if($groups->isEmpty())
         <div class="card" style="text-align:center;color:var(--text-3);padding:40px;">
-            No groups yet. Click «New group» to create one.
+            Груп ще немає. Натисніть «Нова група» для створення.
         </div>
     @else
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
@@ -66,15 +66,15 @@
                     {{-- Stats row --}}
                     <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border-2);">
                         <div style="padding:12px 16px;">
-                            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;">Sites</div>
+                            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;">Сайти</div>
                             <div style="font-size:18px;font-weight:600;margin-top:4px;color:var(--text);">{{ $group->sites_count }}</div>
                         </div>
                         <div style="padding:12px 16px;border-left:1px solid var(--border-2);">
-                            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;">Active</div>
+                            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;">Активних</div>
                             <div style="font-size:18px;font-weight:600;margin-top:4px;color:var(--text);">{{ $group->activeSitesCount() ?? $group->sites->where('is_active', true)->count() }}</div>
                         </div>
                         <div style="padding:12px 16px;border-left:1px solid var(--border-2);">
-                            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;">Color</div>
+                            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;">Колір</div>
                             <div style="margin-top:6px;display:flex;align-items:center;gap:6px;">
                                 <span style="width:14px;height:14px;border-radius:3px;background:{{ $color }};"></span>
                                 <span style="font-size:12px;font-family:var(--font-mono);color:var(--text-3);">{{ $color }}</span>
@@ -91,10 +91,10 @@
                                     {{ $s->url ? (parse_url($s->url, PHP_URL_HOST) ?: $s->name) : $s->name }}
                                 </a>
                             @empty
-                                <span style="font-size:11px;color:var(--text-3);">No sites yet</span>
+                                <span style="font-size:11px;color:var(--text-3);">Сайтів ще немає</span>
                             @endforelse
                             @if($extra > 0)
-                                <span style="font-size:11px;color:var(--text-3);padding:4px 8px;">+{{ $extra }} more</span>
+                                <span style="font-size:11px;color:var(--text-3);padding:4px 8px;">+{{ $extra }} ще</span>
                             @endif
                         </div>
                     </div>
@@ -112,7 +112,7 @@
 <div class="drawer-overlay" id="drawer-group-create-overlay" onclick="closeDrawer('drawer-group-create')"></div>
 <div class="drawer" id="drawer-group-create">
     <div class="drawer__header">
-        <span class="drawer__title">New group</span>
+        <span class="drawer__title">Нова група</span>
         <button class="icon-btn" onclick="closeDrawer('drawer-group-create')">✕</button>
     </div>
     <div class="drawer__body">
@@ -122,8 +122,8 @@
         </form>
     </div>
     <div class="drawer__footer">
-        <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-group-create')">Cancel</button>
-        <button type="submit" form="form-group-create" class="btn btn--primary btn--md">Create</button>
+        <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-group-create')">Скасувати</button>
+        <button type="submit" form="form-group-create" class="btn btn--primary btn--md">Створити</button>
     </div>
 </div>
 
@@ -145,10 +145,10 @@
             <form method="POST" action="{{ route('site-groups.destroy', $group) }}" class="drawer__footer-left">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn--danger btn--md"
-                        onclick="return confirm('Delete group «{{ $group->name }}»?')">Delete</button>
+                        onclick="return confirm('Видалити групу «{{ $group->name }}»?')">Видалити</button>
             </form>
-            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-group-{{ $group->id }}')">Cancel</button>
-            <button type="submit" form="form-group-{{ $group->id }}" class="btn btn--primary btn--md">Save</button>
+            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-group-{{ $group->id }}')">Скасувати</button>
+            <button type="submit" form="form-group-{{ $group->id }}" class="btn btn--primary btn--md">Зберегти</button>
         </div>
     </div>
 @endforeach

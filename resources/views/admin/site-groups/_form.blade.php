@@ -1,21 +1,21 @@
 @php $g = $group ?? null; $gid = $g?->id ?? 'new'; $current = old('color', $g?->color ?? '#5b5bf5'); @endphp
 
 <div class="field">
-    <label class="field__label" for="g-name-{{ $gid }}">Group name</label>
+    <label class="field__label" for="g-name-{{ $gid }}">Назва групи</label>
     <input type="text" id="g-name-{{ $gid }}" name="name" class="field__input" required
-           value="{{ old('name', $g?->name) }}" placeholder="Agency: Beacon">
+           value="{{ old('name', $g?->name) }}" placeholder="Агентство: Beacon">
     @error('name')<span style="font-size:12px;color:var(--danger);">{{ $message }}</span>@enderror
 </div>
 
 <div class="field">
-    <label class="field__label" for="g-desc-{{ $gid }}">Description</label>
+    <label class="field__label" for="g-desc-{{ $gid }}">Опис</label>
     <textarea id="g-desc-{{ $gid }}" name="description" class="field__input" rows="3"
               style="resize:vertical;font-family:inherit;">{{ old('description', $g?->description) }}</textarea>
     @error('description')<span style="font-size:12px;color:var(--danger);">{{ $message }}</span>@enderror
 </div>
 
 <div class="field">
-    <label class="field__label">Accent color</label>
+    <label class="field__label">Колір акценту</label>
     <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;" id="g-palette-{{ $gid }}">
         @foreach(['#5b5bf5','#0ea5e9','#10b981','#f59e0b','#e11d48','#a855f7','#0891b2','#84cc16','#ec4899','#71717a'] as $c)
             <button type="button" data-color="{{ $c }}" data-gid="{{ $gid }}"
@@ -40,7 +40,7 @@
 </div>
 
 <div class="field">
-    <label class="field__label" for="g-icon-{{ $gid }}">Icon (emoji, optional)</label>
+    <label class="field__label" for="g-icon-{{ $gid }}">Іконка (емодзі, необов'язково)</label>
     <input type="text" id="g-icon-{{ $gid }}" name="icon" class="field__input"
            value="{{ old('icon', $g?->icon) }}" placeholder="🏢" maxlength="8">
 </div>

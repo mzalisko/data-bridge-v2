@@ -15,7 +15,7 @@
     <div class="page-head">
         <div>
             <div class="page-head__crumb">
-                <a href="{{ route('site-groups.index') }}">Site groups</a> /
+                <a href="{{ route('site-groups.index') }}">Групи сайтів</a> /
                 <span style="color:var(--text);">{{ $siteGroup->name }}</span>
             </div>
             <h1 class="page-head__title">
@@ -29,8 +29,8 @@
             @endif
         </div>
         <div class="page-head__actions">
-            <a href="{{ route('site-groups.index') }}" class="btn btn--ghost btn--md">← Back</a>
-            <button class="btn btn--primary btn--md" onclick="openDrawer('drawer-group-edit')">Edit group</button>
+            <a href="{{ route('site-groups.index') }}" class="btn btn--ghost btn--md">← Назад</a>
+            <button class="btn btn--primary btn--md" onclick="openDrawer('drawer-group-edit')">Редагувати групу</button>
         </div>
     </div>
 
@@ -39,17 +39,17 @@
     {{-- ========= STAT CARDS ========= --}}
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
         <div class="stat-card">
-            <div class="stat-card__label">Total sites</div>
+            <div class="stat-card__label">Всього сайтів</div>
             <div class="stat-card__row"><span class="stat-card__value">{{ $sites->count() }}</span></div>
-            <div class="stat-card__delta">in this group</div>
+            <div class="stat-card__delta">у цій групі</div>
         </div>
         <div class="stat-card">
-            <div class="stat-card__label">Active</div>
+            <div class="stat-card__label">Активних</div>
             <div class="stat-card__row"><span class="stat-card__value" style="color:var(--success);">{{ $activeSites }}</span></div>
-            <div class="stat-card__delta">{{ $inactiveSites }} disabled</div>
+            <div class="stat-card__delta">{{ $inactiveSites }} вимкнений</div>
         </div>
         <div class="stat-card">
-            <div class="stat-card__label">Color</div>
+            <div class="stat-card__label">Колір</div>
             <div class="stat-card__row" style="margin-top:8px;">
                 <span style="display:inline-flex;align-items:center;gap:8px;">
                     <span style="width:24px;height:24px;border-radius:6px;background:{{ $color }};border:1px solid var(--border);"></span>
@@ -62,16 +62,16 @@
     {{-- ========= SITES IN GROUP ========= --}}
     <div class="card card--flush">
         <div class="section-head">
-            <h3 class="section-head__title">Sites in this group</h3>
-            <a href="{{ route('sites.index', ['group_id' => $siteGroup->id]) }}" class="section-head__link">All sites with filter →</a>
+            <h3 class="section-head__title">Сайти в цій групі</h3>
+            <a href="{{ route('sites.index', ['group_id' => $siteGroup->id]) }}" class="section-head__link">Всі сайти з фільтром →</a>
         </div>
         <div style="overflow:auto;">
             <table class="crm-table">
                 <thead>
                     <tr>
-                        <th>Site</th>
-                        <th>Status</th>
-                        <th>Added</th>
+                        <th>Сайт</th>
+                        <th>Статус</th>
+                        <th>Додано</th>
                         <th style="width:40px;"></th>
                     </tr>
                 </thead>
@@ -92,7 +92,7 @@
                             <td><span style="color:var(--text-3);font-size:12px;">→</span></td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">No sites in this group yet</td></tr>
+                        <tr><td colspan="4" style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">У групі ще немає сайтів</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -114,12 +114,12 @@
         </form>
     </div>
     <div class="drawer__footer">
-        <form method="POST" action="{{ route('site-groups.destroy', $siteGroup) }}" class="drawer__footer-left" onsubmit="return confirm('Delete group «{{ $siteGroup->name }}»?')">
+        <form method="POST" action="{{ route('site-groups.destroy', $siteGroup) }}" class="drawer__footer-left" onsubmit="return confirm('Видалити групу «{{ $siteGroup->name }}»?')">
             @csrf @method('DELETE')
-            <button type="submit" class="btn btn--danger btn--md">Delete</button>
+            <button type="submit" class="btn btn--danger btn--md">Видалити</button>
         </form>
-        <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-group-edit')">Cancel</button>
-        <button type="submit" form="form-group-edit" class="btn btn--primary btn--md">Save</button>
+        <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-group-edit')">Скасувати</button>
+        <button type="submit" form="form-group-edit" class="btn btn--primary btn--md">Зберегти</button>
     </div>
 </div>
 

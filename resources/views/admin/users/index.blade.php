@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'Team')
+@section('title', 'Команда')
 
 @section('content')
 @php
     $rolePalette = [
-        'admin'   => ['bg' => 'var(--accent-2)',  'fg' => 'var(--accent-text)', 'label' => 'Admin'],
-        'manager' => ['bg' => 'var(--warning-bg)','fg' => 'var(--warning)',     'label' => 'Manager'],
-        'editor'  => ['bg' => 'var(--success-bg)','fg' => 'var(--success)',     'label' => 'Editor'],
-        'viewer'  => ['bg' => 'var(--panel-2)',   'fg' => 'var(--text-3)',      'label' => 'Viewer'],
+        'admin'   => ['bg' => 'var(--accent-2)',  'fg' => 'var(--accent-text)', 'label' => 'Адмін'],
+        'manager' => ['bg' => 'var(--warning-bg)','fg' => 'var(--warning)',     'label' => 'Менеджер'],
+        'editor'  => ['bg' => 'var(--success-bg)','fg' => 'var(--success)',     'label' => 'Редактор'],
+        'viewer'  => ['bg' => 'var(--panel-2)',   'fg' => 'var(--text-3)',      'label' => 'Спостерігач'],
     ];
     $totalCount    = \App\Models\User::count();
     $activeCount   = \App\Models\User::where('is_active', true)->count();
@@ -20,13 +20,13 @@
     {{-- ========= PAGE HEAD ========= --}}
     <div class="page-head">
         <div>
-            <h1 class="page-head__title">Team</h1>
-            <p class="page-head__subtitle">{{ $totalCount }} members · {{ $activeCount }} active</p>
+            <h1 class="page-head__title">Команда</h1>
+            <p class="page-head__subtitle">{{ $totalCount }} учасників · {{ $activeCount }} активних</p>
         </div>
         <div class="page-head__actions">
             <button class="btn btn--primary btn--md" onclick="openDrawer('drawer-user-create')">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                Invite member
+                Запросити учасника
             </button>
         </div>
     </div>
@@ -45,11 +45,11 @@
                         <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
                     </svg>
                 </span>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name or email…">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Пошук за іменем або email…">
             </div>
             <div class="select-wrap">
                 <select name="role" onchange="this.form.submit()">
-                    <option value="">All roles</option>
+                    <option value="">Всі ролі</option>
                     @foreach($rolePalette as $key => $r)
                         <option value="{{ $key }}" {{ request('role') === $key ? 'selected' : '' }}>{{ $r['label'] }}</option>
                     @endforeach
@@ -58,9 +58,9 @@
             </div>
             <div class="select-wrap">
                 <select name="status" onchange="this.form.submit()">
-                    <option value="">All statuses</option>
-                    <option value="active"   {{ request('status') === 'active'   ? 'selected' : '' }}>Active</option>
-                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Disabled</option>
+                    <option value="">Всі статуси</option>
+                    <option value="active"   {{ request('status') === 'active'   ? 'selected' : '' }}>Активний</option>
+                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Вимкнений</option>
                 </select>
                 <span class="select-wrap__chevron"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 9 6 6 6-6"/></svg></span>
             </div>
@@ -73,10 +73,10 @@
             <table class="crm-table">
                 <thead>
                     <tr>
-                        <th>Member</th>
-                        <th>Role</th>
-                        <th>Status</th>
-                        <th>Added</th>
+                        <th>Учасник</th>
+                        <th>Роль</th>
+                        <th>Статус</th>
+                        <th>Доданий</th>
                         <th style="width:80px;"></th>
                     </tr>
                 </thead>
@@ -105,20 +105,20 @@
                             </td>
                             <td>
                                 @if($user->is_active)
-                                    <span class="pill pill--success"><span class="dot dot--success"></span>Active</span>
+                                    <span class="pill pill--success"><span class="dot dot--success"></span>Активний</span>
                                 @else
-                                    <span class="pill pill--neutral"><span class="dot dot--muted"></span>Disabled</span>
+                                    <span class="pill pill--neutral"><span class="dot dot--muted"></span>Вимкнений</span>
                                 @endif
                             </td>
                             <td style="color:var(--text-3);font-size:12px;">{{ $user->created_at->format('d M Y') }}</td>
                             <td onclick="event.stopPropagation()">
                                 <div style="display:flex;gap:4px;">
-                                    <button class="icon-btn" title="Permissions" onclick="openPermDrawer({{ $user->id }}, '{{ addslashes($user->name) }}')">
+                                    <button class="icon-btn" title="Права" onclick="openPermDrawer({{ $user->id }}, '{{ addslashes($user->name) }}')">
                                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                                             <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                                         </svg>
                                     </button>
-                                    <button class="icon-btn" title="Edit" onclick="openDrawer('drawer-user-{{ $user->id }}')">
+                                    <button class="icon-btn" title="Редагувати" onclick="openDrawer('drawer-user-{{ $user->id }}')">
                                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/>
                                         </svg>
@@ -127,7 +127,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">No users match the current filters</td></tr>
+                        <tr><td colspan="5" style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">Немає користувачів за вибраними фільтрами</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -143,7 +143,7 @@
 <div class="drawer-overlay" id="drawer-user-create-overlay" onclick="closeDrawer('drawer-user-create')"></div>
 <div class="drawer" id="drawer-user-create">
     <div class="drawer__header">
-        <span class="drawer__title">Invite team member</span>
+        <span class="drawer__title">Запросити учасника команди</span>
         <button class="icon-btn" onclick="closeDrawer('drawer-user-create')">✕</button>
     </div>
     <div class="drawer__body">
@@ -153,8 +153,8 @@
         </form>
     </div>
     <div class="drawer__footer">
-        <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-user-create')">Cancel</button>
-        <button type="submit" form="form-user-create" class="btn btn--primary btn--md">Create user</button>
+        <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-user-create')">Скасувати</button>
+        <button type="submit" form="form-user-create" class="btn btn--primary btn--md">Створити користувача</button>
     </div>
 </div>
 
@@ -176,11 +176,11 @@
             @if($user->id !== auth()->id())
                 <form method="POST" action="{{ route('users.destroy', $user) }}" class="drawer__footer-left" onsubmit="return confirm('Delete user «{{ $user->name }}»?')">
                     @csrf @method('DELETE')
-                    <button type="submit" class="btn btn--danger btn--md">Delete</button>
+                    <button type="submit" class="btn btn--danger btn--md">Видалити користувача</button>
                 </form>
             @endif
-            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-user-{{ $user->id }}')">Cancel</button>
-            <button type="submit" form="form-user-{{ $user->id }}" class="btn btn--primary btn--md">Save</button>
+            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-user-{{ $user->id }}')">Скасувати</button>
+            <button type="submit" form="form-user-{{ $user->id }}" class="btn btn--primary btn--md">Зберегти</button>
         </div>
     </div>
 @endforeach
@@ -189,22 +189,22 @@
 <div class="drawer-overlay" id="drawer-perm-overlay" onclick="closeDrawer('drawer-perm')"></div>
 <div class="drawer" id="drawer-perm">
     <div class="drawer__header">
-        <span class="drawer__title" id="drawer-perm-title">Permissions</span>
+        <span class="drawer__title" id="drawer-perm-title">Права</span>
         <button class="icon-btn" onclick="closeDrawer('drawer-perm')">✕</button>
     </div>
     <div class="drawer__body" id="drawer-perm-body">
         <div style="display:flex;align-items:center;justify-content:center;height:120px;color:var(--text-3);font-size:13px;">Select a user</div>
     </div>
     <div class="drawer__footer">
-        <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-perm')">Cancel</button>
-        <button type="button" class="btn btn--primary btn--md" id="btn-perm-save" onclick="savePermDrawer()">Save permissions</button>
+        <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-perm')">Скасувати</button>
+        <button type="button" class="btn btn--primary btn--md" id="btn-perm-save" onclick="savePermDrawer()">Зберегти права</button>
     </div>
 </div>
 
 @push('scripts')
 <script>
 function openPermDrawer(userId, userName) {
-    document.getElementById('drawer-perm-title').textContent = 'Permissions: ' + userName;
+    document.getElementById('drawer-perm-title').textContent = 'Права: ' + userName;
     document.getElementById('drawer-perm-body').innerHTML =
         '<div style="display:flex;align-items:center;justify-content:center;height:120px;color:var(--text-3);font-size:13px;">Loading…</div>';
     document.getElementById('btn-perm-save').dataset.action = '/users/' + userId + '/permissions';

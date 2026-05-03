@@ -12,6 +12,28 @@
     // Geo top-tab: all | ISO
     $country    = request('country', 'all');
 
+    // Hardcoded ISO map — used in Add Geo drawer + JS (always available, any tab)
+    $allIsoCountries = [
+        'AL'=>'Albania','AM'=>'Armenia','AT'=>'Austria','AZ'=>'Azerbaijan',
+        'BA'=>'Bosnia and Herzegovina','BE'=>'Belgium','BG'=>'Bulgaria','BY'=>'Belarus',
+        'CH'=>'Switzerland','CY'=>'Cyprus','CZ'=>'Czech Republic',
+        'DE'=>'Germany','DK'=>'Denmark','EE'=>'Estonia','ES'=>'Spain',
+        'FI'=>'Finland','FR'=>'France','GB'=>'United Kingdom','GE'=>'Georgia',
+        'GR'=>'Greece','HR'=>'Croatia','HU'=>'Hungary','IE'=>'Ireland',
+        'IL'=>'Israel','IT'=>'Italy','KG'=>'Kyrgyzstan','KZ'=>'Kazakhstan',
+        'LT'=>'Lithuania','LU'=>'Luxembourg','LV'=>'Latvia',
+        'MD'=>'Moldova','ME'=>'Montenegro','MK'=>'North Macedonia','MT'=>'Malta',
+        'NL'=>'Netherlands','NO'=>'Norway','PL'=>'Poland','PT'=>'Portugal',
+        'RO'=>'Romania','RS'=>'Serbia','RU'=>'Russia',
+        'SE'=>'Sweden','SI'=>'Slovenia','SK'=>'Slovakia',
+        'TJ'=>'Tajikistan','TM'=>'Turkmenistan','TR'=>'Turkey',
+        'UA'=>'Ukraine','UZ'=>'Uzbekistan',
+        'AE'=>'UAE','SA'=>'Saudi Arabia','CN'=>'China','IN'=>'India',
+        'JP'=>'Japan','KR'=>'South Korea','US'=>'United States',
+        'CA'=>'Canada','AU'=>'Australia','BR'=>'Brazil','MX'=>'Mexico',
+        'ZA'=>'South Africa','NG'=>'Nigeria','EG'=>'Egypt',
+    ];
+
     // active_geos is {"UA":"Ukraine","RO":"Romania"} or legacy ["UA","RO"] — normalize to assoc.
     $activeGeosRaw = (array) ($site->active_geos ?? []);
     $geoNames = array_is_list($activeGeosRaw)
@@ -892,26 +914,6 @@
 
     {{-- ========= ADD GEO ========= --}}
     @php
-        $allIsoCountries = [
-            'AL'=>'Albania','AM'=>'Armenia','AT'=>'Austria','AZ'=>'Azerbaijan',
-            'BA'=>'Bosnia and Herzegovina','BE'=>'Belgium','BG'=>'Bulgaria','BY'=>'Belarus',
-            'CH'=>'Switzerland','CY'=>'Cyprus','CZ'=>'Czech Republic',
-            'DE'=>'Germany','DK'=>'Denmark','EE'=>'Estonia','ES'=>'Spain',
-            'FI'=>'Finland','FR'=>'France','GB'=>'United Kingdom','GE'=>'Georgia',
-            'GR'=>'Greece','HR'=>'Croatia','HU'=>'Hungary','IE'=>'Ireland',
-            'IL'=>'Israel','IT'=>'Italy','KG'=>'Kyrgyzstan','KZ'=>'Kazakhstan',
-            'LT'=>'Lithuania','LU'=>'Luxembourg','LV'=>'Latvia',
-            'MD'=>'Moldova','ME'=>'Montenegro','MK'=>'North Macedonia','MT'=>'Malta',
-            'NL'=>'Netherlands','NO'=>'Norway','PL'=>'Poland','PT'=>'Portugal',
-            'RO'=>'Romania','RS'=>'Serbia','RU'=>'Russia',
-            'SE'=>'Sweden','SI'=>'Slovenia','SK'=>'Slovakia',
-            'TJ'=>'Tajikistan','TM'=>'Turkmenistan','TR'=>'Turkey',
-            'UA'=>'Ukraine','UZ'=>'Uzbekistan',
-            'AE'=>'UAE','SA'=>'Saudi Arabia','CN'=>'China','IN'=>'India',
-            'JP'=>'Japan','KR'=>'South Korea','US'=>'United States',
-            'CA'=>'Canada','AU'=>'Australia','BR'=>'Brazil','MX'=>'Mexico',
-            'ZA'=>'South Africa','NG'=>'Nigeria','EG'=>'Egypt',
-        ];
         $quickPickIsos  = ['UA', 'RU', 'BY', 'RO'];
         $availableQuick = array_values(array_filter($quickPickIsos, fn($iso) => !in_array($iso, $usedIso, true)));
     @endphp
@@ -929,33 +931,27 @@
                 </p>
                 <div style="display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:end;">
                     <div class="field" style="margin:0;">
-                        <label class="field__label" for="geo-pick">ISO code</label>
+                        <label class="field__label" for="geo-pick">ISO код</label>
                         <input type="text" name="country_iso" id="geo-pick" class="field__input"
-                               list="geo-all-iso" placeholder="UA" maxlength="2" required autocomplete="off"
+                               placeholder="UA" maxlength="2" required autocomplete="off"
                                oninput="this.value=this.value.toUpperCase();geoPickAutoName(this.value)"
                                style="font-family:var(--font-mono);font-weight:700;letter-spacing:.1em;text-align:center;">
-                        <datalist id="geo-all-iso">
-                            @foreach($allIsoCountries as $iso => $name)
-                                @if(!in_array($iso, $usedIso, true))
-                                    <option value="{{ $iso }}">{{ $iso }} — {{ $name }}</option>
-                                @endif
-                            @endforeach
-                        </datalist>
                     </div>
                     <div class="field" style="margin:0;">
-                        <label class="field__label" for="geo-name">Country name</label>
+                        <label class="field__label" for="geo-name">Назва країни</label>
                         <input type="text" name="country_name" id="geo-name" class="field__input"
-                               placeholder="Ukraine, Romania…" maxlength="60" autocomplete="off">
+                               placeholder="Україна, Румунія…" maxlength="60" autocomplete="off">
                     </div>
                 </div>
 
                 @if(count($availableQuick) > 0)
                     <div style="margin-top:18px;">
-                        <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Quick pick</div>
+                        <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Швидкий вибір</div>
                         <div style="display:flex;flex-wrap:wrap;gap:6px;">
                             @foreach($availableQuick as $iso)
+                                @php $qName = $allIsoCountries[$iso] ?? $iso; @endphp
                                 <button type="button"
-                                        onclick="document.getElementById('geo-pick').value='{{ $iso }}';"
+                                        onclick="document.getElementById('geo-pick').value='{{ $iso }}';document.getElementById('geo-name').value='{{ $qName }}';"
                                         style="padding:5px 10px;background:var(--panel-2);border:1px solid var(--border);border-radius:99px;font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-2);cursor:pointer;">
                                     {{ $iso }}
                                 </button>

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Activity log')
+@section('title', 'Журнал активності')
 
 @section('content')
 <div class="page-stack">
@@ -8,23 +8,23 @@
     {{-- ========= PAGE HEAD ========= --}}
     <div class="page-head">
         <div>
-            <h1 class="page-head__title">Activity log</h1>
-            <p class="page-head__subtitle">Everything that happened across your sites and team.</p>
+            <h1 class="page-head__title">Журнал активності</h1>
+            <p class="page-head__subtitle">Всі події по сайтах та команді.</p>
         </div>
         <div class="page-head__actions">
             <button class="btn btn--secondary btn--md">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 4v11"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/>
                 </svg>
-                Export log
+                Експорт журналу
             </button>
         </div>
     </div>
 
     {{-- ========= SOURCE TABS ========= --}}
     <div class="region-tabs" style="border-bottom:none;background:transparent;padding:0;">
-        <a href="{{ route('logs.system') }}" class="{{ request()->routeIs('logs.system') ? 'is-active' : '' }}">System events</a>
-        <a href="{{ route('logs.sync') }}" class="{{ request()->routeIs('logs.sync') ? 'is-active' : '' }}">Sync events</a>
+        <a href="{{ route('logs.system') }}" class="{{ request()->routeIs('logs.system') ? 'is-active' : '' }}">Системні події</a>
+        <a href="{{ route('logs.sync') }}" class="{{ request()->routeIs('logs.sync') ? 'is-active' : '' }}">Синхронізації</a>
     </div>
 
     {{-- ========= MAIN CARD ========= --}}
@@ -38,13 +38,13 @@
                         <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
                     </svg>
                 </span>
-                <input type="text" name="event" value="{{ request('event') }}" placeholder="Search log…">
+                <input type="text" name="event" value="{{ request('event') }}" placeholder="Пошук по журналу…">
             </div>
             <div class="select-wrap">
                 <select name="level" onchange="this.form.submit()">
-                    <option value="">All levels</option>
-                    @foreach(['info', 'warning', 'error', 'debug'] as $lvl)
-                        <option value="{{ $lvl }}" {{ request('level') === $lvl ? 'selected' : '' }}>{{ ucfirst($lvl) }}</option>
+                    <option value="">Всі статуси</option>
+                    @foreach(['info' => 'Інфо', 'warning' => 'Попередження', 'error' => 'Помилка', 'debug' => 'Налагодження'] as $lvl => $lvlLabel)
+                        <option value="{{ $lvl }}" {{ request('level') === $lvl ? 'selected' : '' }}>{{ $lvlLabel }}</option>
                     @endforeach
                 </select>
                 <span class="select-wrap__chevron">
@@ -52,7 +52,7 @@
                 </span>
             </div>
             <div style="flex:1"></div>
-            <span style="font-size:12px;color:var(--text-3);">{{ $logs->total() }} events</span>
+            <span style="font-size:12px;color:var(--text-3);">{{ $logs->total() }} подій</span>
         </form>
 
         {{-- Rows --}}
@@ -82,7 +82,7 @@
                 <span class="activity-row__kind">{{ $log->level }}</span>
             </div>
         @empty
-            <div style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">No events match the current filters</div>
+            <div style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">Жодної події за вибраними фільтрами</div>
         @endforelse
 
         @if($logs->hasPages())
