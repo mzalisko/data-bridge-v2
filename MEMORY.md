@@ -9,7 +9,7 @@
 - **Версія:** 0.3.0 (Laravel + Sync API, merged to main)
 - **Активний спринт:** Sprint 04 — WP Plugin + CRM Blade redesign V2
 - **Активна гілка:** `feature/crm-redesign` — vibeB Blade redesign V2 (full 1:1 match React archive)
-- **Останній комміт:** `07c65f9` — fix: persist dark theme + Add geo flow + group form redesign
+- **Останній комміт:** `477495c` — feat(geo+phone): active_geos with names, phone form simplified, drawer scroll fix
 - **CRM logic гілка:** `feature/task-plugin-rework` (не злита)
 - **Plugin гілка:** `feature/plugin-redesign-3pages`
 - **Наступний крок:** мерж `feature/crm-redesign` → main + мерж `feature/task-plugin-rework` → main
@@ -61,6 +61,7 @@
 | CRM Geo V2: geo rules matrix UI в Settings tab + remove geo button в Data tab | feature/crm-redesign | ✅ |
 | CRM Users: permissions form redesign (_perm_form.blade.php vibeB grid layout) | feature/crm-redesign | ✅ |
 | CRM site groups show: повний rewrite (видалені .page-toolbar/.role-badge класи) | feature/crm-redesign | ✅ |
+| CRM i18n: повний переклад всіх Blade views на українську (всі сторінки + drawers + confirm dialogs) | feature/crm-redesign | ✅ |
 
 ## 🔲 Залишилось (Sprint 04)
 
@@ -126,4 +127,4 @@
 
 ---
 
-*Оновлено: 2026-05-01 | Сесія: crm-redesign-geo-v2-visibility-perms*
+*Оновлено: 2026-05-04 | Сесія: crm-redesign-i18n-complete*

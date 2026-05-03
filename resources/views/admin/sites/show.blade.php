@@ -87,7 +87,7 @@
     <div class="page-head">
         <div>
             <div class="page-head__crumb">
-                <a href="{{ route('sites.index') }}">Sites</a> / <span style="color:var(--text);">{{ $site->name }}</span>
+                <a href="{{ route('sites.index') }}">Сайти</a> / <span style="color:var(--text);">{{ $site->name }}</span>
             </div>
             <h1 class="page-head__title">
                 <x-favicon :name="$site->name" :size="28"/>
@@ -102,7 +102,7 @@
                         <path d="M14 4h6v6"/><path d="M20 4 10 14"/>
                         <path d="M20 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4"/>
                     </svg>
-                    Open
+                    Відкрити
                 </a>
             @endif
             <button class="btn btn--secondary btn--md">
@@ -110,20 +110,20 @@
                     <path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 4v4h-4"/>
                     <path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 20v-4h4"/>
                 </svg>
-                Resync
+                Синхронізувати
             </button>
-            <button class="btn btn--primary btn--md" onclick="openDrawer('drawer-site-edit')">Push update</button>
+            <button class="btn btn--primary btn--md" onclick="openDrawer('drawer-site-edit')">Оновити дані</button>
         </div>
     </div>
 
     {{-- ========= 5 MINI STATS ========= --}}
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;">
         <div class="card" style="padding:14px 16px;">
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Status</div>
+            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Статус</div>
             <div><x-status-pill :status="$statusName"/></div>
         </div>
         <div class="card" style="padding:14px 16px;">
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Group</div>
+            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Група</div>
             <div style="font-size:14px;font-weight:600;">
                 @if($site->siteGroup)
                     <span class="group-chip">
@@ -136,15 +136,15 @@
             </div>
         </div>
         <div class="card" style="padding:14px 16px;">
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Geos</div>
+            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Гео</div>
             <div style="font-size:18px;font-weight:600;color:var(--text);">{{ count($usedIso) }}</div>
         </div>
         <div class="card" style="padding:14px 16px;">
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Phones</div>
+            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Телефони</div>
             <div style="font-size:18px;font-weight:600;">{{ $site->phones->count() }}</div>
         </div>
         <div class="card" style="padding:14px 16px;">
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Last sync</div>
+            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Остання синхр.</div>
             <div style="font-size:13px;font-weight:600;color:var(--text-2);">{{ $syncWhen }}</div>
         </div>
     </div>
@@ -154,39 +154,39 @@
 
         {{-- ========= TABS — OVERVIEW/DATA/ACTIVITY/SETTINGS ========= --}}
         <div class="tabs">
-            <a href="{{ $url(['tab' => 'overview']) }}" class="tabs__item {{ $tab === 'overview' ? 'is-active' : '' }}">Overview</a>
-            <a href="{{ $url(['tab' => 'data']) }}"     class="tabs__item {{ $tab === 'data'     ? 'is-active' : '' }}">Data</a>
-            <a href="{{ $url(['tab' => 'activity']) }}" class="tabs__item {{ $tab === 'activity' ? 'is-active' : '' }}">Activity</a>
-            <a href="{{ $url(['tab' => 'settings']) }}" class="tabs__item {{ $tab === 'settings' ? 'is-active' : '' }}">Settings</a>
+            <a href="{{ $url(['tab' => 'overview']) }}" class="tabs__item {{ $tab === 'overview' ? 'is-active' : '' }}">Огляд</a>
+            <a href="{{ $url(['tab' => 'data']) }}"     class="tabs__item {{ $tab === 'data'     ? 'is-active' : '' }}">Дані</a>
+            <a href="{{ $url(['tab' => 'activity']) }}" class="tabs__item {{ $tab === 'activity' ? 'is-active' : '' }}">Активність</a>
+            <a href="{{ $url(['tab' => 'settings']) }}" class="tabs__item {{ $tab === 'settings' ? 'is-active' : '' }}">Налаштування</a>
         </div>
 
         {{-- ========= OVERVIEW ========= --}}
         @if($tab === 'overview')
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
                 <div style="background:var(--panel);padding:20px;">
-                    <h4 style="margin:0 0 12px;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Site info</h4>
-                    <div class="kv"><span class="kv__k">Domain</span><span class="kv__v mono">{{ $site->url }}</span></div>
-                    <div class="kv"><span class="kv__k">Group</span><span class="kv__v">{{ $site->siteGroup?->name ?? '—' }}</span></div>
-                    <div class="kv"><span class="kv__k">Status</span><span class="kv__v">{{ $statusName }}</span></div>
-                    <div class="kv"><span class="kv__k">Added</span><span class="kv__v">{{ $site->created_at->format('d M Y') }}</span></div>
+                    <h4 style="margin:0 0 12px;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Інфо про сайт</h4>
+                    <div class="kv"><span class="kv__k">Домен</span><span class="kv__v mono">{{ $site->url }}</span></div>
+                    <div class="kv"><span class="kv__k">Група</span><span class="kv__v">{{ $site->siteGroup?->name ?? '—' }}</span></div>
+                    <div class="kv"><span class="kv__k">Статус</span><span class="kv__v">{{ $statusName }}</span></div>
+                    <div class="kv"><span class="kv__k">Додано</span><span class="kv__v">{{ $site->created_at->format('d M Y') }}</span></div>
                 </div>
                 <div style="background:var(--panel);padding:20px;">
-                    <h4 style="margin:0 0 12px;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Sync health</h4>
-                    <div class="kv"><span class="kv__k">Last sync</span><span class="kv__v">{{ $syncWhen }}</span></div>
-                    <div class="kv"><span class="kv__k">Sync status</span><span class="kv__v">
+                    <h4 style="margin:0 0 12px;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Синхронізація</h4>
+                    <div class="kv"><span class="kv__k">Остання синхр.</span><span class="kv__v">{{ $syncWhen }}</span></div>
+                    <div class="kv"><span class="kv__k">Статус синхр.</span><span class="kv__v">
                         @if($syncLog?->status === 'success')
                             <span class="pill pill--success"><span class="dot dot--success"></span>OK</span>
                         @elseif($syncLog?->status === 'error')
-                            <span class="pill pill--danger"><span class="dot dot--danger"></span>Error</span>
+                            <span class="pill pill--danger"><span class="dot dot--danger"></span>Помилка</span>
                         @else
-                            <span class="pill pill--neutral">No data</span>
+                            <span class="pill pill--neutral">Немає даних</span>
                         @endif
                     </span></div>
-                    <div class="kv"><span class="kv__k">Webhook</span><span class="kv__v">
+                    <div class="kv"><span class="kv__k">Вебхук</span><span class="kv__v">
                         @if($site->plugin_webhook_url)
-                            <span class="pill pill--success"><span class="dot dot--success"></span>Active</span>
+                            <span class="pill pill--success"><span class="dot dot--success"></span>Активний</span>
                         @else
-                            <span class="pill pill--neutral">Not configured</span>
+                            <span class="pill pill--neutral">Не налаштовано</span>
                         @endif
                     </span></div>
                 </div>
@@ -196,8 +196,8 @@
             @if(count($usedIso) > 0)
                 <div style="border-top:1px solid var(--border-2);padding:20px;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-                        <h4 style="margin:0;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Geo coverage</h4>
-                        <span style="font-size:12px;color:var(--text-3);">{{ count($usedIso) }} {{ count($usedIso) === 1 ? 'country' : 'countries' }}</span>
+                        <h4 style="margin:0;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Геопокриття</h4>
+                        <span style="font-size:12px;color:var(--text-3);">{{ count($usedIso) }} {{ count($usedIso) === 1 ? 'країна' : 'країн' }}</span>
                     </div>
                     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;">
                         @foreach($usedIso as $iso)
@@ -216,7 +216,7 @@
                                 <span style="width:34px;height:34px;border-radius:8px;background:var(--accent-2);color:var(--accent-text);font-family:var(--font-mono);font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">{{ $iso }}</span>
                                 <div style="min-width:0;flex:1;">
                                     <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $showCName ? $cName : 'Country '.$iso }}</div>
-                                    <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);">{{ $totalG }} {{ $totalG === 1 ? 'item' : 'items' }}</div>
+                                    <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);">{{ $totalG }} {{ $totalG === 1 ? 'запис' : 'записів' }}</div>
                                 </div>
                             </a>
                         @endforeach
@@ -224,7 +224,7 @@
                 </div>
 
                 <div style="border-top:1px solid var(--border-2);padding:20px;display:flex;flex-direction:column;gap:16px;">
-                    <h4 style="margin:0;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Data by geo</h4>
+                    <h4 style="margin:0;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Дані по гео</h4>
 
                     @foreach($usedIso as $iso)
                         @php
@@ -243,11 +243,11 @@
                                     @if($showCName2)<span style="font-size:13px;font-weight:600;color:var(--text);">{{ $cName }}</span>@endif
                                 </div>
                                 <div style="display:flex;gap:6px;align-items:center;">
-                                    <span class="pill pill--neutral">{{ $geoPhones->count() }} phones</span>
-                                    <span class="pill pill--neutral">{{ $geoPrices->count() }} prices</span>
-                                    <span class="pill pill--neutral">{{ $geoAddrs->count() }} addr</span>
-                                    <span class="pill pill--neutral">{{ $geoSocial->count() }} socials</span>
-                                    <a href="{{ $url(['country' => $iso, 'tab' => 'data']) }}" class="btn btn--ghost btn--sm">Manage →</a>
+                                    <span class="pill pill--neutral">{{ $geoPhones->count() }} тел.</span>
+                                    <span class="pill pill--neutral">{{ $geoPrices->count() }} ціни</span>
+                                    <span class="pill pill--neutral">{{ $geoAddrs->count() }} адр.</span>
+                                    <span class="pill pill--neutral">{{ $geoSocial->count() }} соц.</span>
+                                    <a href="{{ $url(['country' => $iso, 'tab' => 'data']) }}" class="btn btn--ghost btn--sm">Керувати →</a>
                                 </div>
                             </div>
 
@@ -256,7 +256,7 @@
 
                                 {{-- Phones col --}}
                                 <div style="background:var(--panel);padding:14px 16px;min-height:80px;">
-                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Phones</div>
+                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Телефони</div>
                                     @forelse($geoPhones as $p)
                                         <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-2);padding:3px 0;display:flex;align-items:center;gap:6px;">
                                             <span>+{{ $p->dial_code }} {{ $p->number }}</span>
@@ -269,7 +269,7 @@
 
                                 {{-- Prices col --}}
                                 <div style="background:var(--panel);padding:14px 16px;min-height:80px;">
-                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Prices</div>
+                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Ціни</div>
                                     @forelse($geoPrices as $p)
                                         <div style="font-size:12px;color:var(--text-2);padding:3px 0;">
                                             @if($p->label)<span>{{ $p->label }} — </span>@endif
@@ -282,7 +282,7 @@
 
                                 {{-- Addresses col --}}
                                 <div style="background:var(--panel);padding:14px 16px;min-height:80px;">
-                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Addresses</div>
+                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Адреси</div>
                                     @forelse($geoAddrs as $a)
                                         <div style="font-size:12px;color:var(--text-2);padding:3px 0;">
                                             {{ trim(($a->city ?? '').' '.($a->street ?? '').' '.($a->building ?? '')) ?: '—' }}
@@ -294,7 +294,7 @@
 
                                 {{-- Socials col --}}
                                 <div style="background:var(--panel);padding:14px 16px;min-height:80px;">
-                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Socials</div>
+                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Соцмережі</div>
                                     <div style="display:flex;flex-wrap:wrap;gap:6px;">
                                         @forelse($geoSocial as $s)
                                             @php
@@ -316,7 +316,7 @@
                 </div>
             @else
                 <div style="border-top:1px solid var(--border-2);padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">
-                    No geo data yet. <a href="{{ $url(['tab' => 'data']) }}" style="color:var(--accent);">Add data →</a>
+                    Ще немає гео-даних. <a href="{{ $url(['tab' => 'data']) }}" style="color:var(--accent);">Додати дані →</a>
                 </div>
             @endif
         @endif
@@ -333,7 +333,7 @@
                           color:{{ $country === 'all' ? 'var(--text)' : 'var(--text-3)' }};
                           font-weight:{{ $country === 'all' ? '600' : '500' }};">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a13 13 0 0 1 0 18M12 3a13 13 0 0 0 0 18"/></svg>
-                    All geos
+                    Всі гео
                 </a>
                 @foreach($usedIso as $iso)
                     @php $cName = ($geoNames[$iso] && $geoNames[$iso] !== $iso) ? $geoNames[$iso] : ($countriesByIso[$iso]->name ?? $iso); @endphp
@@ -351,13 +351,13 @@
                 @if($country !== 'all')
                     <button type="button" class="btn btn--ghost btn--sm" style="white-space:nowrap;color:var(--danger);" onclick="openDrawer('drawer-geo-remove-{{ $country }}')">
                         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
-                        Remove {{ $country }}
+                        Видалити {{ $country }}
                     </button>
                 @endif
 
                 <button class="btn btn--ghost btn--sm" type="button" style="white-space:nowrap;" onclick="openDrawer('drawer-geo-add')">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                    Add geo
+                    Додати гео
                 </button>
             </div>
 
@@ -370,7 +370,7 @@
                 @endphp
                 <h3 style="margin:0;font-size:15px;font-weight:600;color:var(--text);display:inline-flex;align-items:center;gap:8px;">
                     @if($country === 'all')
-                        All geos
+                        Всі гео
                     @else
                         <span style="font-family:var(--font-mono);background:var(--accent-2);color:var(--accent-text);padding:2px 8px;border-radius:6px;font-size:13px;">{{ $country }}</span>
                         @if($showName)<span>{{ $headerName }}</span>@endif
@@ -379,19 +379,19 @@
 
                 {{-- ===== PHONES ===== --}}
                 <div style="display:flex;flex-direction:column;gap:8px;">
-                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Phones</span>
+                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Телефони</span>
                     @forelse($shownPhones as $p)
                         <div style="display:flex;gap:8px;align-items:center;">
                             <div class="input input--mono" style="flex:1;cursor:pointer;" onclick="openDrawer('drawer-phone-{{ $p->id }}')">
                                 <input type="text" value="+{{ $p->dial_code }} {{ $p->number }}" readonly style="cursor:pointer;">
                             </div>
-                            @if($p->is_primary)<span class="pill pill--accent">Primary</span>@endif
+                            @if($p->is_primary)<span class="pill pill--accent">Основний</span>@endif
                             <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-phone-{{ $p->id }}')">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
                             </button>
                             <form method="POST" action="{{ route('sites.visibility.toggle', [$site, 'phones', $p->id]) }}" style="margin:0;">
                                 @csrf
-                                <button type="submit" class="icon-btn" title="{{ ($p->is_visible ?? true) ? 'Hide on site' : 'Show on site' }}" style="color:{{ ($p->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
+                                <button type="submit" class="icon-btn" title="{{ ($p->is_visible ?? true) ? 'Приховати' : 'Показати' }}" style="color:{{ ($p->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
                                     @if($p->is_visible ?? true)
                                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                                     @else
@@ -399,7 +399,7 @@
                                     @endif
                                 </button>
                             </form>
-                            <form method="POST" action="{{ route('phones.destroy', [$site, $p]) }}" style="margin:0;" onsubmit="return confirm('Delete this phone?')">
+                            <form method="POST" action="{{ route('phones.destroy', [$site, $p]) }}" style="margin:0;" onsubmit="return confirm('Видалити цей телефон?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
@@ -407,21 +407,21 @@
                             </form>
                         </div>
                     @empty
-                        <div style="color:var(--text-3);font-size:12px;">No phones for this geo.</div>
+                        <div style="color:var(--text-3);font-size:12px;">Немає телефонів для цього гео.</div>
                     @endforelse
                     <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openPhoneCreate('{{ $country }}')">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                        Add phone
+                        Додати телефон
                     </button>
                 </div>
 
                 {{-- ===== PRICES ===== --}}
                 <div style="display:flex;flex-direction:column;gap:8px;">
-                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Prices</span>
+                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Ціни</span>
                     @forelse($shownPrices as $p)
                         <div style="display:flex;gap:8px;align-items:center;">
                             <div class="input" style="flex:1;cursor:pointer;" onclick="openDrawer('drawer-price-{{ $p->id }}')">
-                                <input type="text" value="{{ $p->label ?? '' }}" placeholder="Label" readonly style="cursor:pointer;">
+                                <input type="text" value="{{ $p->label ?? '' }}" placeholder="Мітка" readonly style="cursor:pointer;">
                             </div>
                             <div class="input input--mono" style="width:140px;cursor:pointer;" onclick="openDrawer('drawer-price-{{ $p->id }}')">
                                 <input type="text" value="{{ $p->amount ?? '' }} {{ $p->currency ?? '' }}" readonly style="cursor:pointer;">
@@ -431,7 +431,7 @@
                             </button>
                             <form method="POST" action="{{ route('sites.visibility.toggle', [$site, 'prices', $p->id]) }}" style="margin:0;">
                                 @csrf
-                                <button type="submit" class="icon-btn" title="{{ ($p->is_visible ?? true) ? 'Hide' : 'Show' }}" style="color:{{ ($p->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
+                                <button type="submit" class="icon-btn" title="{{ ($p->is_visible ?? true) ? 'Приховати' : 'Показати' }}" style="color:{{ ($p->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
                                     @if($p->is_visible ?? true)
                                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                                     @else
@@ -439,7 +439,7 @@
                                     @endif
                                 </button>
                             </form>
-                            <form method="POST" action="{{ route('prices.destroy', [$site, $p]) }}" style="margin:0;" onsubmit="return confirm('Delete this price?')">
+                            <form method="POST" action="{{ route('prices.destroy', [$site, $p]) }}" style="margin:0;" onsubmit="return confirm('Видалити цю ціну?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
@@ -447,28 +447,28 @@
                             </form>
                         </div>
                     @empty
-                        <div style="color:var(--text-3);font-size:12px;">No prices for this geo.</div>
+                        <div style="color:var(--text-3);font-size:12px;">Немає цін для цього гео.</div>
                     @endforelse
                     <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openDrawer('drawer-price-create')">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                        Add price
+                        Додати ціну
                     </button>
                 </div>
 
                 {{-- ===== ADDRESSES ===== --}}
                 <div style="display:flex;flex-direction:column;gap:8px;">
-                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Addresses</span>
+                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Адреси</span>
                     @forelse($shownAddresses as $a)
                         <div style="display:flex;gap:8px;align-items:center;">
                             <div class="input" style="flex:1;cursor:pointer;" onclick="openDrawer('drawer-addr-{{ $a->id }}')">
-                                <input type="text" value="{{ trim(($a->city ?? '').' '.($a->street ?? '').' '.($a->building ?? '')) }}" placeholder="Address" readonly style="cursor:pointer;">
+                                <input type="text" value="{{ trim(($a->city ?? '').' '.($a->street ?? '').' '.($a->building ?? '')) }}" placeholder="Адреса" readonly style="cursor:pointer;">
                             </div>
                             <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-addr-{{ $a->id }}')">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
                             </button>
                             <form method="POST" action="{{ route('sites.visibility.toggle', [$site, 'addresses', $a->id]) }}" style="margin:0;">
                                 @csrf
-                                <button type="submit" class="icon-btn" title="{{ ($a->is_visible ?? true) ? 'Hide' : 'Show' }}" style="color:{{ ($a->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
+                                <button type="submit" class="icon-btn" title="{{ ($a->is_visible ?? true) ? 'Приховати' : 'Показати' }}" style="color:{{ ($a->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
                                     @if($a->is_visible ?? true)
                                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                                     @else
@@ -476,7 +476,7 @@
                                     @endif
                                 </button>
                             </form>
-                            <form method="POST" action="{{ route('addresses.destroy', [$site, $a]) }}" style="margin:0;" onsubmit="return confirm('Delete this address?')">
+                            <form method="POST" action="{{ route('addresses.destroy', [$site, $a]) }}" style="margin:0;" onsubmit="return confirm('Видалити цю адресу?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
@@ -484,17 +484,17 @@
                             </form>
                         </div>
                     @empty
-                        <div style="color:var(--text-3);font-size:12px;">No addresses for this geo.</div>
+                        <div style="color:var(--text-3);font-size:12px;">Немає адрес для цього гео.</div>
                     @endforelse
                     <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openDrawer('drawer-addr-create')">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                        Add address
+                        Додати адресу
                     </button>
                 </div>
 
                 {{-- ===== SOCIAL MEDIA ===== --}}
                 <div style="display:flex;flex-direction:column;gap:8px;">
-                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Social media</span>
+                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Соцмережі</span>
                     @forelse($shownSocials as $s)
                         @php
                             $key = strtolower($s->platform ?? '');
@@ -512,7 +512,7 @@
                             </button>
                             <form method="POST" action="{{ route('sites.visibility.toggle', [$site, 'socials', $s->id]) }}" style="margin:0;">
                                 @csrf
-                                <button type="submit" class="icon-btn" title="{{ ($s->is_visible ?? true) ? 'Hide' : 'Show' }}" style="color:{{ ($s->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
+                                <button type="submit" class="icon-btn" title="{{ ($s->is_visible ?? true) ? 'Приховати' : 'Показати' }}" style="color:{{ ($s->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
                                     @if($s->is_visible ?? true)
                                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                                     @else
@@ -520,7 +520,7 @@
                                     @endif
                                 </button>
                             </form>
-                            <form method="POST" action="{{ route('socials.destroy', [$site, $s]) }}" style="margin:0;" onsubmit="return confirm('Delete this social link?')">
+                            <form method="POST" action="{{ route('socials.destroy', [$site, $s]) }}" style="margin:0;" onsubmit="return confirm('Видалити це посилання?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
@@ -528,20 +528,20 @@
                             </form>
                         </div>
                     @empty
-                        <div style="color:var(--text-3);font-size:12px;">No social links for this geo.</div>
+                        <div style="color:var(--text-3);font-size:12px;">Немає посилань для цього гео.</div>
                     @endforelse
                     <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openDrawer('drawer-soc-create')">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                        Add social link
+                        Додати соцмережу
                     </button>
                 </div>
 
                 {{-- Footer --}}
                 <div style="display:flex;justify-content:flex-start;align-items:center;padding-top:14px;border-top:1px solid var(--border-2);">
-                    <span style="font-size:12px;color:var(--text-3);">Last updated {{ $site->updated_at?->diffForHumans() ?? '—' }} · changes auto-push to site</span>
+                    <span style="font-size:12px;color:var(--text-3);">Оновлено {{ $site->updated_at?->diffForHumans() ?? '—' }} · зміни автоматично відправляються на сайт</span>
                     <div style="display:none;">
-                        <button class="btn btn--ghost btn--md" type="button">Cancel</button>
-                        <button class="btn btn--primary btn--md" type="button">Save & push</button>
+                        <button class="btn btn--ghost btn--md" type="button">Скасувати</button>
+                        <button class="btn btn--primary btn--md" type="button">Зберегти і відправити</button>
                     </div>
                 </div>
             </div>
@@ -561,9 +561,9 @@
                     <span class="activity-row__when">{{ $sync->synced_at?->diffForHumans() ?? '—' }}</span>
                     <div class="activity-row__body">
                         <span class="dot dot--{{ $kind }}"></span>
-                        <span class="activity-row__who-system">system</span>
+                        <span class="activity-row__who-system">система</span>
                         <span class="activity-row__action">
-                            {{ $sync->status === 'success' ? 'synced successfully' : ($sync->status === 'error' ? 'sync failed' : 'sync pending') }}
+                            {{ $sync->status === 'success' ? 'синхронізовано успішно' : ($sync->status === 'error' ? 'помилка синхронізації' : 'синхронізація...') }}
                         </span>
                         @if($sync->duration_ms)
                             <span style="color:var(--text-3);font-size:12px;">· {{ $sync->duration_ms }}ms</span>
@@ -575,7 +575,7 @@
                     <span class="activity-row__kind">{{ $sync->status }}</span>
                 </div>
             @empty
-                <div style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">No activity yet for this site</div>
+                <div style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">Активності ще немає</div>
             @endforelse
         @endif
 
@@ -585,17 +585,17 @@
             {{-- ===== Geo visibility rules ===== --}}
             <div style="padding:20px;border-bottom:1px solid var(--border-2);">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                    <h4 style="margin:0;font-size:13px;font-weight:600;color:var(--text);">Geo visibility rules</h4>
-                    <span style="font-size:11px;color:var(--text-3);">{{ count($usedIso) }} {{ count($usedIso) === 1 ? 'geo' : 'geos' }} active</span>
+                    <h4 style="margin:0;font-size:13px;font-weight:600;color:var(--text);">Правила видимості гео</h4>
+                    <span style="font-size:11px;color:var(--text-3);">{{ count($usedIso) }} {{ count($usedIso) === 1 ? 'гео' : 'гео' }} активних</span>
                 </div>
                 <p style="font-size:12px;color:var(--text-3);margin:0 0 16px;">
-                    For each data geo tab, define which <strong>visitor countries</strong> can see it.
-                    Example: UA data → All except RU, BY. BY data → Only for: RU, BY.
+                    Для кожної гео-вкладки визначте, яким <strong>країнам відвідувачів</strong> вона видна.
+                    Приклад: дані UA → Всім крім RU, BY. Дані BY → Тільки для: RU, BY.
                 </p>
 
                 @if(count($usedIso) === 0)
                     <div style="padding:16px;background:var(--panel-2);border-radius:var(--radius);font-size:12px;color:var(--text-3);">
-                        No active geos. Open the Data tab and click «Add geo» first.
+                        Немає активних гео. Відкрийте вкладку «Дані» та натисніть «Додати гео».
                     </div>
                 @else
                     <form method="POST" action="{{ route('sites.geo-rules.save', $site) }}" id="form-geo-rules">
@@ -615,11 +615,11 @@
                                         @if(isset($countriesByIso[$ruleIso]))
                                             <span style="font-size:12px;color:var(--text-3);">{{ $countriesByIso[$ruleIso]->name ?? '' }}</span>
                                         @endif
-                                        <span style="font-size:11px;color:var(--text-3);margin-left:auto;">data visible to…</span>
+                                        <span style="font-size:11px;color:var(--text-3);margin-left:auto;">дані видно для…</span>
                                     </div>
                                     {{-- Mode radio group --}}
                                     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:0;" id="{{ $prefix }}-modes">
-                                        @foreach(['all' => 'All visitors', 'include' => 'Only for', 'exclude' => 'All except'] as $mVal => $mLabel)
+                                        @foreach(['all' => 'Всім відвідувачам', 'include' => 'Тільки для', 'exclude' => 'Всім крім'] as $mVal => $mLabel)
                                             <label style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--border);border-radius:99px;cursor:pointer;font-size:12px;
                                                           {{ $ruleMode === $mVal ? 'background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;' : 'background:var(--panel-2);color:var(--text-2);' }}">
                                                 <input type="radio" name="geo[{{ $ruleIso }}][mode]" value="{{ $mVal }}"
@@ -646,14 +646,14 @@
                                             @endforeach
                                         </div>
                                         <p style="font-size:11px;color:var(--text-3);margin:6px 0 0;">
-                                            Select visitor countries from your configured list. Any unlisted country follows the default rule.
+                                            Виберіть країни відвідувачів зі свого списку. Будь-яка інша країна підпадає під правило «за замовчуванням».
                                         </p>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
                         <div style="display:flex;justify-content:flex-end;margin-top:12px;">
-                            <button type="submit" class="btn btn--primary btn--sm">Save rules</button>
+                            <button type="submit" class="btn btn--primary btn--sm">Зберегти правила</button>
                         </div>
                     </form>
                 @endif
@@ -664,23 +664,23 @@
                 {{-- Auto-sync --}}
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;">
                     <div>
-                        <div style="font-size:13px;font-weight:500;color:var(--text);">Auto-sync</div>
-                        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Pull updates from this site automatically</div>
+                        <div style="font-size:13px;font-weight:500;color:var(--text);">Авто-синхронізація</div>
+                        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Автоматично отримувати оновлення з сайту</div>
                     </div>
                     <button class="toggle is-on" type="button" onclick="this.classList.toggle('is-on')"></button>
                 </div>
                 {{-- Sync frequency --}}
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-top:1px solid var(--border-2);">
                     <div>
-                        <div style="font-size:13px;font-weight:500;color:var(--text);">Sync frequency</div>
-                        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">How often to pull updates</div>
+                        <div style="font-size:13px;font-weight:500;color:var(--text);">Частота синхронізації</div>
+                        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Як часто отримувати оновлення</div>
                     </div>
                     <div class="select-wrap">
                         <select>
-                            <option>Every 5 min</option>
-                            <option>Every 15 min</option>
-                            <option>Hourly</option>
-                            <option>Manual only</option>
+                            <option>Кожні 5 хв</option>
+                            <option>Кожні 15 хв</option>
+                            <option>Щогодини</option>
+                            <option>Лише вручну</option>
                         </select>
                         <span class="select-wrap__chevron"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 9 6 6 6-6"/></svg></span>
                     </div>
@@ -688,31 +688,31 @@
                 {{-- Allow plugin to push --}}
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-top:1px solid var(--border-2);">
                     <div>
-                        <div style="font-size:13px;font-weight:500;color:var(--text);">Allow plugin to push</div>
-                        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Let the WP plugin write back changes</div>
+                        <div style="font-size:13px;font-weight:500;color:var(--text);">Дозволити плагіну відправляти</div>
+                        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Дозволити WP плагіну записувати зміни</div>
                     </div>
                     <button class="toggle" type="button" onclick="this.classList.toggle('is-on')"></button>
                 </div>
                 {{-- Notify on errors --}}
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-top:1px solid var(--border-2);">
                     <div>
-                        <div style="font-size:13px;font-weight:500;color:var(--text);">Notify on errors</div>
-                        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Email the team if sync fails</div>
+                        <div style="font-size:13px;font-weight:500;color:var(--text);">Сповіщення про помилки</div>
+                        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Надіслати email якщо синхронізація не вдалась</div>
                     </div>
                     <button class="toggle is-on" type="button" onclick="this.classList.toggle('is-on')"></button>
                 </div>
                 {{-- Footer actions --}}
                 <div style="border-top:1px solid var(--border-2);margin-top:6px;padding-top:14px;display:flex;justify-content:space-between;">
-                    <form method="POST" action="{{ route('sites.destroy', $site) }}" onsubmit="return confirm('Delete site «{{ $site->name }}»?')" style="margin:0;">
+                    <form method="POST" action="{{ route('sites.destroy', $site) }}" onsubmit="return confirm('Видалити сайт «{{ $site->name }}»?')" style="margin:0;">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn btn--danger btn--md">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
-                            Remove site
+                            Видалити сайт
                         </button>
                     </form>
                     <form method="POST" action="{{ route('sites.api-key.generate', $site) }}" style="margin:0;">
                         @csrf
-                        <button type="submit" class="btn btn--secondary btn--md">Rotate API key</button>
+                        <button type="submit" class="btn btn--secondary btn--md">Оновити API ключ</button>
                     </form>
                 </div>
             </div>
@@ -749,8 +749,8 @@
         </form>
     </div>
     <div class="drawer__footer">
-        <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-site-edit')">Cancel</button>
-        <button type="submit" form="form-site-edit" class="btn btn--primary btn--md">Save</button>
+        <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-site-edit')">Скасувати</button>
+        <button type="submit" form="form-site-edit" class="btn btn--primary btn--md">Зберегти</button>
     </div>
 </div>
 
@@ -761,7 +761,7 @@
     <div class="drawer-overlay" id="drawer-phone-create-overlay" onclick="closeDrawer('drawer-phone-create')"></div>
     <div class="drawer" id="drawer-phone-create">
         <div class="drawer__header">
-            <span class="drawer__title">Add phone</span>
+            <span class="drawer__title">Додати телефон</span>
             <button class="icon-btn" onclick="closeDrawer('drawer-phone-create')">✕</button>
         </div>
         <div class="drawer__body">
@@ -773,8 +773,8 @@
             </form>
         </div>
         <div class="drawer__footer">
-            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-phone-create')">Cancel</button>
-            <button type="submit" form="form-phone-create" class="btn btn--primary btn--md">Add phone</button>
+            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-phone-create')">Скасувати</button>
+            <button type="submit" form="form-phone-create" class="btn btn--primary btn--md">Додати телефон</button>
         </div>
     </div>
 
@@ -783,7 +783,7 @@
         <div class="drawer-overlay" id="drawer-phone-{{ $p->id }}-overlay" onclick="closeDrawer('drawer-phone-{{ $p->id }}')"></div>
         <div class="drawer" id="drawer-phone-{{ $p->id }}">
             <div class="drawer__header">
-                <span class="drawer__title">Edit phone</span>
+                <span class="drawer__title">Редагувати телефон</span>
                 <button class="icon-btn" onclick="closeDrawer('drawer-phone-{{ $p->id }}')">✕</button>
             </div>
             <div class="drawer__body">
@@ -795,12 +795,12 @@
                 </form>
             </div>
             <div class="drawer__footer">
-                <form method="POST" action="{{ route('phones.destroy', [$site, $p]) }}" class="drawer__footer-left" onsubmit="return confirm('Delete this phone?')">
+                <form method="POST" action="{{ route('phones.destroy', [$site, $p]) }}" class="drawer__footer-left" onsubmit="return confirm('Видалити цей телефон?')">
                     @csrf @method('DELETE')
-                    <button type="submit" class="btn btn--danger btn--md">Delete</button>
+                    <button type="submit" class="btn btn--danger btn--md">Видалити</button>
                 </form>
-                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-phone-{{ $p->id }}')">Cancel</button>
-                <button type="submit" form="form-phone-{{ $p->id }}" class="btn btn--primary btn--md">Save</button>
+                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-phone-{{ $p->id }}')">Скасувати</button>
+                <button type="submit" form="form-phone-{{ $p->id }}" class="btn btn--primary btn--md">Зберегти</button>
             </div>
         </div>
     @endforeach
@@ -809,7 +809,7 @@
     <div class="drawer-overlay" id="drawer-price-create-overlay" onclick="closeDrawer('drawer-price-create')"></div>
     <div class="drawer" id="drawer-price-create">
         <div class="drawer__header">
-            <span class="drawer__title">Add price</span>
+            <span class="drawer__title">Додати ціну</span>
             <button class="icon-btn" onclick="closeDrawer('drawer-price-create')">✕</button>
         </div>
         <div class="drawer__body">
@@ -819,8 +819,8 @@
             </form>
         </div>
         <div class="drawer__footer">
-            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-price-create')">Cancel</button>
-            <button type="submit" form="form-price-create" class="btn btn--primary btn--md">Add price</button>
+            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-price-create')">Скасувати</button>
+            <button type="submit" form="form-price-create" class="btn btn--primary btn--md">Додати ціну</button>
         </div>
     </div>
 
@@ -829,7 +829,7 @@
         <div class="drawer-overlay" id="drawer-price-{{ $p->id }}-overlay" onclick="closeDrawer('drawer-price-{{ $p->id }}')"></div>
         <div class="drawer" id="drawer-price-{{ $p->id }}">
             <div class="drawer__header">
-                <span class="drawer__title">Edit price</span>
+                <span class="drawer__title">Редагувати ціну</span>
                 <button class="icon-btn" onclick="closeDrawer('drawer-price-{{ $p->id }}')">✕</button>
             </div>
             <div class="drawer__body">
@@ -839,12 +839,12 @@
                 </form>
             </div>
             <div class="drawer__footer">
-                <form method="POST" action="{{ route('prices.destroy', [$site, $p]) }}" class="drawer__footer-left" onsubmit="return confirm('Delete this price?')">
+                <form method="POST" action="{{ route('prices.destroy', [$site, $p]) }}" class="drawer__footer-left" onsubmit="return confirm('Видалити цю ціну?')">
                     @csrf @method('DELETE')
-                    <button type="submit" class="btn btn--danger btn--md">Delete</button>
+                    <button type="submit" class="btn btn--danger btn--md">Видалити</button>
                 </form>
-                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-price-{{ $p->id }}')">Cancel</button>
-                <button type="submit" form="form-price-{{ $p->id }}" class="btn btn--primary btn--md">Save</button>
+                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-price-{{ $p->id }}')">Скасувати</button>
+                <button type="submit" form="form-price-{{ $p->id }}" class="btn btn--primary btn--md">Зберегти</button>
             </div>
         </div>
     @endforeach
@@ -853,7 +853,7 @@
     <div class="drawer-overlay" id="drawer-addr-create-overlay" onclick="closeDrawer('drawer-addr-create')"></div>
     <div class="drawer" id="drawer-addr-create">
         <div class="drawer__header">
-            <span class="drawer__title">Add address</span>
+            <span class="drawer__title">Додати адресу</span>
             <button class="icon-btn" onclick="closeDrawer('drawer-addr-create')">✕</button>
         </div>
         <div class="drawer__body">
@@ -863,8 +863,8 @@
             </form>
         </div>
         <div class="drawer__footer">
-            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-addr-create')">Cancel</button>
-            <button type="submit" form="form-addr-create" class="btn btn--primary btn--md">Add address</button>
+            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-addr-create')">Скасувати</button>
+            <button type="submit" form="form-addr-create" class="btn btn--primary btn--md">Додати адресу</button>
         </div>
     </div>
 
@@ -873,7 +873,7 @@
         <div class="drawer-overlay" id="drawer-addr-{{ $a->id }}-overlay" onclick="closeDrawer('drawer-addr-{{ $a->id }}')"></div>
         <div class="drawer" id="drawer-addr-{{ $a->id }}">
             <div class="drawer__header">
-                <span class="drawer__title">Edit address</span>
+                <span class="drawer__title">Редагувати адресу</span>
                 <button class="icon-btn" onclick="closeDrawer('drawer-addr-{{ $a->id }}')">✕</button>
             </div>
             <div class="drawer__body">
@@ -883,12 +883,12 @@
                 </form>
             </div>
             <div class="drawer__footer">
-                <form method="POST" action="{{ route('addresses.destroy', [$site, $a]) }}" class="drawer__footer-left" onsubmit="return confirm('Delete this address?')">
+                <form method="POST" action="{{ route('addresses.destroy', [$site, $a]) }}" class="drawer__footer-left" onsubmit="return confirm('Видалити цю адресу?')">
                     @csrf @method('DELETE')
-                    <button type="submit" class="btn btn--danger btn--md">Delete</button>
+                    <button type="submit" class="btn btn--danger btn--md">Видалити</button>
                 </form>
-                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-addr-{{ $a->id }}')">Cancel</button>
-                <button type="submit" form="form-addr-{{ $a->id }}" class="btn btn--primary btn--md">Save</button>
+                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-addr-{{ $a->id }}')">Скасувати</button>
+                <button type="submit" form="form-addr-{{ $a->id }}" class="btn btn--primary btn--md">Зберегти</button>
             </div>
         </div>
     @endforeach
@@ -897,7 +897,7 @@
     <div class="drawer-overlay" id="drawer-soc-create-overlay" onclick="closeDrawer('drawer-soc-create')"></div>
     <div class="drawer" id="drawer-soc-create">
         <div class="drawer__header">
-            <span class="drawer__title">Add social link</span>
+            <span class="drawer__title">Додати соцмережу</span>
             <button class="icon-btn" onclick="closeDrawer('drawer-soc-create')">✕</button>
         </div>
         <div class="drawer__body">
@@ -907,8 +907,8 @@
             </form>
         </div>
         <div class="drawer__footer">
-            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-soc-create')">Cancel</button>
-            <button type="submit" form="form-soc-create" class="btn btn--primary btn--md">Add link</button>
+            <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-soc-create')">Скасувати</button>
+            <button type="submit" form="form-soc-create" class="btn btn--primary btn--md">Додати посилання</button>
         </div>
     </div>
 
@@ -922,12 +922,12 @@
         <form method="POST" action="{{ route('sites.geos.add', $site) }}" id="form-geo-add">
             @csrf
             <div class="drawer__header">
-                <span class="drawer__title">Add geo</span>
+                <span class="drawer__title">Додати гео</span>
                 <button class="icon-btn" type="button" onclick="closeDrawer('drawer-geo-add')">✕</button>
             </div>
             <div class="drawer__body">
                 <p style="font-size:13px;color:var(--text-2);margin:0 0 16px;">
-                    Pick a country — it appears as a tab where you can add phones, addresses and other data tagged to it.
+                    Оберіть країну — вона з'явиться як вкладка, де можна додавати телефони, адреси та інші дані.
                 </p>
                 <div style="display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:end;">
                     <div class="field" style="margin:0;">
@@ -961,8 +961,8 @@
                 @endif
             </div>
             <div class="drawer__footer">
-                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-geo-add')">Cancel</button>
-                <button type="submit" class="btn btn--primary btn--md">Add geo</button>
+                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-geo-add')">Скасувати</button>
+                <button type="submit" class="btn btn--primary btn--md">Додати гео</button>
             </div>
         </form>
     </div>
@@ -972,17 +972,17 @@
         <div class="drawer-overlay" id="drawer-geo-remove-{{ $removeIso }}-overlay" onclick="closeDrawer('drawer-geo-remove-{{ $removeIso }}')"></div>
         <div class="drawer" id="drawer-geo-remove-{{ $removeIso }}">
             <div class="drawer__header">
-                <span class="drawer__title" style="color:var(--danger);">Remove geo</span>
+                <span class="drawer__title" style="color:var(--danger);">Видалити гео</span>
                 <button class="icon-btn" type="button" onclick="closeDrawer('drawer-geo-remove-{{ $removeIso }}')">✕</button>
             </div>
             <div class="drawer__body">
                 <p style="font-size:13px;color:var(--text-2);margin:0 0 16px;">
-                    You are about to remove the <strong style="font-family:var(--font-mono);">{{ $removeIso }}</strong> tab.
-                    All data records tagged to this geo remain in the database — only the tab disappears.
+                    Ви збираєтесь видалити вкладку <strong style="font-family:var(--font-mono);">{{ $removeIso }}</strong>.
+                    Всі записи даних, прив'язані до цього гео, залишаться в базі ��аних — зникне лише вкладка.
                 </p>
                 <div class="field">
                     <label class="field__label" for="geo-remove-confirm-{{ $removeIso }}">
-                        Type <strong style="font-family:var(--font-mono);color:var(--danger);">{{ $removeIso }}</strong> to confirm
+                        Введіть <strong style="font-family:var(--font-mono);color:var(--danger);">{{ $removeIso }}</strong> для підтвердження
                     </label>
                     <input type="text" id="geo-remove-confirm-{{ $removeIso }}"
                            class="field__input" placeholder="{{ $removeIso }}"
@@ -992,11 +992,11 @@
                 </div>
             </div>
             <div class="drawer__footer">
-                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-geo-remove-{{ $removeIso }}')">Cancel</button>
+                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-geo-remove-{{ $removeIso }}')">Скасувати</button>
                 <form method="POST" action="{{ route('sites.geos.remove', [$site, $removeIso]) }}" style="margin:0;">
                     @csrf @method('DELETE')
                     <button type="submit" id="btn-geo-remove-{{ $removeIso }}" class="btn btn--danger btn--md" disabled>
-                        Remove {{ $removeIso }}
+                        Видалити {{ $removeIso }}
                     </button>
                 </form>
             </div>
@@ -1008,7 +1008,7 @@
         <div class="drawer-overlay" id="drawer-soc-{{ $s->id }}-overlay" onclick="closeDrawer('drawer-soc-{{ $s->id }}')"></div>
         <div class="drawer" id="drawer-soc-{{ $s->id }}">
             <div class="drawer__header">
-                <span class="drawer__title">Edit social link</span>
+                <span class="drawer__title">Редагувати соцмережу</span>
                 <button class="icon-btn" onclick="closeDrawer('drawer-soc-{{ $s->id }}')">✕</button>
             </div>
             <div class="drawer__body">
@@ -1018,12 +1018,12 @@
                 </form>
             </div>
             <div class="drawer__footer">
-                <form method="POST" action="{{ route('socials.destroy', [$site, $s]) }}" class="drawer__footer-left" onsubmit="return confirm('Delete this link?')">
+                <form method="POST" action="{{ route('socials.destroy', [$site, $s]) }}" class="drawer__footer-left" onsubmit="return confirm('Видалити це посилання?')">
                     @csrf @method('DELETE')
-                    <button type="submit" class="btn btn--danger btn--md">Delete</button>
+                    <button type="submit" class="btn btn--danger btn--md">Видалити</button>
                 </form>
-                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-soc-{{ $s->id }}')">Cancel</button>
-                <button type="submit" form="form-soc-{{ $s->id }}" class="btn btn--primary btn--md">Save</button>
+                <button type="button" class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-soc-{{ $s->id }}')">Скасувати</button>
+                <button type="submit" form="form-soc-{{ $s->id }}" class="btn btn--primary btn--md">Зберегти</button>
             </div>
         </div>
     @endforeach
