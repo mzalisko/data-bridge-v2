@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DataBridge — Geo Visibility Demo</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0f0f10;
+      color: #e5e7eb;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ─── LAYOUT ─────────────────────────────────────────── */
+    .app { display: flex; flex-direction: column; min-height: 100vh; }
+
+    .topbar {
+      background: #1c1c1e;
+      border-bottom: 1px solid #2c2c2e;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      height: 58px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-logo {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: -0.3px;
+    }
+    .topbar-logo .accent { color: #6366f1; }
+
+    .topbar-tag {
+      background: #2c2c2e;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #9ca3af;
+    }
+
+    .content {
+      padding: 28px;
+      max-width: 1060px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ─── MAIN TABS ──────────────────────────────────────── */
+    .main-tabs { display: flex; gap: 4px; }
+
+    .tab-btn {
+      padding: 7px 18px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: #6b7280;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover { color: #e5e7eb; background: #2c2c2e; }
+    .tab-btn.active { background: #6366f1; color: #fff; }
+
+    .topbar-stats {
+      margin-left: auto;
+      font-size: 12px;
+      color: #4b5563;
+    }
+
+    /* ─── DATA SUB-TABS ──────────────────────────────────── */
+    .data-tabs {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 20px;
+      background: #1c1c1e;
+      padding: 4px;
+      border-radius: 10px;
+      width: fit-content;
+      border: 1px solid #2c2c2e;
+    }
+
+    .data-tab-btn {
+      padding: 6px 16px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      color: #6b7280;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .data-tab-btn:hover { color: #e5e7eb; }
+    .data-tab-btn.active { background: #2c2c2e; color: #fff; }
+
+    /* ─── SECTION ─────────────────────────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .section-title { font-size: 18px; font-weight: 600; color: #f9fafb; }
+    .section-subtitle { font-size: 13px; color: #6b7280; margin-top: 2px; }
+
+    /* ─── ITEM CARDS ─────────────────────────────────────── */
+    .card-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .item-card {
+      background: #1c1c1e;
+      border-radius: 10px;
+      padding: 12px 16px;
+      border: 1px solid #2c2c2e;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: default;
+      transition: all 0.15s;
+      position: relative;
+      overflow: visible;
+    }
+    .item-card:hover { border-color: #6366f1; background: #1e1e24; }
+    .item-card.dimmed { opacity: 0.4; }
+
+    .item-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      flex-shrink: 0;
+    }
+    .item-icon.phone   { background: rgba(99, 102, 241, 0.12); }
+    .item-icon.price   { background: rgba(16, 185, 129, 0.12); }
+    .item-icon.social  { background: rgba(245, 158, 11, 0.12); }
+
+    .item-info { flex: 1; min-width: 0; }
+    .item-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #f9fafb;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .item-meta { font-size: 12px; color: #6b7280; margin-top: 1px; }
+
+    .item-badges { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+
+    /* ─── BADGES ─────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge.all      { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .badge.include  { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+    .badge.exclude  { background: rgba(239, 68, 68, 0.15);  color: #f87171; }
+    .badge.country  { background: #2c2c2e; color: #9ca3af; }
+    .badge.linked   { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .badge.conflict { background: rgba(239, 68, 68, 0.15);  color: #f87171; }
+
+    /* ─── HOVER TOOLTIP ──────────────────────────────────── */
+    .vis-tooltip {
+      position: absolute;
+      right: 56px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #222226;
+      border: 1px solid #3c3c3e;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 12px;
+      color: #d1d5db;
+      pointer-events: none;
+      z-index: 60;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.15s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .item-card:hover .vis-tooltip { opacity: 1; }
+
+    /* ─── BUTTONS ─────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: #6366f1; color: #fff; }
+    .btn-primary:hover { background: #7c3aed; }
+    .btn-ghost { background: transparent; color: #9ca3af; border: 1px solid #2c2c2e; }
+    .btn-ghost:hover { background: #2c2c2e; color: #e5e7eb; border-color: #3c3c3e; }
+    .btn-ghost.active { background: #6366f1; color: #fff; border-color: transparent; }
+    .btn-danger { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid transparent; }
+    .btn-danger:hover { background: rgba(239,68,68,0.22); }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .btn-icon { padding: 6px 8px; border-radius: 7px; }
+
+    /* ─── FILTER BAR ─────────────────────────────────────── */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .filter-label { font-size: 12px; color: #6b7280; font-weight: 500; }
+
+    /* ─── COUNTRY PICKER ─────────────────────────────────── */
+    .country-picker { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .country-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 26px;
+      border: 2px solid #2c2c2e;
+      background: #1c1c1e;
+      color: #9ca3af;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .country-btn:hover { border-color: #4c4c4e; color: #e5e7eb; }
+    .country-btn.active { border-color: #6366f1; color: #fff; background: rgba(99,102,241,0.1); }
+    .country-flag { font-size: 20px; }
+
+    /* ─── OVERVIEW SECTIONS ──────────────────────────────── */
+    .overview-section {
+      background: #1c1c1e;
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid #2c2c2e;
+      margin-top: 16px;
+    }
+
+    .overview-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      margin-bottom: 14px;
+    }
+
+    .phone-block {
+      background: #222226;
+      border-radius: 10px;
+      padding: 14px 16px;
+      border: 1px solid #2c2c2e;
+      margin-bottom: 8px;
+    }
+    .phone-block:last-child { margin-bottom: 0; }
+
+    .phone-number {
+      font-size: 16px;
+      font-weight: 700;
+      color: #f9fafb;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.2px;
+    }
+
+    .phone-label {
+      font-size: 11px;
+      color: #6b7280;
+      background: #2c2c2e;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    .phone-socials { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .social-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: #2c2c2e;
+      font-size: 12px;
+      color: #d1d5db;
+      border: 1px solid #3c3c3e;
+    }
+
+    .price-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      background: rgba(16,185,129,0.08);
+      border: 1px solid rgba(16,185,129,0.18);
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    .price-chip-value { font-size: 15px; font-weight: 700; color: #10b981; }
+    .price-chip-desc  { font-size: 11px; color: #6ee7b7; opacity: 0.8; margin-top: 1px; }
+
+    .empty-block {
+      text-align: center;
+      padding: 20px;
+      color: #4b5563;
+      font-size: 13px;
+    }
+
+    /* ─── CONCEPT BANNER ─────────────────────────────────── */
+    .concept-banner {
+      background: rgba(99,102,241,0.07);
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .concept-banner-icon { font-size: 24px; flex-shrink: 0; margin-top: 1px; }
+    .concept-banner-title { font-size: 14px; font-weight: 600; color: #a5b4fc; margin-bottom: 4px; }
+    .concept-banner-text { font-size: 13px; color: #9ca3af; line-height: 1.6; }
+    .concept-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .concept-pill {
+      background: rgba(99,102,241,0.12);
+      border: 1px solid rgba(99,102,241,0.2);
+      color: #818cf8;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* ─── MATRIX ─────────────────────────────────────────── */
+    .matrix-wrap {
+      background: #1c1c1e;
+      border-radius: 14px;
+      border: 1px solid #2c2c2e;
+      overflow: hidden;
+    }
+    .matrix-table { width: 100%; border-collapse: collapse; }
+    .matrix-table th,
+    .matrix-table td {
+      padding: 11px 16px;
+      text-align: left;
+      border-bottom: 1px solid #2c2c2e;
+    }
+    .matrix-table th {
+      background: #222226;
+      color: #6b7280;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .matrix-table th.center,
+    .matrix-table td.center { text-align: center; }
+    .matrix-table tr:last-child td { border-bottom: none; }
+    .matrix-table tbody tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .matrix-item-label { font-size: 14px; color: #f9fafb; font-weight: 500; }
+    .matrix-item-sub   { font-size: 12px; color: #6b7280; margin-top: 1px; }
+
+    .matrix-check { font-size: 17px; }
+
+    .matrix-section-divider td {
+      background: #222226 !important;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #4b5563;
+      padding: 7px 16px;
+    }
+
+    /* ─── MODAL ──────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      backdrop-filter: blur(2px);
+    }
+
+    .modal {
+      background: #1c1c1e;
+      border-radius: 18px;
+      padding: 28px;
+      width: 100%;
+      max-width: 500px;
+      border: 1px solid #2c2c2e;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+    }
+
+    .modal-title {
+      font-size: 19px;
+      font-weight: 700;
+      color: #f9fafb;
+      margin-bottom: 22px;
+    }
+
+    /* ─── FORM ───────────────────────────────────────────── */
+    .form-group { margin-bottom: 18px; }
+
+    .form-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #9ca3af;
+      margin-bottom: 7px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .form-input {
+      width: 100%;
+      background: #0f0f10;
+      border: 1px solid #2c2c2e;
+      border-radius: 9px;
+      padding: 10px 13px;
+      color: #e5e7eb;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus { border-color: #6366f1; }
+
+    .form-select {
+      width: 100%;
+      background: #0f0f10;
+      border: 1px solid #2c2c2e;
+      border-radius: 9px;
+      padding: 10px 13px;
+      color: #e5e7eb;
+      font-size: 14px;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%236b7280' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    .form-select:focus { border-color: #6366f1; outline: none; }
+
+    /* ─── VISIBILITY SELECTOR ────────────────────────────── */
+    .vis-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+
+    .vis-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      border-radius: 9px;
+      border: 1px solid #2c2c2e;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .vis-option:hover { border-color: #4c4c4e; }
+    .vis-option.active { border-color: #6366f1; background: rgba(99,102,241,0.07); }
+
+    .vis-radio {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid #3c3c3e;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .vis-option.active .vis-radio { border-color: #6366f1; background: #6366f1; }
+    .vis-option.active .vis-radio::after {
+      content: '';
+      display: block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    .vis-opt-label { font-size: 13px; font-weight: 500; color: #e5e7eb; }
+    .vis-opt-desc  { font-size: 12px; color: #6b7280; margin-top: 1px; }
+
+    .country-checkboxes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+
+    .country-check {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 9px;
+      border: 1px solid #2c2c2e;
+      cursor: pointer;
+      font-size: 13px;
+      color: #9ca3af;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .country-check:hover { border-color: #4c4c4e; color: #e5e7eb; }
+    .country-check.checked { border-color: #6366f1; color: #818cf8; background: rgba(99,102,241,0.08); }
+
+    .country-check-box {
+      width: 14px; height: 14px;
+      border-radius: 4px;
+      border: 1.5px solid #3c3c3e;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .country-check.checked .country-check-box { background: #6366f1; border-color: #6366f1; color: #fff; }
+
+    .actions-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+    .divider { height: 1px; background: #2c2c2e; margin: 8px 0 16px; }
+
+    /* ─── STANDALONE SOCIALS ─────────────────────────────── */
+    .standalone-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .standalone-social-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #222226;
+      border-radius: 10px;
+      border: 1px solid #2c2c2e;
+    }
+    .standalone-social-icon { font-size: 20px; }
+    .standalone-social-name { font-size: 13px; font-weight: 600; color: #f9fafb; }
+    .standalone-social-handle { font-size: 12px; color: #6b7280; }
+
+    /* ─── SCROLLBAR ──────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0f0f10; }
+    ::-webkit-scrollbar-thumb { background: #2c2c2e; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3c3c3e; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+/* ──────────────────────────────────────────────────────────────
+   CONSTANTS
+────────────────────────────────────────────────────────────── */
+
+const COUNTRIES = [
+  { code: 'UA', name: 'Україна',  flag: '🇺🇦' },
+  { code: 'RU', name: 'Росія',    flag: '🇷🇺' },
+  { code: 'RO', name: 'Румунія',  flag: '🇷🇴' },
+];
+
+const PLATFORMS = {
+  telegram:  { label: 'Telegram',  icon: '✈️' },
+  whatsapp:  { label: 'WhatsApp',  icon: '💬' },
+  instagram: { label: 'Instagram', icon: '📸' },
+  viber:     { label: 'Viber',     icon: '📲' },
+};
+
+/* ──────────────────────────────────────────────────────────────
+   MOCK DATA
+────────────────────────────────────────────────────────────── */
+
+const INIT_PHONES = [
+  { id: 1, number: '+380 44 123-45-67', label: 'Kyiv Office',   visibility: { type: 'include', countries: ['UA'] } },
+  { id: 2, number: '+7 495 999-00-11',  label: 'Moscow',        visibility: { type: 'include', countries: ['RU'] } },
+  { id: 3, number: '+40 21 888-77-66',  label: 'Bucharest',     visibility: { type: 'include', countries: ['RO'] } },
+  { id: 4, number: '+1 800 000-00-00',  label: 'Support Line',  visibility: { type: 'all',     countries: []     } },
+];
+
+const INIT_PRICES = [
+  { id: 1, value: 'від 100$',  description: 'Базовий план',  visibility: { type: 'exclude', countries: ['RU']       } },
+  { id: 2, value: 'від 200$',  description: 'Преміум план',  visibility: { type: 'all',     countries: []          } },
+  { id: 3, value: 'від 5000₽', description: 'Для RU-ринку', visibility: { type: 'include', countries: ['RU']       } },
+];
+
+const INIT_SOCIALS = [
+  { id: 1, platform: 'telegram',  handle: '@db_kyiv',      phone_id: 1,   visibility: { type: 'include', countries: ['UA']       } },
+  { id: 2, platform: 'whatsapp',  handle: '+380441234567', phone_id: 1,   visibility: { type: 'include', countries: ['UA']       } },
+  { id: 3, platform: 'viber',     handle: '+7499991234',   phone_id: 2,   visibility: { type: 'include', countries: ['RU']       } },
+  { id: 4, platform: 'telegram',  handle: '@databridge',   phone_id: null,visibility: { type: 'all',     countries: []          } },
+  { id: 5, platform: 'instagram', handle: '@databridge.crm',phone_id: null,visibility: { type: 'exclude', countries: ['RU']      } },
+];
+
+/* ──────────────────────────────────────────────────────────────
+   HELPERS
+────────────────────────────────────────────────────────────── */
+
+let _nextId = 200;
+const uid = () => ++_nextId;
+
+function isVisible(vis, countryCode) {
+  if (vis.type === 'all')     return true;
+  if (vis.type === 'include') return vis.countries.includes(countryCode);
+  if (vis.type === 'exclude') return !vis.countries.includes(countryCode);
+  return false;
+}
+
+function getVisibleIn(vis) {
+  if (vis.type === 'all')     return COUNTRIES.map(c => c.code);
+  if (vis.type === 'include') return vis.countries;
+  if (vis.type === 'exclude') return COUNTRIES.map(c => c.code).filter(c => !vis.countries.includes(c));
+  return [];
+}
+
+function VisibilityBadge({ vis }) {
+  if (vis.type === 'all') {
+    return <span className="badge all">🌍 Всім</span>;
+  }
+  const cc = vis.countries.map(code => {
+    const c = COUNTRIES.find(x => x.code === code);
+    return <span key={code} className="badge country">{c ? c.flag : ''} {code}</span>;
+  });
+  if (vis.type === 'include') {
+    return <>{<span className="badge include">Тільки</span>}{cc}</>;
+  }
+  return <>{<span className="badge exclude">Крім</span>}{cc}</>;
+}
+
+function VisibilityTooltip({ vis, linkedPhone }) {
+  const codes = getVisibleIn(vis);
+  const visText = codes.length === 0
+    ? 'Ніде не відображається'
+    : 'Видимий: ' + codes.map(c => {
+        const cn = COUNTRIES.find(x => x.code === c);
+        return `${cn ? cn.flag : ''} ${c}`;
+      }).join('  ');
+  return (
+    <div className="vis-tooltip">
+      {visText}
+      {linkedPhone && <> &nbsp;·&nbsp; 🔗 {linkedPhone.number}</>}
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────
+   VISIBILITY SELECTOR (shared form widget)
+────────────────────────────────────────────────────────────── */
+
+function VisibilitySelector({ value, onChange }) {
+  const options = [
+    { type: 'all',     label: 'Показувати всім',            desc: 'Видимо у всіх країнах без обмежень' },
+    { type: 'include', label: 'Тільки для вибраних країн',  desc: 'Видимо лише в обраних країнах'       },
+    { type: 'exclude', label: 'Всім, крім вибраних країн',  desc: 'Приховано у вибраних країнах'        },
+  ];
+
+  return (
+    <div>
+      <div className="vis-options">
+        {options.map(o => (
+          <div
+            key={o.type}
+            className={`vis-option ${value.type === o.type ? 'active' : ''}`}
+            onClick={() => onChange({ type: o.type, countries: [] })}
+          >
+            <div className="vis-radio" />
+            <div>
+              <div className="vis-opt-label">{o.label}</div>
+              <div className="vis-opt-desc">{o.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {(value.type === 'include' || value.type === 'exclude') && (
+        <div className="country-checkboxes">
+          {COUNTRIES.map(c => {
+            const checked = value.countries.includes(c.code);
+            return (
+              <div
+                key={c.code}
+                className={`country-check ${checked ? 'checked' : ''}`}
+                onClick={() => {
+                  const arr = checked
+                    ? value.countries.filter(x => x !== c.code)
+                    : [...value.countries, c.code];
+                  onChange({ ...value, countries: arr });
+                }}
+              >
+                <div className="country-check-box">{checked ? '✓' : ''}</div>
+                {c.flag} {c.code}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────
+   ADD MODALS
+────────────────────────────────────────────────────────────── */
+
+function AddPhoneModal({ onAdd, onClose }) {
+  const [form, setForm] = useState({ number: '', label: '', visibility: { type: 'all', countries: [] } });
+  const valid = form.number.trim().length > 0;
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-title">📞 Додати телефон</div>
+        <div className="form-group">
+          <label className="form-label">Номер телефону</label>
+          <input className="form-input" placeholder="+380 44 123-45-67" value={form.number}
+            onChange={e => setForm(f => ({ ...f, number: e.target.value }))} autoFocus />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Мітка (необов'язково)</label>
+          <input className="form-input" placeholder="Kyiv Office" value={form.label}
+            onChange={e => setForm(f => ({ ...f, label: e.target.value }))} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Правило видимості</label>
+          <VisibilitySelector value={form.visibility} onChange={v => setForm(f => ({ ...f, visibility: v }))} />
+        </div>
+        <div className="actions-row">
+          <button className="btn btn-ghost" onClick={onClose}>Скасувати</button>
+          <button className="btn btn-primary" disabled={!valid}
+            onClick={() => { onAdd({ ...form, id: uid() }); onClose(); }}>
+            Додати телефон
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddPriceModal({ onAdd, onClose }) {
+  const [form, setForm] = useState({ value: '', description: '', visibility: { type: 'all', countries: [] } });
+  const valid = form.value.trim().length > 0;
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-title">💰 Додати ціну</div>
+        <div className="form-group">
+          <label className="form-label">Значення</label>
+          <input className="form-input" placeholder="від 100$" value={form.value}
+            onChange={e => setForm(f => ({ ...f, value: e.target.value }))} autoFocus />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Опис (необов'язково)</label>
+          <input className="form-input" placeholder="Базовий план" value={form.description}
+            onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Правило видимості</label>
+          <VisibilitySelector value={form.visibility} onChange={v => setForm(f => ({ ...f, visibility: v }))} />
+        </div>
+        <div className="actions-row">
+          <button className="btn btn-ghost" onClick={onClose}>Скасувати</button>
+          <button className="btn btn-primary" disabled={!valid}
+            onClick={() => { onAdd({ ...form, id: uid() }); onClose(); }}>
+            Додати ціну
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddSocialModal({ phones, onAdd, onClose }) {
+  const [form, setForm] = useState({
+    platform: 'telegram', handle: '', phone_id: null,
+    visibility: { type: 'all', countries: [] },
+  });
+  const valid = form.handle.trim().length > 0;
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-title">🌐 Додати соцмережу</div>
+        <div className="form-group">
+          <label className="form-label">Платформа</label>
+          <select className="form-select" value={form.platform}
+            onChange={e => setForm(f => ({ ...f, platform: e.target.value }))}>
+            {Object.entries(PLATFORMS).map(([k, v]) => (
+              <option key={k} value={k}>{v.icon} {v.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Handle / Посилання</label>
+          <input className="form-input" placeholder="@username або +380..." value={form.handle}
+            onChange={e => setForm(f => ({ ...f, handle: e.target.value }))} autoFocus />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Прив'язати до телефону (необов'язково)</label>
+          <select className="form-select"
+            value={form.phone_id !== null ? String(form.phone_id) : ''}
+            onChange={e => setForm(f => ({
+              ...f, phone_id: e.target.value ? parseInt(e.target.value, 10) : null,
+            }))}>
+            <option value="">— Без прив'язки —</option>
+            {phones.map(p => (
+              <option key={p.id} value={String(p.id)}>
+                {p.number}{p.label ? ` — ${p.label}` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Правило видимості</label>
+          <VisibilitySelector value={form.visibility} onChange={v => setForm(f => ({ ...f, visibility: v }))} />
+        </div>
+        <div className="actions-row">
+          <button className="btn btn-ghost" onClick={onClose}>Скасувати</button>
+          <button className="btn btn-primary" disabled={!valid}
+            onClick={() => { onAdd({ ...form, id: uid() }); onClose(); }}>
+            Додати
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────
+   DATA TAB — item rows
+────────────────────────────────────────────────────────────── */
+
+function PhoneRow({ phone, onDelete }) {
+  const visibleIn = getVisibleIn(phone.visibility);
+  const conflict  = visibleIn.length === 0;
+
+  return (
+    <div className={`item-card ${conflict ? 'dimmed' : ''}`}>
+      <div className="item-icon phone">📞</div>
+      <div className="item-info">
+        <div className="item-name">{phone.number}</div>
+        <div className="item-meta">{phone.label || 'Без мітки'}</div>
+      </div>
+      <div className="item-badges">
+        {conflict
+          ? <span className="badge conflict">⚠️ Ніде не видно</span>
+          : <VisibilityBadge vis={phone.visibility} />
+        }
+      </div>
+      <button className="btn btn-danger btn-sm btn-icon" title="Видалити"
+        onClick={e => { e.stopPropagation(); onDelete(phone.id); }}>✕</button>
+      <VisibilityTooltip vis={phone.visibility} />
+    </div>
+  );
+}
+
+function PriceRow({ price, onDelete }) {
+  const visibleIn = getVisibleIn(price.visibility);
+  const conflict  = visibleIn.length === 0;
+
+  return (
+    <div className={`item-card ${conflict ? 'dimmed' : ''}`}>
+      <div className="item-icon price">💰</div>
+      <div className="item-info">
+        <div className="item-name">{price.value}</div>
+        <div className="item-meta">{price.description || 'Без опису'}</div>
+      </div>
+      <div className="item-badges">
+        {conflict
+          ? <span className="badge conflict">⚠️ Ніде не видно</span>
+          : <VisibilityBadge vis={price.visibility} />
+        }
+      </div>
+      <button className="btn btn-danger btn-sm btn-icon" title="Видалити"
+        onClick={e => { e.stopPropagation(); onDelete(price.id); }}>✕</button>
+      <VisibilityTooltip vis={price.visibility} />
+    </div>
+  );
+}
+
+function SocialRow({ social, phones, onDelete }) {
+  const visibleIn   = getVisibleIn(social.visibility);
+  const conflict    = visibleIn.length === 0;
+  const plat        = PLATFORMS[social.platform];
+  const linkedPhone = phones.find(p => p.id === social.phone_id) || null;
+
+  return (
+    <div className={`item-card ${conflict ? 'dimmed' : ''}`}>
+      <div className="item-icon social">{plat?.icon}</div>
+      <div className="item-info">
+        <div className="item-name">{social.handle}</div>
+        <div className="item-meta">
+          {plat?.label}
+          {linkedPhone && <> · 🔗 {linkedPhone.number}</>}
+        </div>
+      </div>
+      <div className="item-badges">
+        {linkedPhone && <span className="badge linked">🔗 Прив'язана</span>}
+        {conflict
+          ? <span className="badge conflict">⚠️ Ніде не видно</span>
+          : <VisibilityBadge vis={social.visibility} />
+        }
+      </div>
+      <button className="btn btn-danger btn-sm btn-icon" title="Видалити"
+        onClick={e => { e.stopPropagation(); onDelete(social.id); }}>✕</button>
+      <VisibilityTooltip vis={social.visibility} linkedPhone={linkedPhone} />
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────
+   DATA TAB
+────────────────────────────────────────────────────────────── */
+
+function DataTab({ phones, prices, socials, onAddPhone, onAddPrice, onAddSocial, onDeletePhone, onDeletePrice, onDeleteSocial }) {
+  const [section, setSection] = useState('phones');
+  const [modal,   setModal]   = useState(null);
+  const [filter,  setFilter]  = useState('all');
+
+  const applyFilter = items => {
+    if (filter === 'ua')        return items.filter(i => isVisible(i.visibility, 'UA'));
+    if (filter === 'conflicts') return items.filter(i => getVisibleIn(i.visibility).length === 0);
+    return items;
+  };
+
+  const SECTIONS = [
+    { id: 'phones',  label: '📞 Телефони',  count: phones.length },
+    { id: 'prices',  label: '💰 Ціни',      count: prices.length },
+    { id: 'socials', label: '🌐 Соцмережі', count: socials.length },
+  ];
+
+  return (
+    <div>
+      <div className="concept-banner">
+        <div className="concept-banner-icon">💡</div>
+        <div>
+          <div className="concept-banner-title">Як це працює</div>
+          <div className="concept-banner-text">
+            Кожен елемент зберігає власне правило видимості — незалежно від гео-вкладок.
+            Геолокація — це фільтр, а не контейнер.
+          </div>
+          <div className="concept-pills">
+            <span className="concept-pill">Дані ≠ Гео</span>
+            <span className="concept-pill">Гео = Фільтр</span>
+            <span className="concept-pill">Кожен елемент — своє правило</span>
+            <span className="concept-pill">Hover → побачиш де видимо</span>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+        <div className="data-tabs">
+          {SECTIONS.map(s => (
+            <button key={s.id}
+              className={`data-tab-btn ${section === s.id ? 'active' : ''}`}
+              onClick={() => setSection(s.id)}>
+              {s.label}
+              <span style={{ color: '#4b5563', fontSize: 11, marginLeft: 4 }}>({s.count})</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="filter-bar" style={{ margin: 0 }}>
+          <span className="filter-label">Фільтр:</span>
+          {[
+            { id: 'all',       label: 'Всі'         },
+            { id: 'ua',        label: '🇺🇦 UA'        },
+            { id: 'conflicts', label: '⚠️ Конфлікти' },
+          ].map(f => (
+            <button key={f.id}
+              className={`btn btn-ghost btn-sm ${filter === f.id ? 'active' : ''}`}
+              onClick={() => setFilter(f.id)}>
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {section === 'phones' && (
+        <div>
+          <div className="section-header">
+            <div>
+              <div className="section-title">Телефони</div>
+              <div className="section-subtitle">Наведи на картку — побачиш де відображається</div>
+            </div>
+            <button className="btn btn-primary" onClick={() => setModal('phone')}>+ Додати</button>
+          </div>
+          <div className="card-list">
+            {applyFilter(phones).length === 0
+              ? <div style={{ padding: '32px 0', textAlign: 'center', color: '#4b5563' }}>Нічого не знайдено</div>
+              : applyFilter(phones).map(p => <PhoneRow key={p.id} phone={p} onDelete={onDeletePhone} />)
+            }
+          </div>
+        </div>
+      )}
+
+      {section === 'prices' && (
+        <div>
+          <div className="section-header">
+            <div>
+              <div className="section-title">Ціни</div>
+              <div className="section-subtitle">Різні ціни для різних ринків</div>
+            </div>
+            <button className="btn btn-primary" onClick={() => setModal('price')}>+ Додати</button>
+          </div>
+          <div className="card-list">
+            {applyFilter(prices).length === 0
+              ? <div style={{ padding: '32px 0', textAlign: 'center', color: '#4b5563' }}>Нічого не знайдено</div>
+              : applyFilter(prices).map(p => <PriceRow key={p.id} price={p} onDelete={onDeletePrice} />)
+            }
+          </div>
+        </div>
+      )}
+
+      {section === 'socials' && (
+        <div>
+          <div className="section-header">
+            <div>
+              <div className="section-title">Соцмережі</div>
+              <div className="section-subtitle">Прив'язка до телефону впливає на Preview</div>
+            </div>
+            <button className="btn btn-primary" onClick={() => setModal('social')}>+ Додати</button>
+          </div>
+          <div className="card-list">
+            {applyFilter(socials).length === 0
+              ? <div style={{ padding: '32px 0', textAlign: 'center', color: '#4b5563' }}>Нічого не знайдено</div>
+              : applyFilter(socials).map(s => (
+                  <SocialRow key={s.id} social={s} phones={phones} onDelete={onDeleteSocial} />
+                ))
+            }
+          </div>
+        </div>
+      )}
+
+      {modal === 'phone'  && <AddPhoneModal  onAdd={onAddPhone}  onClose={() => setModal(null)} />}
+      {modal === 'price'  && <AddPriceModal  onAdd={onAddPrice}  onClose={() => setModal(null)} />}
+      {modal === 'social' && <AddSocialModal phones={phones} onAdd={onAddSocial} onClose={() => setModal(null)} />}
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────
+   OVERVIEW TAB
+────────────────────────────────────────────────────────────── */
+
+function OverviewTab({ phones, prices, socials }) {
+  const [country, setCountry] = useState('UA');
+
+  const visPhones  = phones.filter(p => isVisible(p.visibility, country));
+  const visPrices  = prices.filter(p => isVisible(p.visibility, country));
+  const visSocials = socials.filter(s => isVisible(s.visibility, country));
+
+  const linkedFor     = phoneId => visSocials.filter(s => s.phone_id === phoneId);
+  const standaloneSoc = visSocials.filter(s => !s.phone_id);
+
+  const cn = COUNTRIES.find(c => c.code === country);
+
+  const totalItems = phones.length + prices.length + socials.length;
+  const visItems   = visPhones.length + visPrices.length + visSocials.length;
+
+  return (
+    <div>
+      <div className="section-header">
+        <div>
+          <div className="section-title">Preview для відвідувача</div>
+          <div className="section-subtitle">
+            Що бачить користувач з {cn?.flag} {cn?.name} — {visItems} з {totalItems} елементів
+          </div>
+        </div>
+      </div>
+
+      <div className="country-picker" style={{ marginBottom: 28 }}>
+        {COUNTRIES.map(c => (
+          <button key={c.code}
+            className={`country-btn ${country === c.code ? 'active' : ''}`}
+            onClick={() => setCountry(c.code)}>
+            <span className="country-flag">{c.flag}</span>
+            <span>{c.name}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Phones + linked socials */}
+      <div className="overview-section">
+        <div className="overview-section-title">
+          📞 Телефони — {visPhones.length} з {phones.length}
+        </div>
+        {visPhones.length === 0 ? (
+          <div className="empty-block">Немає телефонів для {cn?.flag} {cn?.code}</div>
+        ) : (
+          visPhones.map(phone => {
+            const linked = linkedFor(phone.id);
+            return (
+              <div className="phone-block" key={phone.id}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div className="phone-number">{phone.number}</div>
+                  {phone.label && <div className="phone-label">{phone.label}</div>}
+                </div>
+                {linked.length > 0 && (
+                  <div className="phone-socials">
+                    {linked.map(s => {
+                      const plat = PLATFORMS[s.platform];
+                      return (
+                        <div key={s.id} className="social-chip">
+                          <span style={{ fontSize: 16 }}>{plat?.icon}</span>
+                          <div>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: '#f9fafb' }}>{plat?.label}</div>
+                            <div style={{ fontSize: 11, color: '#6b7280' }}>{s.handle}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Standalone socials */}
+      {standaloneSoc.length > 0 && (
+        <div className="overview-section">
+          <div className="overview-section-title">
+            🌐 Соцмережі без прив'язки — {standaloneSoc.length}
+          </div>
+          <div className="standalone-grid">
+            {standaloneSoc.map(s => {
+              const plat = PLATFORMS[s.platform];
+              return (
+                <div key={s.id} className="standalone-social-card">
+                  <div className="standalone-social-icon">{plat?.icon}</div>
+                  <div>
+                    <div className="standalone-social-name">{plat?.label}</div>
+                    <div className="standalone-social-handle">{s.handle}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Prices */}
+      <div className="overview-section">
+        <div className="overview-section-title">
+          💰 Ціни — {visPrices.length} з {prices.length}
+        </div>
+        {visPrices.length === 0 ? (
+          <div className="empty-block">Немає цін для {cn?.flag} {cn?.code}</div>
+        ) : (
+          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+            {visPrices.map(p => (
+              <div key={p.id} className="price-chip">
+                <span style={{ fontSize: 20 }}>💰</span>
+                <div>
+                  <div className="price-chip-value">{p.value}</div>
+                  {p.description && <div className="price-chip-desc">{p.description}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Hidden items summary */}
+      {visItems < totalItems && (
+        <div style={{
+          marginTop: 16,
+          padding: '12px 16px',
+          background: 'rgba(239,68,68,0.06)',
+          border: '1px solid rgba(239,68,68,0.15)',
+          borderRadius: 10,
+          fontSize: 13,
+          color: '#9ca3af',
+        }}>
+          🙈 Приховано: <strong style={{ color: '#f87171' }}>{totalItems - visItems}</strong> елементів
+          не відображаються для {cn?.flag} {cn?.code}
+          &nbsp;—&nbsp; перейди в <strong>Matrix</strong>, щоб побачити всю картину
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────
+   MATRIX TAB
+────────────────────────────────────────────────────────────── */
+
+function MatrixTab({ phones, prices, socials }) {
+  const icons = { phone: '📞', price: '💰', social: '🌐' };
+
+  const sections = [
+    {
+      label: '📞 Телефони',
+      items: phones.map(p => ({
+        type: 'phone', label: p.number, sub: p.label, visibility: p.visibility,
+      })),
+    },
+    {
+      label: '🌐 Соцмережі',
+      items: socials.map(s => {
+        const plat = PLATFORMS[s.platform];
+        const phone = phones.find(p => p.id === s.phone_id);
+        return {
+          type: 'social', label: s.handle,
+          sub: plat?.label + (phone ? ` · 🔗 ${phone.number}` : ''),
+          visibility: s.visibility,
+        };
+      }),
+    },
+    {
+      label: '💰 Ціни',
+      items: prices.map(p => ({
+        type: 'price', label: p.value, sub: p.description, visibility: p.visibility,
+      })),
+    },
+  ];
+
+  return (
+    <div>
+      <div className="section-header">
+        <div>
+          <div className="section-title">Матриця видимості</div>
+          <div className="section-subtitle">Чи відображається кожен елемент у кожній країні</div>
+        </div>
+      </div>
+
+      <div className="matrix-wrap">
+        <table className="matrix-table">
+          <thead>
+            <tr>
+              <th style={{ width: '44%' }}>Елемент</th>
+              {COUNTRIES.map(c => (
+                <th key={c.code} className="center">{c.flag} {c.code}</th>
+              ))}
+              <th>Правило</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sections.map(sec => (
+              <React.Fragment key={sec.label}>
+                <tr className="matrix-section-divider">
+                  <td colSpan={COUNTRIES.length + 2}>{sec.label}</td>
+                </tr>
+                {sec.items.length === 0 ? (
+                  <tr>
+                    <td colSpan={COUNTRIES.length + 2}
+                      style={{ color: '#4b5563', padding: '10px 16px', fontStyle: 'italic' }}>
+                      Порожньо
+                    </td>
+                  </tr>
+                ) : (
+                  sec.items.map((item, idx) => (
+                    <tr key={idx}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{ fontSize: 18 }}>{icons[item.type]}</span>
+                          <div>
+                            <div className="matrix-item-label">{item.label}</div>
+                            {item.sub && <div className="matrix-item-sub">{item.sub}</div>}
+                          </div>
+                        </div>
+                      </td>
+                      {COUNTRIES.map(c => (
+                        <td key={c.code} className="center">
+                          <span className="matrix-check">
+                            {isVisible(item.visibility, c.code) ? '✅' : '❌'}
+                          </span>
+                        </td>
+                      ))}
+                      <td>
+                        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                          <VisibilityBadge vis={item.visibility} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────
+   APP ROOT
+────────────────────────────────────────────────────────────── */
+
+function App() {
+  const [phones,  setPhones]  = useState(INIT_PHONES);
+  const [prices,  setPrices]  = useState(INIT_PRICES);
+  const [socials, setSocials] = useState(INIT_SOCIALS);
+  const [tab,     setTab]     = useState('overview');
+
+  return (
+    <div className="app">
+      <div className="topbar">
+        <div className="topbar-logo">
+          Data<span className="accent">Bridge</span>
+          <span className="topbar-tag">Geo Visibility Demo</span>
+        </div>
+
+        <nav className="main-tabs">
+          {[
+            { id: 'overview', label: '👁 Overview' },
+            { id: 'data',     label: '✏️ Data'     },
+            { id: 'matrix',   label: '📊 Matrix'   },
+          ].map(t => (
+            <button key={t.id}
+              className={`tab-btn ${tab === t.id ? 'active' : ''}`}
+              onClick={() => setTab(t.id)}>
+              {t.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="topbar-stats">
+          {phones.length} тел. · {prices.length} цін · {socials.length} соц.
+        </div>
+      </div>
+
+      <div className="content">
+        {tab === 'overview' && (
+          <OverviewTab phones={phones} prices={prices} socials={socials} />
+        )}
+
+        {tab === 'data' && (
+          <DataTab
+            phones={phones}   prices={prices}   socials={socials}
+            onAddPhone={p    => setPhones(a  => [...a, p])}
+            onAddPrice={p    => setPrices(a  => [...a, p])}
+            onAddSocial={s   => setSocials(a => [...a, s])}
+            onDeletePhone={id  => setPhones(a  => a.filter(x => x.id !== id))}
+            onDeletePrice={id  => setPrices(a  => a.filter(x => x.id !== id))}
+            onDeleteSocial={id => setSocials(a => a.filter(x => x.id !== id))}
+          />
+        )}
+
+        {tab === 'matrix' && (
+          <MatrixTab phones={phones} prices={prices} socials={socials} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
