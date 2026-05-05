@@ -377,6 +377,13 @@
                     @endif
                 </h3>
 
+                @if($country === 'all')
+                    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--text-3);">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;color:var(--accent);"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><circle cx="12" cy="16" r=".5" fill="currentColor"/></svg>
+                        Оберіть конкретну гео-вкладку (UA, RO…) щоб додавати нові дані.
+                    </div>
+                @endif
+
                 {{-- ===== PHONES ===== --}}
                 <div style="display:flex;flex-direction:column;gap:8px;">
                     <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Телефони</span>
@@ -409,10 +416,12 @@
                     @empty
                         <div style="color:var(--text-3);font-size:12px;">Немає телефонів для цього гео.</div>
                     @endforelse
+                    @if($country !== 'all')
                     <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openPhoneCreate('{{ $country }}')">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                         Додати телефон
                     </button>
+                    @endif
                 </div>
 
                 {{-- ===== PRICES ===== --}}
@@ -449,10 +458,12 @@
                     @empty
                         <div style="color:var(--text-3);font-size:12px;">Немає цін для цього гео.</div>
                     @endforelse
+                    @if($country !== 'all')
                     <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openDrawer('drawer-price-create')">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                         Додати ціну
                     </button>
+                    @endif
                 </div>
 
                 {{-- ===== ADDRESSES ===== --}}
@@ -486,10 +497,12 @@
                     @empty
                         <div style="color:var(--text-3);font-size:12px;">Немає адрес для цього гео.</div>
                     @endforelse
+                    @if($country !== 'all')
                     <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openDrawer('drawer-addr-create')">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                         Додати адресу
                     </button>
+                    @endif
                 </div>
 
                 {{-- ===== SOCIAL MEDIA ===== --}}
@@ -530,10 +543,12 @@
                     @empty
                         <div style="color:var(--text-3);font-size:12px;">Немає посилань для цього гео.</div>
                     @endforelse
+                    @if($country !== 'all')
                     <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openDrawer('drawer-soc-create')">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                         Додати соцмережу
                     </button>
+                    @endif
                 </div>
 
                 {{-- Footer --}}
@@ -859,7 +874,7 @@
         <div class="drawer__body">
             <form method="POST" action="{{ route('addresses.store', $site) }}" id="form-addr-create">
                 @csrf
-                @include('admin.sites._form-address', ['address' => null, 'countries' => $countries])
+                @include('admin.sites._form-address', ['address' => null, 'countries' => $countries, 'defaultIso' => ($country !== 'all' ? $country : null)])
             </form>
         </div>
         <div class="drawer__footer">

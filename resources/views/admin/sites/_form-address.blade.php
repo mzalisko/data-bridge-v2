@@ -13,7 +13,7 @@
     <select id="ad-iso-{{ $aid }}" name="country_iso" class="field__input" required>
         <option value="">—</option>
         @foreach($countries as $c)
-            <option value="{{ $c->iso }}" {{ old('country_iso', $a?->country_iso) === $c->iso ? 'selected' : '' }}>
+            <option value="{{ $c->iso }}" {{ old('country_iso', $a?->country_iso ?? ($defaultIso ?? null)) === $c->iso ? 'selected' : '' }}>
                 {{ $c->iso }} {{ ($c->name && strcasecmp($c->name, $c->iso) !== 0) ? '— '.$c->name : '' }}
             </option>
         @endforeach
