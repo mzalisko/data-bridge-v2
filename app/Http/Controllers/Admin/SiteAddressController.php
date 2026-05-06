@@ -13,7 +13,9 @@ class SiteAddressController extends Controller
     public function store(StoreAddressRequest $request, Site $site): RedirectResponse
     {
         $data = $request->validated();
-        $data['is_primary'] = $request->boolean('is_primary');
+        $data['is_primary']    = $request->boolean('is_primary');
+        $data['geo_mode']      = $data['geo_mode'] ?? 'all';
+        $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
         $site->addresses()->create($data);
         return back()
             ->with('success', 'Адресу додано');
@@ -22,7 +24,9 @@ class SiteAddressController extends Controller
     public function update(UpdateAddressRequest $request, Site $site, SiteAddress $address): RedirectResponse
     {
         $data = $request->validated();
-        $data['is_primary'] = $request->boolean('is_primary');
+        $data['is_primary']    = $request->boolean('is_primary');
+        $data['geo_mode']      = $data['geo_mode'] ?? 'all';
+        $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
         $address->update($data);
         return back()
             ->with('success', 'Адресу оновлено');

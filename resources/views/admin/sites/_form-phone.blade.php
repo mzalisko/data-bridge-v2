@@ -21,3 +21,10 @@
            style="accent-color:var(--accent);width:16px;height:16px;">
     <label for="ph-prim-{{ $pid }}" style="font-size:13px;color:var(--text-2);cursor:pointer;">Основний номер</label>
 </div>
+
+@include('admin.sites._rule-editor', [
+    'rePrefix'    => 'ph-' . $pid,
+    'reMode'      => old('geo_mode', $p?->geo_mode ?? 'all'),
+    'reCountries' => old('geo_countries', (array) ($p?->geo_countries ?? [])),
+    'reOptions'   => $visRuleOptions ?? [],
+])

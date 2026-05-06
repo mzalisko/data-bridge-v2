@@ -16,8 +16,9 @@ class UpdatePhoneRequest extends FormRequest
             'number'      => ['required', 'string', 'max:32'],
             'is_primary'    => ['nullable'],
             'sort_order'    => ['nullable', 'integer', 'min:0'],
-            'geo_mode'      => ['nullable', 'string', 'in:all,include,exclude'],
-            'geo_countries' => ['nullable', 'string', 'max:255'],
+            'geo_mode'        => ['nullable', 'string', 'in:all,include,exclude'],
+            'geo_countries'   => ['nullable', 'array'],
+            'geo_countries.*' => ['string', 'regex:/^[A-Z]{2}$/'],
         ];
     }
 }

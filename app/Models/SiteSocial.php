@@ -22,7 +22,10 @@ class SiteSocial extends Model
 
     protected function casts(): array
     {
-        return ['is_visible' => 'boolean'];
+        return [
+            'is_visible'    => 'boolean',
+            'geo_countries' => 'array',
+        ];
     }
 
     public function site(): BelongsTo

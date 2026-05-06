@@ -29,10 +29,11 @@ class SiteAddress extends Model
     protected function casts(): array
     {
         return [
-            'latitude'   => 'decimal:7',
-            'longitude'  => 'decimal:7',
-            'is_primary' => 'boolean',
-            'is_visible' => 'boolean',
+            'latitude'      => 'decimal:7',
+            'longitude'     => 'decimal:7',
+            'is_primary'    => 'boolean',
+            'is_visible'    => 'boolean',
+            'geo_countries' => 'array',
         ];
     }
 

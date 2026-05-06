@@ -48,6 +48,21 @@
     // Structure: { "UA": { "mode": "all|include|exclude", "countries": ["RU","BY"] } }
     $geoRules = (array) ($site->geo_rules ?? []);
 
+    // Per-item visitor geo visibility helper.
+    // Returns true if item with given geo_mode/geo_countries is visible to $visitorIso.
+    $geoVis = function ($geoMode, $geoCountries, $visitorIso): bool {
+        $mode   = $geoMode ?? 'all';
+        $ctries = (array) ($geoCountries ?? []);
+        return match($mode) {
+            'include' => in_array($visitorIso, $ctries),
+            'exclude' => !in_array($visitorIso, $ctries),
+            default   => true,
+        };
+    };
+
+    // ISO options available for rule editor chips (active geos of this site).
+    $visRuleOptions = $usedIso;
+
     // Each tab shows only records tagged to THAT tab (country_iso === tab ISO).
     // "All geos" shows everything. Records with no country_iso appear everywhere.
     $filterByGeo = function ($collection) use ($country) {
@@ -319,6 +334,103 @@
                     Ще немає гео-даних. <a href="{{ $url(['tab' => 'data']) }}" style="color:var(--accent);">Додати дані →</a>
                 </div>
             @endif
+
+            {{-- ===== VISITOR PREVIEW ===== --}}
+            @if(count($usedIso) > 0 && ($site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count()) > 0)
+                <div style="border-top:1px solid var(--border-2);padding:20px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                        <h4 style="margin:0;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Що бачить відвідувач</h4>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="vis-preview-tabs">
+                            @foreach($usedIso as $iso)
+                                <button onclick="showVisitorPanel('{{ $iso }}')" id="vis-tab-{{ $iso }}"
+                                        class="btn btn--sm {{ $loop->first ? 'btn--primary' : 'btn--ghost' }}"
+                                        style="font-family:var(--font-mono);font-weight:700;">{{ $iso }}</button>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    @foreach($usedIso as $iso)
+                        @php
+                            $vPhones  = $site->phones->filter(fn($p)  => ($p->is_visible ?? true) && $geoVis($p->geo_mode, $p->geo_countries, $iso));
+                            $vPrices  = $site->prices->filter(fn($p)  => ($p->is_visible ?? true) && $geoVis($p->geo_mode, $p->geo_countries, $iso));
+                            $vAddrs   = $site->addresses->filter(fn($a) => ($a->is_visible ?? true) && $geoVis($a->geo_mode, $a->geo_countries, $iso));
+                            $vSocials = $site->socials->filter(fn($s)  => ($s->is_visible ?? true) && $geoVis($s->geo_mode, $s->geo_countries, $iso));
+                            $vPhoneIds = $vPhones->pluck('id')->toArray();
+                            $totalVis = $vPhones->count() + $vPrices->count() + $vAddrs->count() + $vSocials->count();
+                            $totalAll = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count();
+                        @endphp
+                        <div id="vis-panel-{{ $iso }}" style="{{ $loop->first ? '' : 'display:none;' }}">
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+
+                                {{-- Widget preview --}}
+                                <div style="background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
+                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+                                        <span style="width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block;"></span>
+                                        Контактний блок — {{ $iso }}
+                                    </div>
+
+                                    @forelse($vPhones as $p)
+                                        @php $linkedSocs = $vSocials->where('phoneId', $p->id)->merge($vSocials->whereStrict('phone_id', $p->id)); @endphp
+                                        <div style="background:var(--panel-2);border-radius:var(--radius-item);padding:8px 10px;margin-bottom:6px;">
+                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                <span style="font-family:var(--font-mono);font-size:13px;font-weight:600;">+{{ $p->dial_code }} {{ $p->number }}</span>
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">— телефони не показуються</div>
+                                    @endforelse
+
+                                    @if($vPrices->count())
+                                        <div style="margin-top:10px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Ціни</div>
+                                        @foreach($vPrices as $p)
+                                            <div style="display:flex;justify-content:space-between;background:var(--panel-2);border-radius:var(--radius-item);padding:6px 10px;margin-bottom:4px;font-size:12px;">
+                                                <span style="color:var(--text-2);">{{ $p->label }}</span>
+                                                <span style="font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ $p->amount }} {{ $p->currency }}</span>
+                                            </div>
+                                        @endforeach
+                                    @endif
+
+                                    @if($vSocials->count())
+                                        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:5px;">
+                                            @foreach($vSocials as $s)
+                                                <span style="padding:3px 9px;background:var(--panel-2);border:1px solid var(--border);border-radius:99px;font-size:11px;color:var(--text-2);">
+                                                    {{ ucfirst($s->platform) }}: {{ $s->handle }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    @endif
+
+                                    @if($totalVis === 0)
+                                        <div style="text-align:center;padding:12px;color:var(--text-3);font-size:12px;">Нічого не показується</div>
+                                    @endif
+                                </div>
+
+                                {{-- Visibility summary --}}
+                                <div style="background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
+                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:10px;">
+                                        Видимо {{ $totalVis }} з {{ $totalAll }}
+                                    </div>
+                                    @foreach([
+                                        ['Телефони', $site->phones, $vPhones],
+                                        ['Ціни',     $site->prices, $vPrices],
+                                        ['Адреси',   $site->addresses, $vAddrs],
+                                        ['Соцмережі',$site->socials, $vSocials],
+                                    ] as [$sLabel, $sAll, $sVis])
+                                        @if($sAll->count())
+                                            <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border-2);font-size:12px;">
+                                                <span style="color:var(--text-2);">{{ $sLabel }}</span>
+                                                <span style="font-family:var(--font-mono);font-weight:600;color:{{ $sVis->count() === $sAll->count() ? '#34d399' : ($sVis->count() > 0 ? 'var(--warning)' : '#f87171') }};">
+                                                    {{ $sVis->count() }}/{{ $sAll->count() }}
+                                                </span>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         @endif
 
         {{-- ========= DATA ========= --}}
@@ -393,6 +505,7 @@
                                 <input type="text" value="+{{ $p->dial_code }} {{ $p->number }}" readonly style="cursor:pointer;">
                             </div>
                             @if($p->is_primary)<span class="pill pill--accent">Основний</span>@endif
+                            @include('admin.sites._vis-dots', ['vdItem' => $p, 'vdIsos' => $usedIso])
                             <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-phone-{{ $p->id }}')">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
                             </button>
@@ -435,6 +548,7 @@
                             <div class="input input--mono" style="width:140px;cursor:pointer;" onclick="openDrawer('drawer-price-{{ $p->id }}')">
                                 <input type="text" value="{{ $p->amount ?? '' }} {{ $p->currency ?? '' }}" readonly style="cursor:pointer;">
                             </div>
+                            @include('admin.sites._vis-dots', ['vdItem' => $p, 'vdIsos' => $usedIso])
                             <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-price-{{ $p->id }}')">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
                             </button>
@@ -474,6 +588,7 @@
                             <div class="input" style="flex:1;cursor:pointer;" onclick="openDrawer('drawer-addr-{{ $a->id }}')">
                                 <input type="text" value="{{ trim(($a->city ?? '').' '.($a->street ?? '').' '.($a->building ?? '')) }}" placeholder="Адреса" readonly style="cursor:pointer;">
                             </div>
+                            @include('admin.sites._vis-dots', ['vdItem' => $a, 'vdIsos' => $usedIso])
                             <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-addr-{{ $a->id }}')">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
                             </button>
@@ -520,6 +635,7 @@
                                 </span>
                                 <input type="text" value="{{ $s->handle ?? $s->url ?? '' }}" readonly style="cursor:pointer;">
                             </div>
+                            @include('admin.sites._vis-dots', ['vdItem' => $s, 'vdIsos' => $usedIso])
                             <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-soc-{{ $s->id }}')">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
                             </button>
@@ -784,7 +900,7 @@
                 @csrf
                 <input type="hidden" name="country_iso" id="ph-iso-hidden">
                 <input type="hidden" name="dial_code" id="ph-dialcode-hidden">
-                @include('admin.sites._form-phone', ['phone' => null])
+                @include('admin.sites._form-phone', ['phone' => null, 'visRuleOptions' => $visRuleOptions])
             </form>
         </div>
         <div class="drawer__footer">
@@ -806,7 +922,7 @@
                     @csrf @method('PUT')
                     <input type="hidden" name="country_iso" value="{{ $p->country_iso }}">
                     <input type="hidden" name="dial_code" value="{{ $p->dial_code }}">
-                    @include('admin.sites._form-phone', ['phone' => $p])
+                    @include('admin.sites._form-phone', ['phone' => $p, 'visRuleOptions' => $visRuleOptions])
                 </form>
             </div>
             <div class="drawer__footer">
@@ -830,7 +946,7 @@
         <div class="drawer__body">
             <form method="POST" action="{{ route('prices.store', $site) }}" id="form-price-create">
                 @csrf
-                @include('admin.sites._form-price', ['price' => null])
+                @include('admin.sites._form-price', ['price' => null, 'visRuleOptions' => $visRuleOptions])
             </form>
         </div>
         <div class="drawer__footer">
@@ -850,7 +966,7 @@
             <div class="drawer__body">
                 <form method="POST" action="{{ route('prices.update', [$site, $p]) }}" id="form-price-{{ $p->id }}">
                     @csrf @method('PUT')
-                    @include('admin.sites._form-price', ['price' => $p])
+                    @include('admin.sites._form-price', ['price' => $p, 'visRuleOptions' => $visRuleOptions])
                 </form>
             </div>
             <div class="drawer__footer">
@@ -874,7 +990,7 @@
         <div class="drawer__body">
             <form method="POST" action="{{ route('addresses.store', $site) }}" id="form-addr-create">
                 @csrf
-                @include('admin.sites._form-address', ['address' => null, 'countries' => $countries, 'defaultIso' => ($country !== 'all' ? $country : null)])
+                @include('admin.sites._form-address', ['address' => null, 'countries' => $countries, 'defaultIso' => ($country !== 'all' ? $country : null), 'visRuleOptions' => $visRuleOptions])
             </form>
         </div>
         <div class="drawer__footer">
@@ -894,7 +1010,7 @@
             <div class="drawer__body">
                 <form method="POST" action="{{ route('addresses.update', [$site, $a]) }}" id="form-addr-{{ $a->id }}">
                     @csrf @method('PUT')
-                    @include('admin.sites._form-address', ['address' => $a, 'countries' => $countries])
+                    @include('admin.sites._form-address', ['address' => $a, 'countries' => $countries, 'visRuleOptions' => $visRuleOptions])
                 </form>
             </div>
             <div class="drawer__footer">
@@ -918,7 +1034,7 @@
         <div class="drawer__body">
             <form method="POST" action="{{ route('socials.store', $site) }}" id="form-soc-create">
                 @csrf
-                @include('admin.sites._form-social', ['social' => null])
+                @include('admin.sites._form-social', ['social' => null, 'visRuleOptions' => $visRuleOptions])
             </form>
         </div>
         <div class="drawer__footer">
@@ -1029,7 +1145,7 @@
             <div class="drawer__body">
                 <form method="POST" action="{{ route('socials.update', [$site, $s]) }}" id="form-soc-{{ $s->id }}">
                     @csrf @method('PUT')
-                    @include('admin.sites._form-social', ['social' => $s])
+                    @include('admin.sites._form-social', ['social' => $s, 'visRuleOptions' => $visRuleOptions])
                 </form>
             </div>
             <div class="drawer__footer">
@@ -1095,6 +1211,43 @@ function geoRuleChipToggle(prefix, iso, checkbox) {
     lbl.style.background   = checkbox.checked ? 'var(--accent-2)' : 'var(--panel-2)';
     lbl.style.color        = checkbox.checked ? 'var(--accent-text)' : 'var(--text-2)';
     lbl.style.borderColor  = checkbox.checked ? 'var(--accent-2)' : 'var(--border)';
+}
+
+// Per-item rule editor (in drawer forms)
+function ruleEditorToggle(prefix, mode) {
+    var group = document.getElementById(prefix + '-modes');
+    if (!group) return;
+    group.querySelectorAll('label').forEach(function(lbl) {
+        var radio = lbl.querySelector('input[type=radio]');
+        var active = radio && radio.value === mode;
+        lbl.style.background  = active ? 'var(--accent)'   : 'var(--panel-2)';
+        lbl.style.color       = active ? '#fff'            : 'var(--text-2)';
+        lbl.style.borderColor = active ? 'var(--accent)'   : 'var(--border)';
+        lbl.style.fontWeight  = active ? '600'             : '400';
+        if (radio) radio.checked = active;
+    });
+    var ctr = document.getElementById(prefix + '-countries');
+    if (ctr) ctr.style.display = (mode === 'include' || mode === 'exclude') ? '' : 'none';
+}
+
+function ruleChipToggle(prefix, iso, checkbox) {
+    var lbl = document.getElementById(prefix + '-chip-' + iso);
+    if (!lbl) return;
+    lbl.style.background  = checkbox.checked ? 'var(--accent-2)'   : 'var(--panel-2)';
+    lbl.style.color       = checkbox.checked ? 'var(--accent-text)' : 'var(--text-2)';
+    lbl.style.borderColor = checkbox.checked ? 'var(--accent-2)'   : 'var(--border)';
+}
+
+// Visitor preview tab switcher (Overview tab)
+function showVisitorPanel(iso) {
+    document.querySelectorAll('[id^="vis-panel-"]').forEach(function(el) { el.style.display = 'none'; });
+    document.querySelectorAll('[id^="vis-tab-"]').forEach(function(btn) {
+        btn.className = btn.className.replace('btn--primary', 'btn--ghost');
+    });
+    var panel = document.getElementById('vis-panel-' + iso);
+    if (panel) panel.style.display = '';
+    var tab = document.getElementById('vis-tab-' + iso);
+    if (tab) tab.className = tab.className.replace('btn--ghost', 'btn--primary');
 }
 </script>
 @endpush

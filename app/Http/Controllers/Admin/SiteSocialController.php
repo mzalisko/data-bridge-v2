@@ -12,14 +12,20 @@ class SiteSocialController extends Controller
 {
     public function store(StoreSocialRequest $request, Site $site): RedirectResponse
     {
-        $site->socials()->create($request->validated());
+        $data = $request->validated();
+        $data['geo_mode']      = $data['geo_mode'] ?? 'all';
+        $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
+        $site->socials()->create($data);
         return back()
             ->with('success', 'Соцмережу додано');
     }
 
     public function update(UpdateSocialRequest $request, Site $site, SiteSocial $social): RedirectResponse
     {
-        $social->update($request->validated());
+        $data = $request->validated();
+        $data['geo_mode']      = $data['geo_mode'] ?? 'all';
+        $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
+        $social->update($data);
         return back()
             ->with('success', 'Соцмережу оновлено');
     }

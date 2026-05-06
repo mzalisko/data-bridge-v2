@@ -22,3 +22,10 @@
     <input type="url" id="so-url-{{ $sid }}" name="url" class="field__input" required
            placeholder="https://instagram.com/username" value="{{ old('url', $s?->url) }}">
 </div>
+
+@include('admin.sites._rule-editor', [
+    'rePrefix'    => 'so-' . $sid,
+    'reMode'      => old('geo_mode', $s?->geo_mode ?? 'all'),
+    'reCountries' => old('geo_countries', (array) ($s?->geo_countries ?? [])),
+    'reOptions'   => $visRuleOptions ?? [],
+])

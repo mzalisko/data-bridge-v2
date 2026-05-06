@@ -13,7 +13,9 @@ class SitePriceController extends Controller
     public function store(StorePriceRequest $request, Site $site): RedirectResponse
     {
         $data = $request->validated();
-        $data['is_visible'] = $request->boolean('is_visible', true);
+        $data['is_visible']    = $request->boolean('is_visible', true);
+        $data['geo_mode']      = $data['geo_mode'] ?? 'all';
+        $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
         $site->prices()->create($data);
         return back()
             ->with('success', 'Ціну додано');
@@ -22,7 +24,9 @@ class SitePriceController extends Controller
     public function update(UpdatePriceRequest $request, Site $site, SitePrice $price): RedirectResponse
     {
         $data = $request->validated();
-        $data['is_visible'] = $request->boolean('is_visible', true);
+        $data['is_visible']    = $request->boolean('is_visible', true);
+        $data['geo_mode']      = $data['geo_mode'] ?? 'all';
+        $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
         $price->update($data);
         return back()
             ->with('success', 'Ціну оновлено');

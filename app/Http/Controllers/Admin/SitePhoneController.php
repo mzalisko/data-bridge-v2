@@ -13,7 +13,9 @@ class SitePhoneController extends Controller
     public function store(StorePhoneRequest $request, Site $site): RedirectResponse
     {
         $data = $request->validated();
-        $data['is_primary'] = $request->boolean('is_primary');
+        $data['is_primary']    = $request->boolean('is_primary');
+        $data['geo_mode']      = $data['geo_mode'] ?? 'all';
+        $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
         $site->phones()->create($data);
 
         return back()
@@ -23,7 +25,9 @@ class SitePhoneController extends Controller
     public function update(UpdatePhoneRequest $request, Site $site, SitePhone $phone): RedirectResponse
     {
         $data = $request->validated();
-        $data['is_primary'] = $request->boolean('is_primary');
+        $data['is_primary']    = $request->boolean('is_primary');
+        $data['geo_mode']      = $data['geo_mode'] ?? 'all';
+        $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
         $phone->update($data);
 
         return back()

@@ -24,8 +24,9 @@ class SitePrice extends Model
     protected function casts(): array
     {
         return [
-            'amount'     => 'decimal:2',
-            'is_visible' => 'boolean',
+            'amount'        => 'decimal:2',
+            'is_visible'    => 'boolean',
+            'geo_countries' => 'array',
         ];
     }
 

@@ -25,8 +25,9 @@ class SitePhone extends Model
     protected function casts(): array
     {
         return [
-            'is_primary' => 'boolean',
-            'is_visible' => 'boolean',
+            'is_primary'    => 'boolean',
+            'is_visible'    => 'boolean',
+            'geo_countries' => 'array',
         ];
     }
 

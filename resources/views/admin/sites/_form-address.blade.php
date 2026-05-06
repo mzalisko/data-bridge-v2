@@ -52,3 +52,10 @@
            style="accent-color:var(--accent);width:16px;height:16px;">
     <label for="ad-prim-{{ $aid }}" style="font-size:13px;color:var(--text-2);cursor:pointer;">Основна адреса</label>
 </div>
+
+@include('admin.sites._rule-editor', [
+    'rePrefix'    => 'ad-' . $aid,
+    'reMode'      => old('geo_mode', $a?->geo_mode ?? 'all'),
+    'reCountries' => old('geo_countries', (array) ($a?->geo_countries ?? [])),
+    'reOptions'   => $visRuleOptions ?? [],
+])

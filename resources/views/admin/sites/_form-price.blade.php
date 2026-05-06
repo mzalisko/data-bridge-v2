@@ -35,3 +35,10 @@
            style="accent-color:var(--accent);width:16px;height:16px;">
     <label for="pr-vis-{{ $pid }}" style="font-size:13px;color:var(--text-2);cursor:pointer;">Відображати на сайті</label>
 </div>
+
+@include('admin.sites._rule-editor', [
+    'rePrefix'    => 'pr-' . $pid,
+    'reMode'      => old('geo_mode', $p?->geo_mode ?? 'all'),
+    'reCountries' => old('geo_countries', (array) ($p?->geo_countries ?? [])),
+    'reOptions'   => $visRuleOptions ?? [],
+])
