@@ -331,25 +331,31 @@
                                     <tbody>
                                         @foreach($site->phones as $mp)
                                         <tr style="border-bottom:1px solid var(--border-2);">
-                                            <td style="padding:4px 6px;color:var(--text-2);font-family:var(--font-mono);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ ($mp->dial_code ? '+'.$mp->dial_code.' ' : '') . $mp->number }}">тел. {{ $mp->number }}</td>
+                                            <td style="padding:4px 6px;color:var(--text-2);font-family:var(--font-mono);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;"
+                                                title="{{ ($mp->dial_code ? '+'.$mp->dial_code.' ' : '') . $mp->number }}"
+                                                onclick="location='{{ $url(['tab'=>'data']) }}#dt-edit-phone-{{ $mp->id }}'">тел. {{ $mp->number }}</td>
                                             @foreach($allVisitorIsos as $matIso)
                                                 @php $mok = ($mp->is_visible ?? true) && $geoVis($mp->geo_mode, $mp->geo_countries, $matIso); @endphp
                                                 <td style="text-align:center;padding:4px 5px;background:{{ $matIso === $visIso ? 'var(--accent-2)' : 'transparent' }};"><span style="color:{{ $mok ? '#34d399' : '#f87171' }};font-weight:700;">{{ $mok ? '✓' : '✗' }}</span></td>
                                             @endforeach
                                         </tr>
                                         @endforeach
-                                        @foreach($site->prices as $mp)
+                                        @foreach($site->prices as $mpr)
                                         <tr style="border-bottom:1px solid var(--border-2);">
-                                            <td style="padding:4px 6px;color:var(--text-2);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $mp->label }}">ціна {{ $mp->label }}</td>
+                                            <td style="padding:4px 6px;color:var(--text-2);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;"
+                                                title="{{ $mpr->label }}"
+                                                onclick="location='{{ $url(['tab'=>'data']) }}#dt-edit-price-{{ $mpr->id }}'">ціна {{ $mpr->label }}</td>
                                             @foreach($allVisitorIsos as $matIso)
-                                                @php $mok = ($mp->is_visible ?? true) && $geoVis($mp->geo_mode, $mp->geo_countries, $matIso); @endphp
+                                                @php $mok = ($mpr->is_visible ?? true) && $geoVis($mpr->geo_mode, $mpr->geo_countries, $matIso); @endphp
                                                 <td style="text-align:center;padding:4px 5px;background:{{ $matIso === $visIso ? 'var(--accent-2)' : 'transparent' }};"><span style="color:{{ $mok ? '#34d399' : '#f87171' }};font-weight:700;">{{ $mok ? '✓' : '✗' }}</span></td>
                                             @endforeach
                                         </tr>
                                         @endforeach
                                         @foreach($site->addresses as $ma)
                                         <tr style="border-bottom:1px solid var(--border-2);">
-                                            <td style="padding:4px 6px;color:var(--text-2);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $ma->city }}">адр. {{ $ma->city }}</td>
+                                            <td style="padding:4px 6px;color:var(--text-2);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;"
+                                                title="{{ $ma->city }}"
+                                                onclick="location='{{ $url(['tab'=>'data']) }}#dt-edit-addr-{{ $ma->id }}'">адр. {{ $ma->city }}</td>
                                             @foreach($allVisitorIsos as $matIso)
                                                 @php $mok = ($ma->is_visible ?? true) && $geoVis($ma->geo_mode, $ma->geo_countries, $matIso); @endphp
                                                 <td style="text-align:center;padding:4px 5px;background:{{ $matIso === $visIso ? 'var(--accent-2)' : 'transparent' }};"><span style="color:{{ $mok ? '#34d399' : '#f87171' }};font-weight:700;">{{ $mok ? '✓' : '✗' }}</span></td>
@@ -358,7 +364,9 @@
                                         @endforeach
                                         @foreach($site->socials as $ms)
                                         <tr style="border-bottom:1px solid var(--border-2);">
-                                            <td style="padding:4px 6px;color:var(--text-2);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ ucfirst($ms->platform).': '.$ms->handle }}">{{ $ms->platform }} {{ $ms->handle }}</td>
+                                            <td style="padding:4px 6px;color:var(--text-2);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;"
+                                                title="{{ ucfirst($ms->platform).': '.$ms->handle }}"
+                                                onclick="location='{{ $url(['tab'=>'data']) }}#dt-edit-social-{{ $ms->id }}'">{{ $ms->platform }} {{ $ms->handle }}</td>
                                             @foreach($allVisitorIsos as $matIso)
                                                 @php $mok = ($ms->is_visible ?? true) && $geoVis($ms->geo_mode, $ms->geo_countries, $matIso); @endphp
                                                 <td style="text-align:center;padding:4px 5px;background:{{ $matIso === $visIso ? 'var(--accent-2)' : 'transparent' }};"><span style="color:{{ $mok ? '#34d399' : '#f87171' }};font-weight:700;">{{ $mok ? '✓' : '✗' }}</span></td>
@@ -372,13 +380,18 @@
                     </div>
                 @endforeach
 
-                {{-- Conflicts --}}
-                @if(count($conflicts) > 0)
-                    <div style="border-top:1px solid var(--border-2);padding:14px 20px;">
-                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                {{-- Conflicts — always visible so manager can verify setup --}}
+                <div style="border-top:1px solid var(--border-2);padding:12px 20px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:{{ count($conflicts) ? '10px' : '0' }};">
+                        @if(count($conflicts) > 0)
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                             <span style="font-size:12px;font-weight:600;color:#f87171;text-transform:uppercase;letter-spacing:.05em;">Конфлікти ({{ count($conflicts) }})</span>
-                        </div>
+                        @else
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            <span style="font-size:12px;font-weight:600;color:#34d399;text-transform:uppercase;letter-spacing:.05em;">Конфліктів не виявлено</span>
+                        @endif
+                    </div>
+                    @if(count($conflicts) > 0)
                         <div style="display:flex;flex-direction:column;gap:5px;">
                             @foreach($conflicts as $cf)
                                 <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:#f871710d;border:1px solid #f8717133;border-radius:var(--radius);">
@@ -388,8 +401,8 @@
                                 </div>
                             @endforeach
                         </div>
-                    </div>
-                @endif
+                    @endif
+                </div>
             @else
                 <div style="border-top:1px solid var(--border-2);padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">
                     Ще немає даних. <a href="{{ $url(['tab' => 'data']) }}" style="color:var(--accent);">Додати →</a>
@@ -411,6 +424,24 @@
                 ];
                 $socialPlatforms = ['instagram'=>'Instagram','facebook'=>'Facebook','telegram'=>'Telegram','linkedin'=>'LinkedIn','x'=>'X / Twitter','whatsapp'=>'WhatsApp','viber'=>'Viber','youtube'=>'YouTube'];
             @endphp
+
+            {{-- ── Geo mini-bar: active geos + add/remove ────────────── --}}
+            <div style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-bottom:1px solid var(--border-2);background:var(--panel-2);flex-wrap:wrap;">
+                <span style="font-size:11px;color:var(--text-3);font-weight:600;flex-shrink:0;">Гео:</span>
+                @forelse($usedIso as $iso)
+                    <span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:var(--panel);border:1px solid var(--border);border-radius:99px;font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--text-2);">
+                        {{ $iso }}
+                        <button type="button" onclick="openDrawer('drawer-geo-remove-{{ $iso }}')"
+                                style="background:none;border:none;padding:0;margin-left:3px;cursor:pointer;color:var(--text-3);font-size:12px;line-height:1;" title="Видалити {{ $iso }}">✕</button>
+                    </span>
+                @empty
+                    <span style="font-size:12px;color:var(--text-3);">Немає гео</span>
+                @endforelse
+                <button class="btn btn--ghost btn--sm" type="button" onclick="openDrawer('drawer-geo-add')" style="margin-left:auto;">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="margin-right:3px;vertical-align:-1px;"><path d="M12 5v14M5 12h14"/></svg>
+                    Додати гео
+                </button>
+            </div>
 
             <div class="dt-grid">
 
@@ -1592,6 +1623,21 @@ function dtGeoChip(prefix, iso, el) {
     var chip = document.getElementById('dtchip-' + prefix + '-' + iso);
     if (chip) chip.classList.toggle('is-on', el.checked);
 }
+
+// ── Auto-open dt-edit panel from URL hash (e.g. #dt-edit-phone-123) ─────
+window.addEventListener('DOMContentLoaded', function() {
+    var hash = window.location.hash;
+    if (hash && hash.indexOf('dt-edit-') !== -1) {
+        var id = hash.replace('#dt-edit-', '');
+        var panel = document.getElementById('dt-edit-' + id);
+        if (panel) {
+            panel.style.display = '';
+            var chevron = document.querySelector('#dt-expand-' + id + ' svg');
+            if (chevron) chevron.style.transform = 'rotate(90deg)';
+            setTimeout(function() { panel.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 80);
+        }
+    }
+});
 
 // ── Visitor preview tab switcher (Overview tab) ────────────────
 function showVisitorPanel(iso) {
