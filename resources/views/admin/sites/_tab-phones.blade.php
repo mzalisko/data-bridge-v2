@@ -1,8 +1,10 @@
-{{-- Phones tab — variables: $site, $phones --}}
+{{-- Phones tab — variables: $site, $phones, $sectionMode (optional) --}}
+@unless($sectionMode ?? false)
 <div class="data-tab-header">
     <h2 class="data-tab__title">Телефони <span class="data-tab__count">{{ $phones->count() }}</span></h2>
     <button class="btn-primary" onclick="openDrawer('drawer-phone-create')">+ Додати</button>
 </div>
+@endunless
 
 @if(session('success') && request('tab') === 'phones')
     <div class="alert alert--success">{{ session('success') }}</div>

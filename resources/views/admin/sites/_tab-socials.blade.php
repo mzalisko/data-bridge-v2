@@ -1,4 +1,4 @@
-{{-- Socials tab — variables: $site, $socials --}}
+{{-- Socials tab — variables: $site, $socials, $sectionMode (optional) --}}
 @php
 $platformLabels = [
     'instagram' => 'Instagram', 'facebook' => 'Facebook', 'telegram' => 'Telegram',
@@ -7,10 +7,12 @@ $platformLabels = [
 ];
 @endphp
 
+@unless($sectionMode ?? false)
 <div class="data-tab-header">
     <h2 class="data-tab__title">Соцмережі <span class="data-tab__count">{{ $socials->count() }}</span></h2>
     <button class="btn-primary" onclick="openDrawer('drawer-social-create')">+ Додати</button>
 </div>
+@endunless
 
 @if(session('success') && request('tab') === 'socials')
     <div class="alert alert--success">{{ session('success') }}</div>

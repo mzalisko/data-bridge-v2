@@ -1,8 +1,10 @@
-{{-- Prices tab — variables: $site, $prices --}}
+{{-- Prices tab — variables: $site, $prices, $sectionMode (optional) --}}
+@unless($sectionMode ?? false)
 <div class="data-tab-header">
     <h2 class="data-tab__title">Ціни <span class="data-tab__count">{{ $prices->count() }}</span></h2>
     <button class="btn-primary" onclick="openDrawer('drawer-price-create')">+ Додати</button>
 </div>
+@endunless
 
 @if(session('success') && request('tab') === 'prices')
     <div class="alert alert--success">{{ session('success') }}</div>

@@ -1380,3 +1380,89 @@
     gap: var(--space-sm);
     align-items: center;
 }
+
+/* ═══════════════════════════════════════════════════════
+   SITE SECTIONS — колапсовані секції в site-show__content
+   ═══════════════════════════════════════════════════════ */
+
+.site-section {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    margin-bottom: var(--space-md);
+    overflow: hidden;
+}
+
+.site-section__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 20px;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--border-color);
+    transition: background var(--duration-fast);
+}
+.site-section__head:hover { background: var(--bg-hover); }
+.site-section.is-collapsed .site-section__head { border-bottom-color: transparent; }
+
+.site-section__arrow {
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: transform var(--duration-fast) var(--ease-ui);
+}
+.site-section.is-collapsed .site-section__arrow { transform: rotate(-90deg); }
+
+.site-section__icon  { color: var(--text-muted); flex-shrink: 0; }
+
+.site-section__title {
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.site-section__count {
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--bg-page);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1px 7px;
+    flex-shrink: 0;
+}
+
+.site-section__add {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: var(--radius-item);
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
+}
+.site-section__add:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+.site-section__body {
+    overflow: hidden;
+    max-height: 9999px;
+    transition: max-height 0.3s var(--ease-ui);
+}
+.site-section.is-collapsed .site-section__body { max-height: 0; }
+
+/* data-list всередині секції — без дублювання фону/тіні */
+.site-section .data-list      { background: transparent; box-shadow: none; border-radius: 0; }
+.site-section .data-row       { padding-left: 20px; padding-right: 20px; }
+.site-section .data-tab__empty { background: transparent; box-shadow: none; }

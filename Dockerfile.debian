@@ -1,0 +1,16 @@
+FROM laravelsail/php83-composer:latest
+
+RUN docker-php-ext-install pdo_mysql opcache
+
+COPY docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+
+WORKDIR /var/www/html
+
+RUN echo '#!/bin/sh' > /usr/local/bin/entrypoint.sh && \
+    echo 'chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true' >> /usr/local/bin/entrypoint.sh && \
+    echo 'exec php-fpm' >> /usr/local/bin/entrypoint.sh && \
+    chmod +x /usr/local/bin/entrypoint.sh
+
+EXPOSE 9000
+
+CMD ["/usr/local/bin/entrypoint.sh"]
