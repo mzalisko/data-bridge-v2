@@ -8,100 +8,110 @@
 
 @section('content')
 
+<div class="page-toolbar">
+    <div style="display:flex;align-items:center;gap:var(--space-md);">
+        <a href="{{ route('sites.index') }}" class="btn-ghost">← Сайти</a>
+        <span class="status-dot status-dot--{{ $site->is_active ? 'ok' : 'off' }}"></span>
+        <h1 class="page-title">{{ $site->name }}</h1>
+    </div>
+    <div style="display:flex;gap:var(--space-sm);">
+        <a href="{{ $site->url }}" target="_blank" class="btn-ghost">↗ Відкрити</a>
+        <button class="btn-primary" onclick="openDrawer('drawer-site-edit')">Редагувати</button>
+    </div>
+</div>
+
 @php
-    $color    = $site->siteGroup?->color ?? '#708499';
-    $letter   = strtoupper(substr(parse_url($site->url, PHP_URL_HOST) ?: $site->name, 0, 1));
+    $color  = $site->siteGroup?->color ?? '#708499';
+    $letter = strtoupper(substr(parse_url($site->url, PHP_URL_HOST) ?: $site->name, 0, 1));
     $syncLog  = $site->latestSyncLog;
     $syncOk   = $syncLog?->status === 'success';
     $syncWarn = $syncLog && !$syncOk;
     $syncColor = $syncOk ? 'var(--dot-ok)' : ($syncWarn ? 'var(--dot-pause)' : 'var(--text-muted)');
 @endphp
 
-{{-- Back link --}}
-<a href="{{ route('sites.index') }}" class="site-back">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="15 18 9 12 15 6"/>
-    </svg>
-    Всі сайти
-</a>
+<div class="site-show">
+    {{-- Sidebar — без змін --}}
+    <div class="site-show__sidebar">
+        <div class="site-show__favicon"
+             style="background:{{ $color }}26;color:{{ $color }};">
+            {{ $letter }}
+        </div>
+        <div>
+            <div class="site-show__name">{{ $site->name }}</div>
+            <div class="site-show__url">{{ $site->url }}</div>
+        </div>
 
-{{-- ── Hero Header ── --}}
-<div class="site-header">
-    <div class="site-header__favicon" style="background:{{ $color }}26;color:{{ $color }}">
-        {{ $letter }}
-    </div>
-    <div class="site-header__identity">
-        <div class="site-header__name">{{ $site->name }}</div>
-        <div class="site-header__url">{{ $site->url }}</div>
-        <div class="site-header__badges">
-            <span class="status-dot-inline status-dot-inline--{{ $site->is_active ? 'ok' : 'off' }}"
-                  style="color:{{ $site->is_active ? 'var(--dot-ok)' : 'var(--dot-off)' }}">
-                {{ $site->is_active ? 'Active' : 'Disabled' }}
-            </span>
-            @if($site->siteGroup)
-                <span class="group-pill" style="--pill-color:{{ $color }}">{{ $site->siteGroup->name }}</span>
-            @endif
+        <div class="site-show__info">
+            <div class="site-show__info-row">
+                <span class="site-show__info-label">Статус</span>
+                <span class="site-show__info-val"
+                      style="color:{{ $site->is_active ? 'var(--dot-ok)' : 'var(--dot-off)' }}">
+                    ● {{ $site->is_active ? 'Active' : 'Disabled' }}
+                </span>
+            </div>
+            <div class="site-show__info-row">
+                <span class="site-show__info-label">Група</span>
+                <span class="site-show__info-val">{{ $site->siteGroup?->name ?? '—' }}</span>
+            </div>
             @if($syncLog)
-                <span class="sync-pill">
-                    <span class="sync-pill__dot" style="background:{{ $syncColor }}"></span>
+            <div class="site-show__info-row">
+                <span class="site-show__info-label">Sync</span>
+                <span class="site-show__info-val" style="color:{{ $syncColor }}">
                     {{ $syncLog->created_at->diffForHumans() }}
                 </span>
+            </div>
             @endif
+            <div class="site-show__info-row">
+                <span class="site-show__info-label">Додано</span>
+                <span class="site-show__info-val">{{ $site->created_at->format('d.m.Y') }}</span>
+            </div>
         </div>
+
+        @include('admin.sites._api-key', ['site' => $site])
+
+        {{-- Навігація: scroll-to-section замість tab-switching --}}
+        <nav class="site-show__nav">
+            <a class="site-show__nav-item" href="#section-phones"
+               onclick="siteNavScroll(event, 'section-phones')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l.72-.72a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.5 16a2 2 0 0 1 .42.92z"/>
+                </svg>
+                Телефони
+                <span class="site-show__nav-count">{{ $site->phones->count() ?: '—' }}</span>
+            </a>
+            <a class="site-show__nav-item" href="#section-prices"
+               onclick="siteNavScroll(event, 'section-prices')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="1" x2="12" y2="23"/>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                Ціни
+                <span class="site-show__nav-count">{{ $site->prices->count() ?: '—' }}</span>
+            </a>
+            <a class="site-show__nav-item" href="#section-addresses"
+               onclick="siteNavScroll(event, 'section-addresses')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                </svg>
+                Адреси
+                <span class="site-show__nav-count">{{ $site->addresses->count() ?: '—' }}</span>
+            </a>
+            <a class="site-show__nav-item" href="#section-socials"
+               onclick="siteNavScroll(event, 'section-socials')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+                Соцмережі
+                <span class="site-show__nav-count">{{ $site->socials->count() ?: '—' }}</span>
+            </a>
+        </nav>
     </div>
-    <div class="site-header__actions">
-        <a href="{{ $site->url }}" target="_blank" class="btn-ghost">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;vertical-align:middle">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-            Відкрити
-        </a>
-        <button class="btn-primary" onclick="openDrawer('drawer-site-edit')">Редагувати</button>
-    </div>
-</div>
 
-{{-- ── Stat chips ── --}}
-<div class="site-stats">
-    <a href="#section-phones" class="stat-chip" onclick="siteStatScroll(event,'section-phones')">
-        <svg class="stat-chip__icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l.72-.72a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-        </svg>
-        <span class="stat-chip__label">Телефони</span>
-        <span class="stat-chip__count">{{ $site->phones->count() }}</span>
-    </a>
-    <a href="#section-prices" class="stat-chip" onclick="siteStatScroll(event,'section-prices')">
-        <svg class="stat-chip__icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="1" x2="12" y2="23"/>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-        </svg>
-        <span class="stat-chip__label">Ціни</span>
-        <span class="stat-chip__count">{{ $site->prices->count() }}</span>
-    </a>
-    <a href="#section-addresses" class="stat-chip" onclick="siteStatScroll(event,'section-addresses')">
-        <svg class="stat-chip__icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-            <circle cx="12" cy="10" r="3"/>
-        </svg>
-        <span class="stat-chip__label">Адреси</span>
-        <span class="stat-chip__count">{{ $site->addresses->count() }}</span>
-    </a>
-    <a href="#section-socials" class="stat-chip" onclick="siteStatScroll(event,'section-socials')">
-        <svg class="stat-chip__icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-        </svg>
-        <span class="stat-chip__label">Соцмережі</span>
-        <span class="stat-chip__count">{{ $site->socials->count() }}</span>
-    </a>
-</div>
-
-{{-- ── Two-column layout ── --}}
-<div class="site-overview">
-
-    {{-- Left: collapsible data sections --}}
-    <div class="site-overview__main">
+    {{-- Content: всі секції одночасно, замість tab-switching --}}
+    <div class="site-show__content">
 
         @if(session('success'))
             <div class="alert alert--success" style="margin-bottom:var(--space-md)">{{ session('success') }}</div>
@@ -114,11 +124,12 @@
                     <polyline points="6 9 12 15 18 9"/>
                 </svg>
                 <svg class="site-section__icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l.72-.72a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l.72-.72a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.5 16a2 2 0 0 1 .42.92z"/>
                 </svg>
                 <span class="site-section__title">Телефони</span>
                 <span class="site-section__count">{{ $site->phones->count() }}</span>
-                <button class="site-section__add" onclick="event.stopPropagation(); openDrawer('drawer-phone-create')">
+                <button class="site-section__add"
+                        onclick="event.stopPropagation(); openDrawer('drawer-phone-create')">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
@@ -147,7 +158,8 @@
                 </svg>
                 <span class="site-section__title">Ціни</span>
                 <span class="site-section__count">{{ $site->prices->count() }}</span>
-                <button class="site-section__add" onclick="event.stopPropagation(); openDrawer('drawer-price-create')">
+                <button class="site-section__add"
+                        onclick="event.stopPropagation(); openDrawer('drawer-price-create')">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
@@ -176,7 +188,8 @@
                 </svg>
                 <span class="site-section__title">Адреси</span>
                 <span class="site-section__count">{{ $site->addresses->count() }}</span>
-                <button class="site-section__add" onclick="event.stopPropagation(); openDrawer('drawer-address-create')">
+                <button class="site-section__add"
+                        onclick="event.stopPropagation(); openDrawer('drawer-address-create')">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
@@ -206,7 +219,8 @@
                 </svg>
                 <span class="site-section__title">Соцмережі</span>
                 <span class="site-section__count">{{ $site->socials->count() }}</span>
-                <button class="site-section__add" onclick="event.stopPropagation(); openDrawer('drawer-social-create')">
+                <button class="site-section__add"
+                        onclick="event.stopPropagation(); openDrawer('drawer-social-create')">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
@@ -223,63 +237,10 @@
             </div>
         </div>
 
-    </div>{{-- /site-overview__main --}}
+    </div>{{-- /site-show__content --}}
+</div>{{-- /site-show --}}
 
-    {{-- Right aside --}}
-    <aside class="site-aside">
-
-        {{-- Metadata --}}
-        <div class="aside-card">
-            <div class="aside-card__head">Інформація</div>
-            <div class="aside-card__body">
-                <div class="aside-meta-row">
-                    <span class="aside-meta-row__label">Статус</span>
-                    <span class="aside-meta-row__val"
-                          style="color:{{ $site->is_active ? 'var(--dot-ok)' : 'var(--dot-off)' }}">
-                        ● {{ $site->is_active ? 'Active' : 'Disabled' }}
-                    </span>
-                </div>
-                <div class="aside-meta-row">
-                    <span class="aside-meta-row__label">Група</span>
-                    <span class="aside-meta-row__val">
-                        @if($site->siteGroup)
-                            <span class="group-pill" style="--pill-color:{{ $color }};font-size:11px">{{ $site->siteGroup->name }}</span>
-                        @else
-                            <span style="color:var(--text-muted)">—</span>
-                        @endif
-                    </span>
-                </div>
-                @if($syncLog)
-                <div class="aside-meta-row">
-                    <span class="aside-meta-row__label">Sync</span>
-                    <span class="aside-meta-row__val" style="color:{{ $syncColor }}">
-                        {{ $syncOk ? '✓' : '✗' }} {{ $syncLog->created_at->diffForHumans() }}
-                    </span>
-                </div>
-                @if($syncLog->duration_ms)
-                <div class="aside-meta-row">
-                    <span class="aside-meta-row__label">Тривалість</span>
-                    <span class="aside-meta-row__val">{{ $syncLog->duration_ms }} ms</span>
-                </div>
-                @endif
-                @endif
-                <div class="aside-meta-row">
-                    <span class="aside-meta-row__label">Додано</span>
-                    <span class="aside-meta-row__val">{{ $site->created_at->format('d.m.Y') }}</span>
-                </div>
-            </div>
-        </div>
-
-        {{-- API Key --}}
-        <div class="aside-card">
-            @include('admin.sites._api-key', ['site' => $site])
-        </div>
-
-    </aside>
-
-</div>{{-- /site-overview --}}
-
-{{-- ── Edit site drawer ── --}}
+{{-- Edit drawer — без змін --}}
 <div class="drawer-overlay" id="drawer-site-edit-overlay" onclick="closeDrawer('drawer-site-edit')"></div>
 <div class="drawer" id="drawer-site-edit">
     <div class="drawer__header">
@@ -309,15 +270,20 @@ function toggleSection(headEl) {
     headEl.closest('.site-section').classList.toggle('is-collapsed');
 }
 
-function siteStatScroll(e, id) {
+function siteNavScroll(e, id) {
     e.preventDefault();
     var el = document.getElementById(id);
     if (!el) return;
-    var section = el.closest ? el : el;
-    if (section.classList.contains('is-collapsed')) {
-        section.classList.remove('is-collapsed');
+    if (el.classList.contains('is-collapsed')) {
+        el.classList.remove('is-collapsed');
     }
-    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // підсвітити активний пункт у навігації
+    document.querySelectorAll('.site-show__nav .site-show__nav-item').forEach(function(a) {
+        a.classList.remove('is-active');
+    });
+    e.currentTarget.classList.add('is-active');
 }
 </script>
 @endpush
