@@ -28,7 +28,7 @@ class SiteGeoController extends Controller
             $site->save();
         }
 
-        return redirect(route('sites.show', $site) . '?tab=data&country=' . $iso)
+        return redirect(route('sites.show', $site) . '?tab=data')
             ->with('success', "Geo {$iso} added");
     }
 

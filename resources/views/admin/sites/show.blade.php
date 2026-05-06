@@ -267,50 +267,74 @@
 
                             {{-- LEFT: Що бачить відвідувач --}}
                             <div style="background:var(--panel);padding:20px;">
-                                <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
+                                <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
                                     <span style="width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block;"></span>
                                     Що бачить відвідувач — {{ $visIso }}
                                 </div>
 
-                                @forelse($vPhones as $p)
-                                    <div style="background:var(--panel-2);border-radius:var(--radius-item);padding:8px 10px;margin-bottom:6px;">
-                                        <div style="font-family:var(--font-mono);font-size:13px;font-weight:600;">{{ ($p->dial_code ? '+'.$p->dial_code.' ' : '') . $p->number }}</div>
-                                        @if($p->label)<div style="font-size:11px;color:var(--text-3);margin-top:1px;">{{ $p->label }}</div>@endif
-                                    </div>
-                                @empty
-                                    <div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">— телефони не показуються</div>
-                                @endforelse
+                                @if($totalVis === 0)
+                                    <div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px;">Нічого не показується для {{ $visIso }}</div>
+                                @else
 
-                                @if($vPrices->count())
-                                    <div style="margin-top:10px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Ціни</div>
-                                    @foreach($vPrices as $p)
-                                        <div style="display:flex;justify-content:space-between;background:var(--panel-2);border-radius:var(--radius-item);padding:6px 10px;margin-bottom:4px;font-size:12px;">
-                                            <span style="color:var(--text-2);">{{ $p->label }}</span>
-                                            <span style="font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ $p->amount }} {{ $p->currency }}</span>
+                                {{-- Телефони --}}
+                                @if($vPhones->count())
+                                    <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px;">Телефони</div>
+                                    @foreach($vPhones as $p)
+                                        <div onclick="location='{{ $url(['tab'=>'data']) }}#dt-edit-phone-{{ $p->id }}'"
+                                             style="background:var(--panel-2);border-radius:var(--radius-item);padding:8px 10px;margin-bottom:5px;cursor:pointer;transition:background .1s;"
+                                             onmouseover="this.style.background='var(--panel-hover,var(--border-2))'"
+                                             onmouseout="this.style.background='var(--panel-2)'">
+                                            <div style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text);">{{ ($p->dial_code ? '+'.$p->dial_code.' ' : '') . $p->number }}</div>
+                                            @if($p->label)<div style="font-size:11px;color:var(--text-3);margin-top:1px;">{{ $p->label }}</div>@endif
                                         </div>
                                     @endforeach
                                 @endif
 
+                                {{-- Ціни --}}
+                                @if($vPrices->count())
+                                    <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px;{{ $vPhones->count() ? 'margin-top:14px;' : '' }}">Ціни</div>
+                                    @foreach($vPrices as $p)
+                                        <div onclick="location='{{ $url(['tab'=>'data']) }}#dt-edit-price-{{ $p->id }}'"
+                                             style="display:flex;justify-content:space-between;align-items:center;background:var(--panel-2);border-radius:var(--radius-item);padding:7px 10px;margin-bottom:5px;cursor:pointer;transition:background .1s;"
+                                             onmouseover="this.style.background='var(--border-2)'"
+                                             onmouseout="this.style.background='var(--panel-2)'">
+                                            <span style="font-size:12px;color:var(--text-2);">{{ $p->label }}</span>
+                                            <span style="font-family:var(--font-mono);font-weight:700;font-size:13px;color:#34d399;">{{ $p->amount }} {{ $p->currency }}</span>
+                                        </div>
+                                    @endforeach
+                                @endif
+
+                                {{-- Адреси --}}
                                 @if($vAddrs->count())
-                                    <div style="margin-top:10px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Адреси</div>
+                                    <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px;{{ ($vPhones->count()||$vPrices->count()) ? 'margin-top:14px;' : '' }}">Адреси</div>
                                     @foreach($vAddrs as $a)
-                                        <div style="font-size:12px;color:var(--text-2);background:var(--panel-2);border-radius:var(--radius-item);padding:6px 10px;margin-bottom:4px;">
+                                        <div onclick="location='{{ $url(['tab'=>'data']) }}#dt-edit-addr-{{ $a->id }}'"
+                                             style="font-size:12px;color:var(--text-2);background:var(--panel-2);border-radius:var(--radius-item);padding:7px 10px;margin-bottom:5px;cursor:pointer;transition:background .1s;"
+                                             onmouseover="this.style.background='var(--border-2)'"
+                                             onmouseout="this.style.background='var(--panel-2)'">
                                             {{ trim(($a->city ?? '').' '.($a->street ?? '')) ?: '—' }}
                                         </div>
                                     @endforeach
                                 @endif
 
+                                {{-- Соц.мережі --}}
                                 @if($vSocials->count())
-                                    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:5px;">
+                                    <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px;{{ ($vPhones->count()||$vPrices->count()||$vAddrs->count()) ? 'margin-top:14px;' : '' }}">Соц.мережі</div>
+                                    <div style="display:flex;flex-direction:column;gap:5px;">
                                         @foreach($vSocials as $s)
-                                            <span style="padding:3px 9px;background:var(--panel-2);border:1px solid var(--border);border-radius:99px;font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}: {{ $s->handle }}</span>
+                                            @php $sk = strtolower($s->platform ?? ''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'']; @endphp
+                                            <div onclick="location='{{ $url(['tab'=>'data']) }}#dt-edit-social-{{ $s->id }}'"
+                                                 style="display:flex;align-items:center;gap:8px;background:var(--panel-2);border-radius:var(--radius-item);padding:7px 10px;cursor:pointer;transition:background .1s;"
+                                                 onmouseover="this.style.background='var(--border-2)'"
+                                                 onmouseout="this.style.background='var(--panel-2)'">
+                                                <span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span>
+                                                <span style="font-size:12px;color:var(--text-2);">{{ ucfirst($s->platform) }}: {{ $s->handle }}</span>
+                                            </div>
                                         @endforeach
                                     </div>
                                 @endif
 
-                                @if($totalVis === 0)
-                                    <div style="text-align:center;padding:16px;color:var(--text-3);font-size:12px;">Нічого не показується для {{ $visIso }}</div>
-                                @endif
+                                @endif {{-- /totalVis > 0 --}}
                             </div>
 
                             {{-- RIGHT: Матриця видимості --}}
@@ -1376,8 +1400,13 @@
 
     {{-- ========= ADD GEO ========= --}}
     @php
-        $quickPickIsos  = ['UA', 'RU', 'BY', 'RO'];
-        $availableQuick = array_values(array_filter($quickPickIsos, fn($iso) => !in_array($iso, $usedIso, true)));
+        // Quick pick: all ISOs used across the system, excluding already added ones
+        $systemIsos = \App\Models\Site::whereNotNull('active_geos')
+            ->pluck('active_geos')
+            ->flatMap(fn($g) => array_keys(is_array($g) ? $g : (array)$g))
+            ->merge(['UA','RO','RU','BY','PL','DE','MD'])
+            ->unique()->sort()->values()->toArray();
+        $availableQuick = array_values(array_filter($systemIsos, fn($iso) => !in_array($iso, $usedIso, true)));
     @endphp
     <div class="drawer-overlay" id="drawer-geo-add-overlay" onclick="closeDrawer('drawer-geo-add')"></div>
     <div class="drawer" id="drawer-geo-add">
