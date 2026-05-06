@@ -177,6 +177,40 @@
 
         {{-- ========= OVERVIEW ========= --}}
         @if($tab === 'overview')
+        @php
+            $allVisitorIsos = collect($usedIso)
+                ->merge($site->phones->flatMap(fn($p) => (array)($p->geo_countries ?? [])))
+                ->merge($site->prices->flatMap(fn($p) => (array)($p->geo_countries ?? [])))
+                ->merge($site->addresses->flatMap(fn($a) => (array)($a->geo_countries ?? [])))
+                ->merge($site->socials->flatMap(fn($s) => (array)($s->geo_countries ?? [])))
+                ->filter()->unique()->sort()->values()->toArray();
+            $hasAnyData = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count() > 0;
+            $conflicts = [];
+            foreach ([
+                ['Телефони',  $site->phones,    fn($p) => ($p->dial_code ? '+'.$p->dial_code.' ' : '') . $p->number],
+                ['Ціни',      $site->prices,    fn($p) => $p->label . ' — ' . number_format($p->amount, 2) . ' ' . $p->currency],
+                ['Адреси',    $site->addresses, fn($a) => $a->city . ($a->street ? ', '.$a->street : '')],
+                ['Соцмережі', $site->socials,   fn($s) => ucfirst($s->platform).': '.$s->handle],
+            ] as [$typeName, $coll, $labelFn]) {
+                foreach ($coll as $item) {
+                    $mode   = $item->geo_mode ?? 'all';
+                    $ctries = (array)($item->geo_countries ?? []);
+                    if ($mode === 'include' && count($ctries) === 0) {
+                        $conflicts[] = ['type' => $typeName, 'label' => $labelFn($item), 'issue' => 'Правило «Тільки» без країн — ніколи не показується'];
+                    } elseif ($mode !== 'all' && count($allVisitorIsos) > 0) {
+                        $visibleToAny = false;
+                        foreach ($allVisitorIsos as $chkIso) {
+                            if ($geoVis($mode, $ctries, $chkIso)) { $visibleToAny = true; break; }
+                        }
+                        if (!$visibleToAny) {
+                            $conflicts[] = ['type' => $typeName, 'label' => $labelFn($item), 'issue' => 'Не показується жодному активному гео'];
+                        }
+                    }
+                }
+            }
+        @endphp
+
+            {{-- Info + Sync row --}}
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
                 <div style="background:var(--panel);padding:20px;">
                     <h4 style="margin:0 0 12px;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Інфо про сайт</h4>
@@ -207,228 +241,158 @@
                 </div>
             </div>
 
-            {{-- ===== GEO COVERAGE — large country pills with totals ===== --}}
-            @if(count($usedIso) > 0)
-                <div style="border-top:1px solid var(--border-2);padding:20px;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-                        <h4 style="margin:0;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Геопокриття</h4>
-                        <span style="font-size:12px;color:var(--text-3);">{{ count($usedIso) }} {{ count($usedIso) === 1 ? 'країна' : 'країн' }}</span>
-                    </div>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;">
-                        @foreach($usedIso as $iso)
-                            @php
-                                $cName  = $countriesByIso[$iso]->name ?? $iso;
-                                $totalG = $site->phones->where('country_iso', $iso)->count()
-                                        + $site->prices->where('country_iso', $iso)->count()
-                                        + $site->addresses->where('country_iso', $iso)->count()
-                                        + $site->socials->where('country_iso', $iso)->count();
-                            @endphp
-                            @php $showCName = $cName && strcasecmp($cName, $iso) !== 0; @endphp
-                            <a href="{{ $url(['country' => $iso, 'tab' => 'data']) }}"
-                               style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;color:inherit;transition:border-color .12s, box-shadow .12s;"
-                               onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px var(--accent-2)';"
-                               onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none';">
-                                <span style="width:34px;height:34px;border-radius:8px;background:var(--accent-2);color:var(--accent-text);font-family:var(--font-mono);font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">{{ $iso }}</span>
-                                <div style="min-width:0;flex:1;">
-                                    <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $showCName ? $cName : 'Country '.$iso }}</div>
-                                    <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);">{{ $totalG }} {{ $totalG === 1 ? 'запис' : 'записів' }}</div>
-                                </div>
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div style="border-top:1px solid var(--border-2);padding:20px;display:flex;flex-direction:column;gap:16px;">
-                    <h4 style="margin:0;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Дані по гео</h4>
-
-                    @foreach($usedIso as $iso)
-                        @php
-                            $cName     = $countriesByIso[$iso]->name ?? $iso;
-                            $geoPhones = $site->phones->where('country_iso', $iso);
-                            $geoPrices = $site->prices->where('country_iso', $iso);
-                            $geoAddrs  = $site->addresses->where('country_iso', $iso);
-                            $geoSocial = $site->socials->where('country_iso', $iso);
-                        @endphp
-                        <div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--panel);">
-                            @php $showCName2 = $cName && strcasecmp($cName, $iso) !== 0; @endphp
-                            {{-- Geo card header --}}
-                            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--panel-2);border-bottom:1px solid var(--border-2);">
-                                <div style="display:flex;align-items:center;gap:10px;">
-                                    <span style="font-family:var(--font-mono);font-weight:700;font-size:12px;background:var(--accent-2);color:var(--accent-text);padding:3px 8px;border-radius:6px;">{{ $iso }}</span>
-                                    @if($showCName2)<span style="font-size:13px;font-weight:600;color:var(--text);">{{ $cName }}</span>@endif
-                                </div>
-                                <div style="display:flex;gap:6px;align-items:center;">
-                                    <span class="pill pill--neutral">{{ $geoPhones->count() }} тел.</span>
-                                    <span class="pill pill--neutral">{{ $geoPrices->count() }} ціни</span>
-                                    <span class="pill pill--neutral">{{ $geoAddrs->count() }} адр.</span>
-                                    <span class="pill pill--neutral">{{ $geoSocial->count() }} соц.</span>
-                                    <a href="{{ $url(['country' => $iso, 'tab' => 'data']) }}" class="btn btn--ghost btn--sm">Керувати →</a>
-                                </div>
-                            </div>
-
-                            {{-- Geo card body — 4 columns: phones / prices / addresses / socials --}}
-                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border-2);">
-
-                                {{-- Phones col --}}
-                                <div style="background:var(--panel);padding:14px 16px;min-height:80px;">
-                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Телефони</div>
-                                    @forelse($geoPhones as $p)
-                                        <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-2);padding:3px 0;display:flex;align-items:center;gap:6px;">
-                                            <span>+{{ $p->dial_code }} {{ $p->number }}</span>
-                                            @if($p->is_primary)<span class="pill pill--accent" style="font-size:9px;padding:1px 5px;">P</span>@endif
-                                        </div>
-                                    @empty
-                                        <div style="font-size:11px;color:var(--text-3);">—</div>
-                                    @endforelse
-                                </div>
-
-                                {{-- Prices col --}}
-                                <div style="background:var(--panel);padding:14px 16px;min-height:80px;">
-                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Ціни</div>
-                                    @forelse($geoPrices as $p)
-                                        <div style="font-size:12px;color:var(--text-2);padding:3px 0;">
-                                            @if($p->label)<span>{{ $p->label }} — </span>@endif
-                                            <span style="font-family:var(--font-mono);">{{ $p->amount }} {{ $p->currency }}</span>
-                                        </div>
-                                    @empty
-                                        <div style="font-size:11px;color:var(--text-3);">—</div>
-                                    @endforelse
-                                </div>
-
-                                {{-- Addresses col --}}
-                                <div style="background:var(--panel);padding:14px 16px;min-height:80px;">
-                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Адреси</div>
-                                    @forelse($geoAddrs as $a)
-                                        <div style="font-size:12px;color:var(--text-2);padding:3px 0;">
-                                            {{ trim(($a->city ?? '').' '.($a->street ?? '').' '.($a->building ?? '')) ?: '—' }}
-                                        </div>
-                                    @empty
-                                        <div style="font-size:11px;color:var(--text-3);">—</div>
-                                    @endforelse
-                                </div>
-
-                                {{-- Socials col --}}
-                                <div style="background:var(--panel);padding:14px 16px;min-height:80px;">
-                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">Соцмережі</div>
-                                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                                        @forelse($geoSocial as $s)
-                                            @php
-                                                $key = strtolower($s->platform ?? '');
-                                                $ic  = $socialIcon[$key] ?? ['c' => 'var(--text-3)', 'svg' => '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>'];
-                                            @endphp
-                                            <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:var(--panel-2);border:1px solid var(--border);border-radius:99px;font-size:11px;color:var(--text-2);">
-                                                <span style="color:{{ $ic['c'] }};display:inline-flex;">{!! $ic['svg'] !!}</span>
-                                                {{ $s->handle ?: $s->platform }}
-                                            </span>
-                                        @empty
-                                            <div style="font-size:11px;color:var(--text-3);">—</div>
-                                        @endforelse
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            @if($hasAnyData && count($allVisitorIsos) > 0)
+                {{-- Country selector tabs --}}
+                <div style="border-top:1px solid var(--border-2);padding:10px 16px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--panel-2);">
+                    <span style="font-size:11px;color:var(--text-3);font-weight:600;margin-right:4px;">Перегляд для:</span>
+                    @foreach($allVisitorIsos as $visIso)
+                        <button onclick="showVisitorPanel('{{ $visIso }}')" id="vis-tab-{{ $visIso }}"
+                                class="btn btn--sm {{ $loop->first ? 'btn--primary' : 'btn--ghost' }}"
+                                style="font-family:var(--font-mono);font-weight:700;">{{ $visIso }}</button>
                     @endforeach
                 </div>
-            @else
-                <div style="border-top:1px solid var(--border-2);padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">
-                    Ще немає гео-даних. <a href="{{ $url(['tab' => 'data']) }}" style="color:var(--accent);">Додати дані →</a>
-                </div>
-            @endif
 
-            {{-- ===== VISITOR PREVIEW ===== --}}
-            @if(count($usedIso) > 0 && ($site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count()) > 0)
-                <div style="border-top:1px solid var(--border-2);padding:20px;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-                        <h4 style="margin:0;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Що бачить відвідувач</h4>
-                        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="vis-preview-tabs">
-                            @foreach($usedIso as $iso)
-                                <button onclick="showVisitorPanel('{{ $iso }}')" id="vis-tab-{{ $iso }}"
-                                        class="btn btn--sm {{ $loop->first ? 'btn--primary' : 'btn--ghost' }}"
-                                        style="font-family:var(--font-mono);font-weight:700;">{{ $iso }}</button>
+                {{-- Per-ISO panel: visitor preview (LEFT) + matrix (RIGHT) --}}
+                @foreach($allVisitorIsos as $visIso)
+                    @php
+                        $vPhones  = $site->phones->filter(fn($p)  => ($p->is_visible ?? true) && $geoVis($p->geo_mode, $p->geo_countries, $visIso));
+                        $vPrices  = $site->prices->filter(fn($p)  => ($p->is_visible ?? true) && $geoVis($p->geo_mode, $p->geo_countries, $visIso));
+                        $vAddrs   = $site->addresses->filter(fn($a) => ($a->is_visible ?? true) && $geoVis($a->geo_mode, $a->geo_countries, $visIso));
+                        $vSocials = $site->socials->filter(fn($s)  => ($s->is_visible ?? true) && $geoVis($s->geo_mode, $s->geo_countries, $visIso));
+                        $totalVis = $vPhones->count() + $vPrices->count() + $vAddrs->count() + $vSocials->count();
+                        $totalAll = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count();
+                    @endphp
+                    <div id="vis-panel-{{ $visIso }}" style="{{ $loop->first ? '' : 'display:none;' }}">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
+
+                            {{-- LEFT: Що бачить відвідувач --}}
+                            <div style="background:var(--panel);padding:20px;">
+                                <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:6px;">
+                                    <span style="width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block;"></span>
+                                    Що бачить відвідувач — {{ $visIso }}
+                                </div>
+
+                                @forelse($vPhones as $p)
+                                    <div style="background:var(--panel-2);border-radius:var(--radius-item);padding:8px 10px;margin-bottom:6px;">
+                                        <div style="font-family:var(--font-mono);font-size:13px;font-weight:600;">{{ ($p->dial_code ? '+'.$p->dial_code.' ' : '') . $p->number }}</div>
+                                        @if($p->label)<div style="font-size:11px;color:var(--text-3);margin-top:1px;">{{ $p->label }}</div>@endif
+                                    </div>
+                                @empty
+                                    <div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">— телефони не показуються</div>
+                                @endforelse
+
+                                @if($vPrices->count())
+                                    <div style="margin-top:10px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Ціни</div>
+                                    @foreach($vPrices as $p)
+                                        <div style="display:flex;justify-content:space-between;background:var(--panel-2);border-radius:var(--radius-item);padding:6px 10px;margin-bottom:4px;font-size:12px;">
+                                            <span style="color:var(--text-2);">{{ $p->label }}</span>
+                                            <span style="font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ $p->amount }} {{ $p->currency }}</span>
+                                        </div>
+                                    @endforeach
+                                @endif
+
+                                @if($vAddrs->count())
+                                    <div style="margin-top:10px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Адреси</div>
+                                    @foreach($vAddrs as $a)
+                                        <div style="font-size:12px;color:var(--text-2);background:var(--panel-2);border-radius:var(--radius-item);padding:6px 10px;margin-bottom:4px;">
+                                            {{ trim(($a->city ?? '').' '.($a->street ?? '')) ?: '—' }}
+                                        </div>
+                                    @endforeach
+                                @endif
+
+                                @if($vSocials->count())
+                                    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:5px;">
+                                        @foreach($vSocials as $s)
+                                            <span style="padding:3px 9px;background:var(--panel-2);border:1px solid var(--border);border-radius:99px;font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}: {{ $s->handle }}</span>
+                                        @endforeach
+                                    </div>
+                                @endif
+
+                                @if($totalVis === 0)
+                                    <div style="text-align:center;padding:16px;color:var(--text-3);font-size:12px;">Нічого не показується для {{ $visIso }}</div>
+                                @endif
+                            </div>
+
+                            {{-- RIGHT: Матриця видимості --}}
+                            <div style="background:var(--panel);padding:20px;overflow-x:auto;">
+                                <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+                                    Матриця
+                                    <span style="font-family:var(--font-mono);font-weight:700;font-size:12px;color:{{ $totalVis === $totalAll ? '#34d399' : ($totalVis > 0 ? 'var(--warning)' : '#f87171') }};">{{ $totalVis }}/{{ $totalAll }}</span>
+                                </div>
+                                <table style="width:100%;border-collapse:collapse;font-size:11px;">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:left;padding:4px 6px;color:var(--text-3);font-weight:500;border-bottom:1px solid var(--border-2);font-size:10px;">Запис</th>
+                                            @foreach($allVisitorIsos as $matIso)
+                                                <th style="text-align:center;padding:4px 5px;font-family:var(--font-mono);font-size:10px;font-weight:700;border-bottom:1px solid var(--border-2);color:{{ $matIso === $visIso ? 'var(--accent)' : 'var(--text-3)' }};">{{ $matIso }}</th>
+                                            @endforeach
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($site->phones as $mp)
+                                        <tr style="border-bottom:1px solid var(--border-2);">
+                                            <td style="padding:4px 6px;color:var(--text-2);font-family:var(--font-mono);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ ($mp->dial_code ? '+'.$mp->dial_code.' ' : '') . $mp->number }}">тел. {{ $mp->number }}</td>
+                                            @foreach($allVisitorIsos as $matIso)
+                                                @php $mok = ($mp->is_visible ?? true) && $geoVis($mp->geo_mode, $mp->geo_countries, $matIso); @endphp
+                                                <td style="text-align:center;padding:4px 5px;background:{{ $matIso === $visIso ? 'var(--accent-2)' : 'transparent' }};"><span style="color:{{ $mok ? '#34d399' : '#f87171' }};font-weight:700;">{{ $mok ? '✓' : '✗' }}</span></td>
+                                            @endforeach
+                                        </tr>
+                                        @endforeach
+                                        @foreach($site->prices as $mp)
+                                        <tr style="border-bottom:1px solid var(--border-2);">
+                                            <td style="padding:4px 6px;color:var(--text-2);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $mp->label }}">ціна {{ $mp->label }}</td>
+                                            @foreach($allVisitorIsos as $matIso)
+                                                @php $mok = ($mp->is_visible ?? true) && $geoVis($mp->geo_mode, $mp->geo_countries, $matIso); @endphp
+                                                <td style="text-align:center;padding:4px 5px;background:{{ $matIso === $visIso ? 'var(--accent-2)' : 'transparent' }};"><span style="color:{{ $mok ? '#34d399' : '#f87171' }};font-weight:700;">{{ $mok ? '✓' : '✗' }}</span></td>
+                                            @endforeach
+                                        </tr>
+                                        @endforeach
+                                        @foreach($site->addresses as $ma)
+                                        <tr style="border-bottom:1px solid var(--border-2);">
+                                            <td style="padding:4px 6px;color:var(--text-2);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $ma->city }}">адр. {{ $ma->city }}</td>
+                                            @foreach($allVisitorIsos as $matIso)
+                                                @php $mok = ($ma->is_visible ?? true) && $geoVis($ma->geo_mode, $ma->geo_countries, $matIso); @endphp
+                                                <td style="text-align:center;padding:4px 5px;background:{{ $matIso === $visIso ? 'var(--accent-2)' : 'transparent' }};"><span style="color:{{ $mok ? '#34d399' : '#f87171' }};font-weight:700;">{{ $mok ? '✓' : '✗' }}</span></td>
+                                            @endforeach
+                                        </tr>
+                                        @endforeach
+                                        @foreach($site->socials as $ms)
+                                        <tr style="border-bottom:1px solid var(--border-2);">
+                                            <td style="padding:4px 6px;color:var(--text-2);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ ucfirst($ms->platform).': '.$ms->handle }}">{{ $ms->platform }} {{ $ms->handle }}</td>
+                                            @foreach($allVisitorIsos as $matIso)
+                                                @php $mok = ($ms->is_visible ?? true) && $geoVis($ms->geo_mode, $ms->geo_countries, $matIso); @endphp
+                                                <td style="text-align:center;padding:4px 5px;background:{{ $matIso === $visIso ? 'var(--accent-2)' : 'transparent' }};"><span style="color:{{ $mok ? '#34d399' : '#f87171' }};font-weight:700;">{{ $mok ? '✓' : '✗' }}</span></td>
+                                            @endforeach
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+
+                {{-- Conflicts --}}
+                @if(count($conflicts) > 0)
+                    <div style="border-top:1px solid var(--border-2);padding:14px 20px;">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            <span style="font-size:12px;font-weight:600;color:#f87171;text-transform:uppercase;letter-spacing:.05em;">Конфлікти ({{ count($conflicts) }})</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:5px;">
+                            @foreach($conflicts as $cf)
+                                <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:#f871710d;border:1px solid #f8717133;border-radius:var(--radius);">
+                                    <span style="font-size:10px;color:var(--text-3);font-weight:600;flex-shrink:0;min-width:64px;">{{ $cf['type'] }}</span>
+                                    <span style="font-size:11px;color:var(--text-2);font-family:var(--font-mono);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $cf['label'] }}</span>
+                                    <span style="font-size:11px;color:#f87171;flex-shrink:0;text-align:right;">{{ $cf['issue'] }}</span>
+                                </div>
                             @endforeach
                         </div>
                     </div>
-
-                    @foreach($usedIso as $iso)
-                        @php
-                            $vPhones  = $site->phones->filter(fn($p)  => ($p->is_visible ?? true) && $geoVis($p->geo_mode, $p->geo_countries, $iso));
-                            $vPrices  = $site->prices->filter(fn($p)  => ($p->is_visible ?? true) && $geoVis($p->geo_mode, $p->geo_countries, $iso));
-                            $vAddrs   = $site->addresses->filter(fn($a) => ($a->is_visible ?? true) && $geoVis($a->geo_mode, $a->geo_countries, $iso));
-                            $vSocials = $site->socials->filter(fn($s)  => ($s->is_visible ?? true) && $geoVis($s->geo_mode, $s->geo_countries, $iso));
-                            $vPhoneIds = $vPhones->pluck('id')->toArray();
-                            $totalVis = $vPhones->count() + $vPrices->count() + $vAddrs->count() + $vSocials->count();
-                            $totalAll = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count();
-                        @endphp
-                        <div id="vis-panel-{{ $iso }}" style="{{ $loop->first ? '' : 'display:none;' }}">
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-
-                                {{-- Widget preview --}}
-                                <div style="background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
-                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
-                                        <span style="width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block;"></span>
-                                        Контактний блок — {{ $iso }}
-                                    </div>
-
-                                    @forelse($vPhones as $p)
-                                        @php $linkedSocs = $vSocials->where('phoneId', $p->id)->merge($vSocials->whereStrict('phone_id', $p->id)); @endphp
-                                        <div style="background:var(--panel-2);border-radius:var(--radius-item);padding:8px 10px;margin-bottom:6px;">
-                                            <div style="display:flex;align-items:center;gap:8px;">
-                                                <span style="font-family:var(--font-mono);font-size:13px;font-weight:600;">+{{ $p->dial_code }} {{ $p->number }}</span>
-                                            </div>
-                                        </div>
-                                    @empty
-                                        <div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">— телефони не показуються</div>
-                                    @endforelse
-
-                                    @if($vPrices->count())
-                                        <div style="margin-top:10px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Ціни</div>
-                                        @foreach($vPrices as $p)
-                                            <div style="display:flex;justify-content:space-between;background:var(--panel-2);border-radius:var(--radius-item);padding:6px 10px;margin-bottom:4px;font-size:12px;">
-                                                <span style="color:var(--text-2);">{{ $p->label }}</span>
-                                                <span style="font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ $p->amount }} {{ $p->currency }}</span>
-                                            </div>
-                                        @endforeach
-                                    @endif
-
-                                    @if($vSocials->count())
-                                        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:5px;">
-                                            @foreach($vSocials as $s)
-                                                <span style="padding:3px 9px;background:var(--panel-2);border:1px solid var(--border);border-radius:99px;font-size:11px;color:var(--text-2);">
-                                                    {{ ucfirst($s->platform) }}: {{ $s->handle }}
-                                                </span>
-                                            @endforeach
-                                        </div>
-                                    @endif
-
-                                    @if($totalVis === 0)
-                                        <div style="text-align:center;padding:12px;color:var(--text-3);font-size:12px;">Нічого не показується</div>
-                                    @endif
-                                </div>
-
-                                {{-- Visibility summary --}}
-                                <div style="background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px;">
-                                    <div style="font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:10px;">
-                                        Видимо {{ $totalVis }} з {{ $totalAll }}
-                                    </div>
-                                    @foreach([
-                                        ['Телефони', $site->phones, $vPhones],
-                                        ['Ціни',     $site->prices, $vPrices],
-                                        ['Адреси',   $site->addresses, $vAddrs],
-                                        ['Соцмережі',$site->socials, $vSocials],
-                                    ] as [$sLabel, $sAll, $sVis])
-                                        @if($sAll->count())
-                                            <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border-2);font-size:12px;">
-                                                <span style="color:var(--text-2);">{{ $sLabel }}</span>
-                                                <span style="font-family:var(--font-mono);font-weight:600;color:{{ $sVis->count() === $sAll->count() ? '#34d399' : ($sVis->count() > 0 ? 'var(--warning)' : '#f87171') }};">
-                                                    {{ $sVis->count() }}/{{ $sAll->count() }}
-                                                </span>
-                                            </div>
-                                        @endif
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
+                @endif
+            @else
+                <div style="border-top:1px solid var(--border-2);padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">
+                    Ще немає даних. <a href="{{ $url(['tab' => 'data']) }}" style="color:var(--accent);">Додати →</a>
                 </div>
             @endif
         @endif
@@ -436,246 +400,677 @@
         {{-- ========= DATA ========= --}}
         @if($tab === 'data')
 
-            {{-- Geo selector bar (only inside Data tab) --}}
-            <div style="display:flex;align-items:center;gap:2px;padding:10px 16px;border-bottom:1px solid var(--border-2);background:var(--panel-2);overflow-x:auto;">
-                <a href="{{ $url(['country' => 'all']) }}"
-                   style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius);font-size:12px;text-decoration:none;white-space:nowrap;
-                          background:{{ $country === 'all' ? 'var(--panel)' : 'transparent' }};
-                          border:1px solid {{ $country === 'all' ? 'var(--border)' : 'transparent' }};
-                          color:{{ $country === 'all' ? 'var(--text)' : 'var(--text-3)' }};
-                          font-weight:{{ $country === 'all' ? '600' : '500' }};">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a13 13 0 0 1 0 18M12 3a13 13 0 0 0 0 18"/></svg>
-                    Всі гео
-                </a>
-                @foreach($usedIso as $iso)
-                    @php $cName = ($geoNames[$iso] && $geoNames[$iso] !== $iso) ? $geoNames[$iso] : ($countriesByIso[$iso]->name ?? $iso); @endphp
-                    <a href="{{ $url(['country' => $iso]) }}" title="{{ $cName }}"
-                       style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius);font-size:12px;text-decoration:none;white-space:nowrap;font-family:var(--font-mono);
-                              background:{{ $country === $iso ? 'var(--panel)' : 'transparent' }};
-                              border:1px solid {{ $country === $iso ? 'var(--border)' : 'transparent' }};
-                              color:{{ $country === $iso ? 'var(--text)' : 'var(--text-3)' }};
-                              font-weight:{{ $country === $iso ? '700' : '600' }};">
-                        {{ $iso }}
-                    </a>
-                @endforeach
-                <div style="flex:1"></div>
 
-                @if($country !== 'all')
-                    <button type="button" class="btn btn--ghost btn--sm" style="white-space:nowrap;color:var(--danger);" onclick="openDrawer('drawer-geo-remove-{{ $country }}')">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
-                        Видалити {{ $country }}
+            {{-- ===== DATA GRID ===== --}}
+            @php
+                $dtIcons = [
+                    'phones'    => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+                    'prices'    => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+                    'addresses' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+                    'socials'   => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
+                ];
+                $socialPlatforms = ['instagram'=>'Instagram','facebook'=>'Facebook','telegram'=>'Telegram','linkedin'=>'LinkedIn','x'=>'X / Twitter','whatsapp'=>'WhatsApp','viber'=>'Viber','youtube'=>'YouTube'];
+            @endphp
+
+            <div class="dt-grid">
+
+            {{-- ═══ PHONES ═══════════════════════════════════════════ --}}
+            <div class="dt-card">
+                <div class="dt-card-head">
+                    <span class="dt-card-head__icon">{!! $dtIcons['phones'] !!}</span>
+                    <span class="dt-card-head__title">Телефони</span>
+                    <span class="dt-card-head__count">{{ $site->phones->count() }}</span>
+                    <button class="dt-add-btn" id="dt-add-btn-phones" onclick="dtToggleAdd('phones')">
+                        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Додати
                     </button>
-                @endif
+                </div>
 
-                <button class="btn btn--ghost btn--sm" type="button" style="white-space:nowrap;" onclick="openDrawer('drawer-geo-add')">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                    Додати гео
-                </button>
-            </div>
+                {{-- Add panel --}}
+                <div class="dt-panel" id="dt-add-phones" style="display:none;">
+                    <div class="dt-panel__title">Новий телефон</div>
+                    <form method="POST" action="{{ route('phones.store', $site) }}">
+                        @csrf
+                        <input type="hidden" name="sort_order" value="{{ $site->phones->count() }}">
+                        <div class="dt-row dt-row--2">
+                            <div>
+                                <label class="dt-label">Номер *</label>
+                                <input type="text" name="number" class="dt-input" placeholder="50 123 4567" required>
+                            </div>
+                            <div>
+                                <label class="dt-label">Мітка</label>
+                                <input type="text" name="label" class="dt-input" placeholder="Головний…">
+                            </div>
+                        </div>
+                        <label class="dt-label">Гео-правило</label>
+                        <div class="dt-geo-row">
+                            <span class="dt-geo-label">Видно:</span>
+                            @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
+                                <label class="dt-geo-pill {{ $mv==='all'?'is-on':'' }}" id="dtpill-add-ph-{{ $mv }}">
+                                    <input type="radio" name="geo_mode" value="{{ $mv }}" {{ $mv==='all'?'checked':'' }} style="display:none;"
+                                           onchange="dtGeoMode('add-ph','{{ $mv }}')">{{ $ml }}
+                                </label>
+                            @endforeach
+                            <span id="dtchips-add-ph" style="display:none;display:flex;gap:3px;">
+                                @foreach($usedIso as $iso)
+                                    <label class="dt-geo-chip" id="dtchip-add-ph-{{ $iso }}">
+                                        <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
+                                               onchange="dtGeoChip('add-ph','{{ $iso }}',this)">{{ $iso }}
+                                    </label>
+                                @endforeach
+                            </span>
+                        </div>
+                        <div class="dt-panel__actions">
+                            <button type="button" class="btn btn--ghost btn--sm" onclick="dtToggleAdd('phones')">Скасувати</button>
+                            <button type="submit" class="btn btn--primary btn--sm">Додати</button>
+                        </div>
+                    </form>
+                </div>
 
-            <div style="padding:20px;display:flex;flex-direction:column;gap:24px;">
-
-                {{-- Header --}}
-                @php
-                    $headerName = $countriesByIso[$country]->name ?? null;
-                    $showName   = $headerName && strcasecmp($headerName, $country) !== 0;
-                @endphp
-                <h3 style="margin:0;font-size:15px;font-weight:600;color:var(--text);display:inline-flex;align-items:center;gap:8px;">
-                    @if($country === 'all')
-                        Всі гео
-                    @else
-                        <span style="font-family:var(--font-mono);background:var(--accent-2);color:var(--accent-text);padding:2px 8px;border-radius:6px;font-size:13px;">{{ $country }}</span>
-                        @if($showName)<span>{{ $headerName }}</span>@endif
-                    @endif
-                </h3>
-
-                @if($country === 'all')
-                    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--text-3);">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;color:var(--accent);"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><circle cx="12" cy="16" r=".5" fill="currentColor"/></svg>
-                        Оберіть конкретну гео-вкладку (UA, RO…) щоб додавати нові дані.
-                    </div>
-                @endif
-
-                {{-- ===== PHONES ===== --}}
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Телефони</span>
+                <div class="dt-items">
                     @forelse($shownPhones as $p)
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <div class="input input--mono" style="flex:1;cursor:pointer;" onclick="openDrawer('drawer-phone-{{ $p->id }}')">
-                                <input type="text" value="+{{ $p->dial_code }} {{ $p->number }}" readonly style="cursor:pointer;">
+                    <div class="dt-item">
+                        <div class="dt-item-row" onclick="dtExpandItem('phone-{{ $p->id }}')">
+                            <span class="dt-item-icon">{!! $dtIcons['phones'] !!}</span>
+                            <div class="dt-item-main">
+                                <div class="dt-item-name" style="font-family:var(--font-mono);">
+                                    {{ ($p->dial_code ? '+'.$p->dial_code.' ' : '') . $p->number }}
+                                </div>
+                                @if($p->label || $p->is_primary)
+                                    <div class="dt-item-sub">{{ $p->label }}{{ $p->is_primary ? ($p->label ? ' · ' : '').'основний' : '' }}</div>
+                                @endif
                             </div>
-                            @if($p->is_primary)<span class="pill pill--accent">Основний</span>@endif
-                            @include('admin.sites._vis-dots', ['vdItem' => $p, 'vdIsos' => $usedIso])
-                            <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-phone-{{ $p->id }}')">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
-                            </button>
-                            <form method="POST" action="{{ route('sites.visibility.toggle', [$site, 'phones', $p->id]) }}" style="margin:0;">
-                                @csrf
-                                <button type="submit" class="icon-btn" title="{{ ($p->is_visible ?? true) ? 'Приховати' : 'Показати' }}" style="color:{{ ($p->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
-                                    @if($p->is_visible ?? true)
-                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                    @else
-                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                            <div class="dt-vis">
+                                @if(count($usedIso)===0 || ($p->geo_mode??'all')==='all')
+                                    <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                                @else
+                                    @foreach($usedIso as $iso)
+                                        @php $ok=$geoVis($p->geo_mode,$p->geo_countries,$iso); @endphp
+                                        <span class="dt-vis-badge dt-vis-badge--{{ $ok?'ok':'no' }}">{{ $iso }}</span>
+                                    @endforeach
+                                @endif
+                            </div>
+                            <div class="dt-item-actions" onclick="event.stopPropagation()">
+                                <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'phones',$p->id]) }}" style="margin:0;">
+                                    @csrf
+                                    <button type="submit" class="icon-btn" title="{{ ($p->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($p->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
+                                        @if($p->is_visible??true)
+                                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        @else
+                                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                        @endif
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('phones.destroy',[$site,$p]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити">
+                                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                                    </button>
+                                </form>
+                                <button class="icon-btn" id="dt-expand-phone-{{ $p->id }}" title="Редагувати">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        {{-- Edit panel --}}
+                        <div class="dt-panel" id="dt-edit-phone-{{ $p->id }}" style="display:none;">
+                            <form method="POST" action="{{ route('phones.update',[$site,$p]) }}">
+                                @csrf @method('PUT')
+                                <input type="hidden" name="sort_order" value="{{ $p->sort_order }}">
+                                <div class="dt-row dt-row--2">
+                                    <div>
+                                        <label class="dt-label">Номер *</label>
+                                        <input type="text" name="number" class="dt-input" value="{{ $p->number }}" required>
+                                    </div>
+                                    <div>
+                                        <label class="dt-label">Мітка</label>
+                                        <input type="text" name="label" class="dt-input" value="{{ $p->label }}" placeholder="Головний…">
+                                    </div>
+                                </div>
+                                <div class="dt-geo-row">
+                                    <span class="dt-geo-label">Видно:</span>
+                                    @php $em = $p->geo_mode ?? 'all'; @endphp
+                                    @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
+                                        <label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-ph{{ $p->id }}-{{ $mv }}">
+                                            <input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;"
+                                                   onchange="dtGeoMode('ph{{ $p->id }}','{{ $mv }}')">{{ $ml }}
+                                        </label>
+                                    @endforeach
+                                    @if(count($usedIso))
+                                    <span id="dtchips-ph{{ $p->id }}" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};gap:3px;">
+                                        @foreach($usedIso as $iso)
+                                            <label class="dt-geo-chip {{ in_array($iso,(array)($p->geo_countries??[]))?'is-on':'' }}" id="dtchip-ph{{ $p->id }}-{{ $iso }}">
+                                                <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($p->geo_countries??[]))?'checked':'' }} style="display:none;"
+                                                       onchange="dtGeoChip('ph{{ $p->id }}','{{ $iso }}',this)">{{ $iso }}
+                                            </label>
+                                        @endforeach
+                                    </span>
                                     @endif
-                                </button>
-                            </form>
-                            <form method="POST" action="{{ route('phones.destroy', [$site, $p]) }}" style="margin:0;" onsubmit="return confirm('Видалити цей телефон?')">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
-                                </button>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+                                    <input type="hidden" name="is_primary" value="0">
+                                    <input type="checkbox" name="is_primary" value="1" id="ph-prim-{{ $p->id }}" {{ $p->is_primary?'checked':'' }} style="accent-color:var(--accent);width:14px;height:14px;">
+                                    <label for="ph-prim-{{ $p->id }}" class="dt-label" style="margin:0;cursor:pointer;">Основний</label>
+                                </div>
+                                <div class="dt-panel__actions">
+                                    <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('phone-{{ $p->id }}')">Скасувати</button>
+                                    <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
+                                </div>
                             </form>
                         </div>
-                    @empty
-                        <div style="color:var(--text-3);font-size:12px;">Немає телефонів для цього гео.</div>
-                    @endforelse
-                    @if($country !== 'all')
-                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openPhoneCreate('{{ $country }}')">
-                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                        Додати телефон
-                    </button>
-                    @endif
-                </div>
-
-                {{-- ===== PRICES ===== --}}
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Ціни</span>
-                    @forelse($shownPrices as $p)
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <div class="input" style="flex:1;cursor:pointer;" onclick="openDrawer('drawer-price-{{ $p->id }}')">
-                                <input type="text" value="{{ $p->label ?? '' }}" placeholder="Мітка" readonly style="cursor:pointer;">
-                            </div>
-                            <div class="input input--mono" style="width:140px;cursor:pointer;" onclick="openDrawer('drawer-price-{{ $p->id }}')">
-                                <input type="text" value="{{ $p->amount ?? '' }} {{ $p->currency ?? '' }}" readonly style="cursor:pointer;">
-                            </div>
-                            @include('admin.sites._vis-dots', ['vdItem' => $p, 'vdIsos' => $usedIso])
-                            <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-price-{{ $p->id }}')">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
-                            </button>
-                            <form method="POST" action="{{ route('sites.visibility.toggle', [$site, 'prices', $p->id]) }}" style="margin:0;">
-                                @csrf
-                                <button type="submit" class="icon-btn" title="{{ ($p->is_visible ?? true) ? 'Приховати' : 'Показати' }}" style="color:{{ ($p->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
-                                    @if($p->is_visible ?? true)
-                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                    @else
-                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                                    @endif
-                                </button>
-                            </form>
-                            <form method="POST" action="{{ route('prices.destroy', [$site, $p]) }}" style="margin:0;" onsubmit="return confirm('Видалити цю ціну?')">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
-                                </button>
-                            </form>
-                        </div>
-                    @empty
-                        <div style="color:var(--text-3);font-size:12px;">Немає цін для цього гео.</div>
-                    @endforelse
-                    @if($country !== 'all')
-                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openDrawer('drawer-price-create')">
-                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                        Додати ціну
-                    </button>
-                    @endif
-                </div>
-
-                {{-- ===== ADDRESSES ===== --}}
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Адреси</span>
-                    @forelse($shownAddresses as $a)
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <div class="input" style="flex:1;cursor:pointer;" onclick="openDrawer('drawer-addr-{{ $a->id }}')">
-                                <input type="text" value="{{ trim(($a->city ?? '').' '.($a->street ?? '').' '.($a->building ?? '')) }}" placeholder="Адреса" readonly style="cursor:pointer;">
-                            </div>
-                            @include('admin.sites._vis-dots', ['vdItem' => $a, 'vdIsos' => $usedIso])
-                            <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-addr-{{ $a->id }}')">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
-                            </button>
-                            <form method="POST" action="{{ route('sites.visibility.toggle', [$site, 'addresses', $a->id]) }}" style="margin:0;">
-                                @csrf
-                                <button type="submit" class="icon-btn" title="{{ ($a->is_visible ?? true) ? 'Приховати' : 'Показати' }}" style="color:{{ ($a->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
-                                    @if($a->is_visible ?? true)
-                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                    @else
-                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                                    @endif
-                                </button>
-                            </form>
-                            <form method="POST" action="{{ route('addresses.destroy', [$site, $a]) }}" style="margin:0;" onsubmit="return confirm('Видалити цю адресу?')">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
-                                </button>
-                            </form>
-                        </div>
-                    @empty
-                        <div style="color:var(--text-3);font-size:12px;">Немає адрес для цього гео.</div>
-                    @endforelse
-                    @if($country !== 'all')
-                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openDrawer('drawer-addr-create')">
-                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                        Додати адресу
-                    </button>
-                    @endif
-                </div>
-
-                {{-- ===== SOCIAL MEDIA ===== --}}
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                    <span style="font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Соцмережі</span>
-                    @forelse($shownSocials as $s)
-                        @php
-                            $key = strtolower($s->platform ?? '');
-                            $ic  = $socialIcon[$key] ?? ['c' => 'var(--text-3)', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>'];
-                        @endphp
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <div class="input" style="flex:1;cursor:pointer;" onclick="openDrawer('drawer-soc-{{ $s->id }}')">
-                                <span style="width:22px;height:22px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;background:var(--panel-2);color:{{ $ic['c'] }};border:1px solid var(--border);flex-shrink:0;">
-                                    {!! $ic['svg'] !!}
-                                </span>
-                                <input type="text" value="{{ $s->handle ?? $s->url ?? '' }}" readonly style="cursor:pointer;">
-                            </div>
-                            @include('admin.sites._vis-dots', ['vdItem' => $s, 'vdIsos' => $usedIso])
-                            <button class="icon-btn" type="button" title="Edit" onclick="openDrawer('drawer-soc-{{ $s->id }}')">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>
-                            </button>
-                            <form method="POST" action="{{ route('sites.visibility.toggle', [$site, 'socials', $s->id]) }}" style="margin:0;">
-                                @csrf
-                                <button type="submit" class="icon-btn" title="{{ ($s->is_visible ?? true) ? 'Приховати' : 'Показати' }}" style="color:{{ ($s->is_visible ?? true) ? 'var(--text-3)' : 'var(--warning)' }};">
-                                    @if($s->is_visible ?? true)
-                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                    @else
-                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                                    @endif
-                                </button>
-                            </form>
-                            <form method="POST" action="{{ route('socials.destroy', [$site, $s]) }}" style="margin:0;" onsubmit="return confirm('Видалити це посилання?')">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="icon-btn" title="Delete" style="color:var(--danger);">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
-                                </button>
-                            </form>
-                        </div>
-                    @empty
-                        <div style="color:var(--text-3);font-size:12px;">Немає посилань для цього гео.</div>
-                    @endforelse
-                    @if($country !== 'all')
-                    <button type="button" class="btn btn--ghost btn--sm" style="border:1px dashed var(--border);color:var(--text-3);align-self:flex-start;" onclick="openDrawer('drawer-soc-create')">
-                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                        Додати соцмережу
-                    </button>
-                    @endif
-                </div>
-
-                {{-- Footer --}}
-                <div style="display:flex;justify-content:flex-start;align-items:center;padding-top:14px;border-top:1px solid var(--border-2);">
-                    <span style="font-size:12px;color:var(--text-3);">Оновлено {{ $site->updated_at?->diffForHumans() ?? '—' }} · зміни автоматично відправляються на сайт</span>
-                    <div style="display:none;">
-                        <button class="btn btn--ghost btn--md" type="button">Скасувати</button>
-                        <button class="btn btn--primary btn--md" type="button">Зберегти і відправити</button>
                     </div>
+                    @empty
+                        <div class="dt-empty">Телефонів немає</div>
+                    @endforelse
                 </div>
             </div>
+
+            {{-- ═══ PRICES ═══════════════════════════════════════════ --}}
+            <div class="dt-card">
+                <div class="dt-card-head">
+                    <span class="dt-card-head__icon">{!! $dtIcons['prices'] !!}</span>
+                    <span class="dt-card-head__title">Ціни</span>
+                    <span class="dt-card-head__count">{{ $site->prices->count() }}</span>
+                    <button class="dt-add-btn" id="dt-add-btn-prices" onclick="dtToggleAdd('prices')">
+                        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Додати
+                    </button>
+                </div>
+
+                <div class="dt-panel" id="dt-add-prices" style="display:none;">
+                    <div class="dt-panel__title">Нова ціна</div>
+                    <form method="POST" action="{{ route('prices.store', $site) }}">
+                        @csrf
+                        <input type="hidden" name="sort_order" value="{{ $site->prices->count() }}">
+                        <div class="dt-row" style="margin-bottom:8px;">
+                            <label class="dt-label">Мітка *</label>
+                            <input type="text" name="label" class="dt-input" placeholder="Стандартний, Преміум…" required>
+                        </div>
+                        <div class="dt-row dt-row--3">
+                            <div>
+                                <label class="dt-label">Сума *</label>
+                                <input type="number" name="amount" step="0.01" min="0" class="dt-input" placeholder="0" required>
+                            </div>
+                            <div>
+                                <label class="dt-label">Валюта *</label>
+                                <input type="text" name="currency" class="dt-input" placeholder="UAH" maxlength="3" style="text-transform:uppercase;" required>
+                            </div>
+                            <div>
+                                <label class="dt-label">Період</label>
+                                <input type="text" name="period" class="dt-input" placeholder="місяць…">
+                            </div>
+                        </div>
+                        <div class="dt-geo-row">
+                            <span class="dt-geo-label">Видно:</span>
+                            @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
+                                <label class="dt-geo-pill {{ $mv==='all'?'is-on':'' }}" id="dtpill-add-pr-{{ $mv }}">
+                                    <input type="radio" name="geo_mode" value="{{ $mv }}" {{ $mv==='all'?'checked':'' }} style="display:none;"
+                                           onchange="dtGeoMode('add-pr','{{ $mv }}')">{{ $ml }}
+                                </label>
+                            @endforeach
+                            <span id="dtchips-add-pr" style="display:none;gap:3px;">
+                                @foreach($usedIso as $iso)
+                                    <label class="dt-geo-chip" id="dtchip-add-pr-{{ $iso }}">
+                                        <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
+                                               onchange="dtGeoChip('add-pr','{{ $iso }}',this)">{{ $iso }}
+                                    </label>
+                                @endforeach
+                            </span>
+                        </div>
+                        <div class="dt-panel__actions">
+                            <button type="button" class="btn btn--ghost btn--sm" onclick="dtToggleAdd('prices')">Скасувати</button>
+                            <button type="submit" class="btn btn--primary btn--sm">Додати</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="dt-items">
+                    @forelse($shownPrices as $p)
+                    <div class="dt-item">
+                        <div class="dt-item-row" onclick="dtExpandItem('price-{{ $p->id }}')">
+                            <span class="dt-item-icon">{!! $dtIcons['prices'] !!}</span>
+                            <div class="dt-item-main">
+                                <div class="dt-item-name">{{ $p->label }}</div>
+                                <div class="dt-item-sub" style="font-family:var(--font-mono);">{{ number_format($p->amount,2) }} {{ $p->currency }}{{ $p->period ? ' / '.$p->period : '' }}</div>
+                            </div>
+                            <div class="dt-vis">
+                                @if(count($usedIso)===0 || ($p->geo_mode??'all')==='all')
+                                    <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                                @else
+                                    @foreach($usedIso as $iso)
+                                        @php $ok=$geoVis($p->geo_mode,$p->geo_countries,$iso); @endphp
+                                        <span class="dt-vis-badge dt-vis-badge--{{ $ok?'ok':'no' }}">{{ $iso }}</span>
+                                    @endforeach
+                                @endif
+                            </div>
+                            <div class="dt-item-actions" onclick="event.stopPropagation()">
+                                <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'prices',$p->id]) }}" style="margin:0;">
+                                    @csrf
+                                    <button type="submit" class="icon-btn" title="{{ ($p->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($p->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
+                                        @if($p->is_visible??true)
+                                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        @else
+                                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                        @endif
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('prices.destroy',[$site,$p]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити">
+                                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                                    </button>
+                                </form>
+                                <button class="icon-btn" id="dt-expand-price-{{ $p->id }}" title="Редагувати">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="dt-panel" id="dt-edit-price-{{ $p->id }}" style="display:none;">
+                            <form method="POST" action="{{ route('prices.update',[$site,$p]) }}">
+                                @csrf @method('PUT')
+                                <input type="hidden" name="sort_order" value="{{ $p->sort_order }}">
+                                <div class="dt-row" style="margin-bottom:8px;">
+                                    <label class="dt-label">Мітка *</label>
+                                    <input type="text" name="label" class="dt-input" value="{{ $p->label }}" required>
+                                </div>
+                                <div class="dt-row dt-row--3">
+                                    <div>
+                                        <label class="dt-label">Сума *</label>
+                                        <input type="number" name="amount" step="0.01" min="0" class="dt-input" value="{{ $p->amount }}" required>
+                                    </div>
+                                    <div>
+                                        <label class="dt-label">Валюта *</label>
+                                        <input type="text" name="currency" class="dt-input" value="{{ $p->currency }}" maxlength="3" style="text-transform:uppercase;" required>
+                                    </div>
+                                    <div>
+                                        <label class="dt-label">Період</label>
+                                        <input type="text" name="period" class="dt-input" value="{{ $p->period }}">
+                                    </div>
+                                </div>
+                                <div class="dt-geo-row">
+                                    <span class="dt-geo-label">Видно:</span>
+                                    @php $em = $p->geo_mode ?? 'all'; @endphp
+                                    @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
+                                        <label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-pr{{ $p->id }}-{{ $mv }}">
+                                            <input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;"
+                                                   onchange="dtGeoMode('pr{{ $p->id }}','{{ $mv }}')">{{ $ml }}
+                                        </label>
+                                    @endforeach
+                                    @if(count($usedIso))
+                                    <span id="dtchips-pr{{ $p->id }}" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};gap:3px;">
+                                        @foreach($usedIso as $iso)
+                                            <label class="dt-geo-chip {{ in_array($iso,(array)($p->geo_countries??[]))?'is-on':'' }}" id="dtchip-pr{{ $p->id }}-{{ $iso }}">
+                                                <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($p->geo_countries??[]))?'checked':'' }} style="display:none;"
+                                                       onchange="dtGeoChip('pr{{ $p->id }}','{{ $iso }}',this)">{{ $iso }}
+                                            </label>
+                                        @endforeach
+                                    </span>
+                                    @endif
+                                </div>
+                                <div class="dt-panel__actions">
+                                    <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('price-{{ $p->id }}')">Скасувати</button>
+                                    <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    @empty
+                        <div class="dt-empty">Цін немає</div>
+                    @endforelse
+                </div>
+            </div>
+
+            {{-- ═══ SOCIALS ══════════════════════════════════════════ --}}
+            <div class="dt-card">
+                <div class="dt-card-head">
+                    <span class="dt-card-head__icon">{!! $dtIcons['socials'] !!}</span>
+                    <span class="dt-card-head__title">Соціальні мережі</span>
+                    <span class="dt-card-head__count">{{ $site->socials->count() }}</span>
+                    <button class="dt-add-btn" id="dt-add-btn-socials" onclick="dtToggleAdd('socials')">
+                        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Додати
+                    </button>
+                </div>
+
+                <div class="dt-panel" id="dt-add-socials" style="display:none;">
+                    <div class="dt-panel__title">Нова соціальна мережа</div>
+                    <form method="POST" action="{{ route('socials.store', $site) }}">
+                        @csrf
+                        <input type="hidden" name="sort_order" value="{{ $site->socials->count() }}">
+                        <div class="dt-row dt-row--2">
+                            <div>
+                                <label class="dt-label">Платформа *</label>
+                                <select name="platform" class="dt-input" required>
+                                    @foreach($socialPlatforms as $val => $lbl)
+                                        <option value="{{ $val }}">{{ $lbl }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="dt-label">Нікнейм *</label>
+                                <input type="text" name="handle" class="dt-input" placeholder="@username" required>
+                            </div>
+                        </div>
+                        <div class="dt-row" style="margin-bottom:8px;">
+                            <label class="dt-label">URL *</label>
+                            <input type="url" name="url" class="dt-input" placeholder="https://…" required>
+                        </div>
+                        @if($site->phones->count())
+                        <div class="dt-row" style="margin-bottom:8px;">
+                            <label class="dt-label">Прив'язати до номеру</label>
+                            <select name="phone_id" class="dt-input">
+                                <option value="">— незалежно —</option>
+                                @foreach($site->phones as $ph)
+                                    <option value="{{ $ph->id }}">{{ ($ph->dial_code ? '+'.$ph->dial_code.' ' : '') . $ph->number }}{{ $ph->label ? ' · '.$ph->label : '' }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
+                        <div class="dt-geo-row">
+                            <span class="dt-geo-label">Видно:</span>
+                            @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
+                                <label class="dt-geo-pill {{ $mv==='all'?'is-on':'' }}" id="dtpill-add-so-{{ $mv }}">
+                                    <input type="radio" name="geo_mode" value="{{ $mv }}" {{ $mv==='all'?'checked':'' }} style="display:none;"
+                                           onchange="dtGeoMode('add-so','{{ $mv }}')">{{ $ml }}
+                                </label>
+                            @endforeach
+                            <span id="dtchips-add-so" style="display:none;gap:3px;">
+                                @foreach($usedIso as $iso)
+                                    <label class="dt-geo-chip" id="dtchip-add-so-{{ $iso }}">
+                                        <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
+                                               onchange="dtGeoChip('add-so','{{ $iso }}',this)">{{ $iso }}
+                                    </label>
+                                @endforeach
+                            </span>
+                        </div>
+                        <div class="dt-panel__actions">
+                            <button type="button" class="btn btn--ghost btn--sm" onclick="dtToggleAdd('socials')">Скасувати</button>
+                            <button type="submit" class="btn btn--primary btn--sm">Додати</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="dt-items">
+                    @forelse($shownSocials as $s)
+                    @php
+                        $sk  = strtolower($s->platform ?? '');
+                        $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>'];
+                    @endphp
+                    <div class="dt-item">
+                        <div class="dt-item-row" onclick="dtExpandItem('social-{{ $s->id }}')">
+                            <span class="dt-item-icon" style="color:{{ $sic['c'] }}">{!! $sic['svg'] !!}</span>
+                            <div class="dt-item-main">
+                                <div class="dt-item-name">{{ $s->handle }}</div>
+                                <div class="dt-item-sub">{{ ucfirst($s->platform) }}</div>
+                            </div>
+                            <div class="dt-vis">
+                                @if(count($usedIso)===0 || ($s->geo_mode??'all')==='all')
+                                    <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                                @else
+                                    @foreach($usedIso as $iso)
+                                        @php $ok=$geoVis($s->geo_mode,$s->geo_countries,$iso); @endphp
+                                        <span class="dt-vis-badge dt-vis-badge--{{ $ok?'ok':'no' }}">{{ $iso }}</span>
+                                    @endforeach
+                                @endif
+                            </div>
+                            <div class="dt-item-actions" onclick="event.stopPropagation()">
+                                <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'socials',$s->id]) }}" style="margin:0;">
+                                    @csrf
+                                    <button type="submit" class="icon-btn" title="{{ ($s->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($s->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
+                                        @if($s->is_visible??true)
+                                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        @else
+                                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                        @endif
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('socials.destroy',[$site,$s]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити">
+                                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                                    </button>
+                                </form>
+                                <button class="icon-btn" id="dt-expand-social-{{ $s->id }}" title="Редагувати">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="dt-panel" id="dt-edit-social-{{ $s->id }}" style="display:none;">
+                            <form method="POST" action="{{ route('socials.update',[$site,$s]) }}">
+                                @csrf @method('PUT')
+                                <input type="hidden" name="sort_order" value="{{ $s->sort_order }}">
+                                <div class="dt-row dt-row--2">
+                                    <div>
+                                        <label class="dt-label">Платформа *</label>
+                                        <select name="platform" class="dt-input" required>
+                                            @foreach($socialPlatforms as $val => $lbl)
+                                                <option value="{{ $val }}" {{ $s->platform===$val?'selected':'' }}>{{ $lbl }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="dt-label">Нікнейм *</label>
+                                        <input type="text" name="handle" class="dt-input" value="{{ $s->handle }}" required>
+                                    </div>
+                                </div>
+                                <div class="dt-row" style="margin-bottom:8px;">
+                                    <label class="dt-label">URL *</label>
+                                    <input type="url" name="url" class="dt-input" value="{{ $s->url }}" required>
+                                </div>
+                                @if($site->phones->count())
+                                <div class="dt-row" style="margin-bottom:8px;">
+                                    <label class="dt-label">Прив'язати до номеру</label>
+                                    <select name="phone_id" class="dt-input">
+                                        <option value="">— незалежно —</option>
+                                        @foreach($site->phones as $ph)
+                                            <option value="{{ $ph->id }}" {{ $s->phone_id == $ph->id ? 'selected' : '' }}>{{ ($ph->dial_code ? '+'.$ph->dial_code.' ' : '') . $ph->number }}{{ $ph->label ? ' · '.$ph->label : '' }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                @endif
+                                <div class="dt-geo-row">
+                                    <span class="dt-geo-label">Видно:</span>
+                                    @php $em = $s->geo_mode ?? 'all'; @endphp
+                                    @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
+                                        <label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-so{{ $s->id }}-{{ $mv }}">
+                                            <input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;"
+                                                   onchange="dtGeoMode('so{{ $s->id }}','{{ $mv }}')">{{ $ml }}
+                                        </label>
+                                    @endforeach
+                                    @if(count($usedIso))
+                                    <span id="dtchips-so{{ $s->id }}" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};gap:3px;">
+                                        @foreach($usedIso as $iso)
+                                            <label class="dt-geo-chip {{ in_array($iso,(array)($s->geo_countries??[]))?'is-on':'' }}" id="dtchip-so{{ $s->id }}-{{ $iso }}">
+                                                <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($s->geo_countries??[]))?'checked':'' }} style="display:none;"
+                                                       onchange="dtGeoChip('so{{ $s->id }}','{{ $iso }}',this)">{{ $iso }}
+                                            </label>
+                                        @endforeach
+                                    </span>
+                                    @endif
+                                </div>
+                                <div class="dt-panel__actions">
+                                    <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('social-{{ $s->id }}')">Скасувати</button>
+                                    <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    @empty
+                        <div class="dt-empty">Соціальних мереж немає</div>
+                    @endforelse
+                </div>
+            </div>
+
+            {{-- ═══ ADDRESSES ═════════════════════════════════════════ --}}
+            <div class="dt-card">
+                <div class="dt-card-head">
+                    <span class="dt-card-head__icon">{!! $dtIcons['addresses'] !!}</span>
+                    <span class="dt-card-head__title">Адреси</span>
+                    <span class="dt-card-head__count">{{ $site->addresses->count() }}</span>
+                    <button class="dt-add-btn" id="dt-add-btn-addresses" onclick="dtToggleAdd('addresses')">
+                        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Додати
+                    </button>
+                </div>
+
+                <div class="dt-panel" id="dt-add-addresses" style="display:none;">
+                    <div class="dt-panel__title">Нова адреса</div>
+                    <form method="POST" action="{{ route('addresses.store', $site) }}">
+                        @csrf
+                        <input type="hidden" name="sort_order" value="{{ $site->addresses->count() }}">
+                        <div class="dt-row dt-row--2">
+                            <div>
+                                <label class="dt-label">Країна</label>
+                                <select name="country_iso" class="dt-input">
+                                    <option value="">—</option>
+                                    @foreach($countries as $c)
+                                        <option value="{{ $c->iso }}">{{ $c->iso }}{{ ($c->name && strcasecmp($c->name,$c->iso)!==0) ? ' — '.$c->name : '' }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="dt-label">Місто *</label>
+                                <input type="text" name="city" class="dt-input" required>
+                            </div>
+                        </div>
+                        <div class="dt-row dt-row--auto">
+                            <div>
+                                <label class="dt-label">Вулиця</label>
+                                <input type="text" name="street" class="dt-input">
+                            </div>
+                            <div style="width:80px;">
+                                <label class="dt-label">Буд.</label>
+                                <input type="text" name="building" class="dt-input">
+                            </div>
+                        </div>
+                        <div class="dt-geo-row">
+                            <span class="dt-geo-label">Видно:</span>
+                            @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
+                                <label class="dt-geo-pill {{ $mv==='all'?'is-on':'' }}" id="dtpill-add-ad-{{ $mv }}">
+                                    <input type="radio" name="geo_mode" value="{{ $mv }}" {{ $mv==='all'?'checked':'' }} style="display:none;"
+                                           onchange="dtGeoMode('add-ad','{{ $mv }}')">{{ $ml }}
+                                </label>
+                            @endforeach
+                            <span id="dtchips-add-ad" style="display:none;gap:3px;">
+                                @foreach($usedIso as $iso)
+                                    <label class="dt-geo-chip" id="dtchip-add-ad-{{ $iso }}">
+                                        <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
+                                               onchange="dtGeoChip('add-ad','{{ $iso }}',this)">{{ $iso }}
+                                    </label>
+                                @endforeach
+                            </span>
+                        </div>
+                        <div class="dt-panel__actions">
+                            <button type="button" class="btn btn--ghost btn--sm" onclick="dtToggleAdd('addresses')">Скасувати</button>
+                            <button type="submit" class="btn btn--primary btn--sm">Додати</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="dt-items">
+                    @forelse($shownAddresses as $a)
+                    <div class="dt-item">
+                        <div class="dt-item-row" onclick="dtExpandItem('addr-{{ $a->id }}')">
+                            <span class="dt-item-icon">{!! $dtIcons['addresses'] !!}</span>
+                            <div class="dt-item-main">
+                                <div class="dt-item-name">{{ $a->city }}{{ $a->street ? ', '.$a->street.($a->building ? ' '.$a->building : '') : '' }}</div>
+                                <div class="dt-item-sub">{{ $a->country_iso }}{{ $a->postal_code ? ' · '.$a->postal_code : '' }}</div>
+                            </div>
+                            <div class="dt-vis">
+                                @if(count($usedIso)===0 || ($a->geo_mode??'all')==='all')
+                                    <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                                @else
+                                    @foreach($usedIso as $iso)
+                                        @php $ok=$geoVis($a->geo_mode,$a->geo_countries,$iso); @endphp
+                                        <span class="dt-vis-badge dt-vis-badge--{{ $ok?'ok':'no' }}">{{ $iso }}</span>
+                                    @endforeach
+                                @endif
+                            </div>
+                            <div class="dt-item-actions" onclick="event.stopPropagation()">
+                                <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'addresses',$a->id]) }}" style="margin:0;">
+                                    @csrf
+                                    <button type="submit" class="icon-btn" title="{{ ($a->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($a->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
+                                        @if($a->is_visible??true)
+                                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        @else
+                                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                        @endif
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('addresses.destroy',[$site,$a]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити">
+                                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                                    </button>
+                                </form>
+                                <button class="icon-btn" id="dt-expand-addr-{{ $a->id }}" title="Редагувати">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="dt-panel" id="dt-edit-addr-{{ $a->id }}" style="display:none;">
+                            <form method="POST" action="{{ route('addresses.update',[$site,$a]) }}">
+                                @csrf @method('PUT')
+                                <input type="hidden" name="sort_order" value="{{ $a->sort_order }}">
+                                <div class="dt-row dt-row--2">
+                                    <div>
+                                        <label class="dt-label">Країна</label>
+                                        <select name="country_iso" class="dt-input">
+                                            <option value="">—</option>
+                                            @foreach($countries as $c)
+                                                <option value="{{ $c->iso }}" {{ $a->country_iso===$c->iso?'selected':'' }}>{{ $c->iso }}{{ ($c->name && strcasecmp($c->name,$c->iso)!==0) ? ' — '.$c->name : '' }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="dt-label">Місто *</label>
+                                        <input type="text" name="city" class="dt-input" value="{{ $a->city }}" required>
+                                    </div>
+                                </div>
+                                <div class="dt-row dt-row--auto">
+                                    <div>
+                                        <label class="dt-label">Вулиця</label>
+                                        <input type="text" name="street" class="dt-input" value="{{ $a->street }}">
+                                    </div>
+                                    <div style="width:80px;">
+                                        <label class="dt-label">Буд.</label>
+                                        <input type="text" name="building" class="dt-input" value="{{ $a->building }}">
+                                    </div>
+                                </div>
+                                <div class="dt-geo-row">
+                                    <span class="dt-geo-label">Видно:</span>
+                                    @php $em = $a->geo_mode ?? 'all'; @endphp
+                                    @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
+                                        <label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-ad{{ $a->id }}-{{ $mv }}">
+                                            <input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;"
+                                                   onchange="dtGeoMode('ad{{ $a->id }}','{{ $mv }}')">{{ $ml }}
+                                        </label>
+                                    @endforeach
+                                    @if(count($usedIso))
+                                    <span id="dtchips-ad{{ $a->id }}" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};gap:3px;">
+                                        @foreach($usedIso as $iso)
+                                            <label class="dt-geo-chip {{ in_array($iso,(array)($a->geo_countries??[]))?'is-on':'' }}" id="dtchip-ad{{ $a->id }}-{{ $iso }}">
+                                                <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($a->geo_countries??[]))?'checked':'' }} style="display:none;"
+                                                       onchange="dtGeoChip('ad{{ $a->id }}','{{ $iso }}',this)">{{ $iso }}
+                                            </label>
+                                        @endforeach
+                                    </span>
+                                    @endif
+                                </div>
+                                <div class="dt-panel__actions">
+                                    <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('addr-{{ $a->id }}')">Скасувати</button>
+                                    <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    @empty
+                        <div class="dt-empty">Адрес немає</div>
+                    @endforelse
+                </div>
+            </div>
+
+            </div>{{-- /dt-grid --}}
         @endif
 
         {{-- ========= ACTIVITY ========= --}}
@@ -712,83 +1107,6 @@
 
         {{-- ========= SETTINGS ========= --}}
         @if($tab === 'settings')
-
-            {{-- ===== Geo visibility rules ===== --}}
-            <div style="padding:20px;border-bottom:1px solid var(--border-2);">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                    <h4 style="margin:0;font-size:13px;font-weight:600;color:var(--text);">Правила видимості гео</h4>
-                    <span style="font-size:11px;color:var(--text-3);">{{ count($usedIso) }} {{ count($usedIso) === 1 ? 'гео' : 'гео' }} активних</span>
-                </div>
-                <p style="font-size:12px;color:var(--text-3);margin:0 0 16px;">
-                    Для кожної гео-вкладки визначте, яким <strong>країнам відвідувачів</strong> вона видна.
-                    Приклад: дані UA → Всім крім RU, BY. Дані BY → Тільки для: RU, BY.
-                </p>
-
-                @if(count($usedIso) === 0)
-                    <div style="padding:16px;background:var(--panel-2);border-radius:var(--radius);font-size:12px;color:var(--text-3);">
-                        Немає активних гео. Відкрийте вкладку «Дані» та натисніть «Додати гео».
-                    </div>
-                @else
-                    <form method="POST" action="{{ route('sites.geo-rules.save', $site) }}" id="form-geo-rules">
-                        @csrf
-                        <div style="display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
-                            @foreach($usedIso as $ruleIso)
-                                @php
-                                    $ruleData   = (array) ($geoRules[$ruleIso] ?? []);
-                                    $ruleMode   = $ruleData['mode'] ?? 'all';
-                                    $ruleCtries = (array) ($ruleData['countries'] ?? []);
-                                    $prefix     = 'gr-' . $ruleIso;
-                                @endphp
-                                <div style="padding:14px 16px;{{ !$loop->last ? 'border-bottom:1px solid var(--border-2);' : '' }}">
-                                    {{-- Geo label --}}
-                                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                                        <span style="font-family:var(--font-mono);font-weight:700;font-size:12px;background:var(--accent-2);color:var(--accent-text);padding:2px 8px;border-radius:6px;">{{ $ruleIso }}</span>
-                                        @if(isset($countriesByIso[$ruleIso]))
-                                            <span style="font-size:12px;color:var(--text-3);">{{ $countriesByIso[$ruleIso]->name ?? '' }}</span>
-                                        @endif
-                                        <span style="font-size:11px;color:var(--text-3);margin-left:auto;">дані видно для…</span>
-                                    </div>
-                                    {{-- Mode radio group --}}
-                                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:0;" id="{{ $prefix }}-modes">
-                                        @foreach(['all' => 'Всім відвідувачам', 'include' => 'Тільки для', 'exclude' => 'Всім крім'] as $mVal => $mLabel)
-                                            <label style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--border);border-radius:99px;cursor:pointer;font-size:12px;
-                                                          {{ $ruleMode === $mVal ? 'background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;' : 'background:var(--panel-2);color:var(--text-2);' }}">
-                                                <input type="radio" name="geo[{{ $ruleIso }}][mode]" value="{{ $mVal }}"
-                                                       {{ $ruleMode === $mVal ? 'checked' : '' }}
-                                                       style="display:none;"
-                                                       onchange="geoRuleToggle('{{ $prefix }}','{{ $mVal }}')">
-                                                {{ $mLabel }}
-                                            </label>
-                                        @endforeach
-                                    </div>
-                                    {{-- Country chips (shown for include/exclude) --}}
-                                    <div id="{{ $prefix }}-chips" style="{{ in_array($ruleMode, ['include','exclude']) ? '' : 'display:none;' }} margin-top:10px;">
-                                        <div style="display:flex;flex-wrap:wrap;gap:5px;">
-                                            @foreach($countries as $c)
-                                                <label style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border:1px solid var(--border);border-radius:99px;cursor:pointer;font-size:11px;font-family:var(--font-mono);font-weight:600;
-                                                              {{ in_array($c->iso, $ruleCtries, true) ? 'background:var(--accent-2);color:var(--accent-text);border-color:var(--accent-2);' : 'background:var(--panel-2);color:var(--text-2);' }}"
-                                                      id="{{ $prefix }}-chip-{{ $c->iso }}">
-                                                    <input type="checkbox" name="geo[{{ $ruleIso }}][countries][]" value="{{ $c->iso }}"
-                                                           {{ in_array($c->iso, $ruleCtries, true) ? 'checked' : '' }}
-                                                           style="display:none;"
-                                                           onchange="geoRuleChipToggle('{{ $prefix }}','{{ $c->iso }}',this)">
-                                                    {{ $c->iso }}
-                                                </label>
-                                            @endforeach
-                                        </div>
-                                        <p style="font-size:11px;color:var(--text-3);margin:6px 0 0;">
-                                            Виберіть країни відвідувачів зі свого списку. Будь-яка інша країна підпадає під правило «за замовчуванням».
-                                        </p>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                        <div style="display:flex;justify-content:flex-end;margin-top:12px;">
-                            <button type="submit" class="btn btn--primary btn--sm">Зберегти правила</button>
-                        </div>
-                    </form>
-                @endif
-            </div>
 
             {{-- ===== Sync settings ===== --}}
             <div style="padding:20px;display:flex;flex-direction:column;gap:0;">
@@ -1238,7 +1556,44 @@ function ruleChipToggle(prefix, iso, checkbox) {
     lbl.style.borderColor = checkbox.checked ? 'var(--accent-2)'   : 'var(--border)';
 }
 
-// Visitor preview tab switcher (Overview tab)
+// ── Data tab inline CRM controls ──────────────────────────────
+function dtToggleAdd(type) {
+    var panel = document.getElementById('dt-add-' + type);
+    var btn   = document.getElementById('dt-add-btn-' + type);
+    if (!panel) return;
+    var open = panel.style.display !== 'none';
+    panel.style.display = open ? 'none' : '';
+    if (btn) btn.classList.toggle('is-open', !open);
+}
+
+function dtExpandItem(id) {
+    var panel   = document.getElementById('dt-edit-' + id);
+    var chevron = document.querySelector('#dt-expand-' + id + ' svg');
+    if (!panel) return;
+    var open = panel.style.display !== 'none';
+    panel.style.display = open ? 'none' : '';
+    if (chevron) chevron.style.transform = open ? '' : 'rotate(90deg)';
+}
+
+function dtGeoMode(prefix, mode) {
+    ['all','include','exclude'].forEach(function(m) {
+        var pill = document.getElementById('dtpill-' + prefix + '-' + m);
+        if (!pill) return;
+        var on = m === mode;
+        pill.classList.toggle('is-on', on);
+        var radio = pill.querySelector('input[type=radio]');
+        if (radio) radio.checked = on;
+    });
+    var chips = document.getElementById('dtchips-' + prefix);
+    if (chips) chips.style.display = (mode === 'include' || mode === 'exclude') ? 'flex' : 'none';
+}
+
+function dtGeoChip(prefix, iso, el) {
+    var chip = document.getElementById('dtchip-' + prefix + '-' + iso);
+    if (chip) chip.classList.toggle('is-on', el.checked);
+}
+
+// ── Visitor preview tab switcher (Overview tab) ────────────────
 function showVisitorPanel(iso) {
     document.querySelectorAll('[id^="vis-panel-"]').forEach(function(el) { el.style.display = 'none'; });
     document.querySelectorAll('[id^="vis-tab-"]').forEach(function(btn) {

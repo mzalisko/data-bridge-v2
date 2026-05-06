@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\SitePriceController;
 use App\Http\Controllers\Admin\SiteAddressController;
 use App\Http\Controllers\Admin\SiteSocialController;
 use App\Http\Controllers\Admin\SiteGeoController;
+use App\Http\Controllers\Admin\BulkDataController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\BatchController;
 use App\Http\Controllers\Admin\DataBrowserController;
@@ -70,6 +71,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('sites/{site}/geos/{iso}',        [SiteGeoController::class, 'removeGeo'])->name('sites.geos.remove');
     Route::post(  'sites/{site}/geo-rules',         [SiteGeoController::class, 'saveRules'])->name('sites.geo-rules.save');
     Route::post(  'sites/{site}/visibility/{type}/{id}', [SiteGeoController::class, 'toggleVisibility'])->name('sites.visibility.toggle');
+
+    // Bulk data operations (multi-site) — UI planned, controller scaffolded
+    Route::post('bulk/phones',  [BulkDataController::class, 'addPhone'])->name('bulk.phones');
+    Route::post('bulk/prices',  [BulkDataController::class, 'addPrice'])->name('bulk.prices');
+    Route::post('bulk/socials', [BulkDataController::class, 'addSocial'])->name('bulk.socials');
+    Route::post('bulk/geos',    [BulkDataController::class, 'addGeo'])->name('bulk.geos');
+    Route::post('bulk/delete',  [BulkDataController::class, 'deleteMatching'])->name('bulk.delete');
 
     Route::resource('users', UserController::class)
         ->only(['index', 'store', 'update', 'destroy']);
