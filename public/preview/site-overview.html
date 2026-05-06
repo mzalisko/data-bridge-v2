@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="uk" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview — Site Overview (new concept) · DataBridge CRM</title>
+<link rel="stylesheet" href="../assets/css/app.css">
+<link rel="stylesheet" href="../assets/css/pages/sites.css">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   NEW CONCEPT: Site Overview — одна сторінка, всі дані видно
+   Замінює: sidebar + tabs → header + sections + aside
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Breadcrumb back link ── */
+.site-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    margin-bottom: var(--space-md);
+    padding: 4px 0;
+    transition: color var(--duration-fast);
+}
+.site-back:hover { color: var(--text-primary); }
+.site-back svg { flex-shrink: 0; }
+
+/* ── Hero header ── */
+.site-header {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 20px 24px;
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.site-header__favicon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-item);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.site-header__identity {
+    flex: 1;
+    min-width: 0;
+}
+
+.site-header__name {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.site-header__url {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.site-header__badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.site-header__actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Status dot inline */
+.status-dot-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+}
+.status-dot-inline::before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+}
+.status-dot-inline--ok::before   { background: var(--dot-ok); }
+.status-dot-inline--off::before  { background: var(--dot-off); }
+
+.sync-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    background: var(--bg-page);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    padding: 2px 9px;
+}
+.sync-pill__dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ── Stats bar ── */
+.site-stats {
+    display: flex;
+    gap: 10px;
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+}
+
+.stat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    text-decoration: none;
+    transition: border-color var(--duration-fast), background var(--duration-fast);
+}
+.stat-chip:hover {
+    border-color: var(--border-focus);
+    background: var(--bg-hover);
+}
+.stat-chip.is-active {
+    border-color: var(--accent);
+    background: rgba(82,136,193,.08);
+}
+.stat-chip__icon {
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+.stat-chip__label {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    font-weight: 500;
+}
+.stat-chip__count {
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* ── Main two-column layout ── */
+.site-overview {
+    display: grid;
+    grid-template-columns: 1fr 272px;
+    gap: var(--space-lg);
+    align-items: flex-start;
+}
+
+/* ── Data section (collapsible card) ── */
+.site-section {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    margin-bottom: var(--space-md);
+    overflow: hidden;
+}
+
+.site-section__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--border-color);
+    transition: background var(--duration-fast);
+}
+.site-section__head:hover { background: var(--bg-hover); }
+
+/* Arrow toggle */
+.site-section__arrow {
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: transform var(--duration-fast) var(--ease-ui);
+}
+.site-section.is-collapsed .site-section__arrow {
+    transform: rotate(-90deg);
+}
+
+.site-section__icon { color: var(--text-muted); flex-shrink: 0; }
+
+.site-section__title {
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.site-section__count {
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--bg-page);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1px 7px;
+    flex-shrink: 0;
+}
+
+.site-section__add {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: var(--radius-item);
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
+    text-decoration: none;
+}
+.site-section__add:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+/* Body collapsible */
+.site-section__body {
+    overflow: hidden;
+    max-height: 2000px;
+    transition: max-height 0.3s var(--ease-ui);
+}
+.site-section.is-collapsed .site-section__body {
+    max-height: 0;
+}
+
+/* Empty state inside section */
+.section-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 28px 20px;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}
+.section-empty svg { opacity: 0.4; }
+
+/* ── Override data-list inside section (no extra card bg) ── */
+.site-section .data-list {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+}
+.site-section .data-row {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* ── Aside column ── */
+.site-aside {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    position: sticky;
+    top: 16px;
+}
+
+.aside-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+}
+
+.aside-card__head {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--text-muted);
+}
+
+.aside-card__body { padding: 14px 16px; }
+
+/* Meta rows */
+.aside-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+}
+.aside-meta-row + .aside-meta-row {
+    border-top: 1px solid var(--border-color);
+}
+.aside-meta-row__label {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+.aside-meta-row__val {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: right;
+}
+
+/* API key in aside */
+.aside-apikey {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.aside-apikey__row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-page);
+    border-radius: 7px;
+    border: 1px solid var(--border-color);
+    padding: 6px 8px;
+}
+.aside-apikey__code {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--dot-ok);
+    letter-spacing: .04em;
+    flex: 1;
+    min-width: 0;
+}
+.aside-apikey__status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+}
+.aside-apikey__dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.aside-apikey__actions {
+    display: flex;
+    gap: 6px;
+}
+.aside-apikey__btn {
+    flex: 1;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background var(--duration-fast), color var(--duration-fast);
+}
+.aside-apikey__btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+.aside-apikey__btn--danger {
+    border-color: rgba(245,101,101,.2);
+    color: rgba(245,101,101,.6);
+}
+.aside-apikey__btn--danger:hover {
+    background: rgba(245,101,101,.1);
+    color: var(--dot-off);
+    border-color: rgba(245,101,101,.4);
+}
+
+/* Sync log row in aside */
+.aside-sync-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 0;
+    font-size: var(--font-size-xs);
+}
+.aside-sync-row + .aside-sync-row { border-top: 1px solid var(--border-color); }
+.aside-sync-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.aside-sync-time { color: var(--text-muted); margin-left: auto; }
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+    .site-overview {
+        grid-template-columns: 1fr;
+    }
+    .site-aside {
+        position: static;
+    }
+    .site-header {
+        flex-wrap: wrap;
+    }
+}
+@media (max-width: 600px) {
+    .site-header__actions { width: 100%; justify-content: flex-end; }
+    .site-stats { gap: 6px; }
+    .stat-chip { padding: 6px 10px; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+    <!-- CRM Rail (мінімальний) -->
+    <nav class="crm-rail">
+        <div class="rail-logo" title="DataBridge CRM">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 2.1l4 4-4 4"/><path d="M3 12.2v-2a4 4 0 0 1 4-4h13.8"/>
+                <path d="M7 21.9l-4-4 4-4"/><path d="M21 11.8v2a4 4 0 0 1-4 4H3.2"/>
+            </svg>
+            <span class="rail-logo__text">DataBridge</span>
+        </div>
+        <ul class="rail-nav">
+            <li><a href="#" class="rail-item" title="Dashboard">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                <span class="rail-label">Dashboard</span>
+            </a></li>
+            <li><a href="#" class="rail-item" title="Групи">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                <span class="rail-label">Групи</span>
+            </a></li>
+            <li><a href="#" class="rail-item is-active" title="Сайти">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span class="rail-label">Сайти</span>
+            </a></li>
+            <li><a href="#" class="rail-item" title="Дані">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                <span class="rail-label">Дані</span>
+            </a></li>
+            <li><a href="#" class="rail-item" title="Користувачі">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span class="rail-label">Користувачі</span>
+            </a></li>
+            <li><a href="#" class="rail-item" title="Логи">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <span class="rail-label">Логи</span>
+            </a></li>
+        </ul>
+        <div class="rail-bottom">
+            <button class="rail-item" title="Тема" onclick="document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+                <span class="rail-label">Тема</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Shell body -->
+    <div class="shell-body">
+        <header class="topbar">
+            <div class="topbar__title">Сайти / Магазин-Україна</div>
+            <div class="topbar__user">
+                <div class="topbar__user-avatar">A<span class="topbar__user-status"></span></div>
+                <span class="topbar__user-name">Admin</span>
+            </div>
+        </header>
+
+        <main class="page-content">
+
+            <!-- Back link -->
+            <a href="#" class="site-back">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                Всі сайти
+            </a>
+
+            <!-- ── Hero Header ── -->
+            <div class="site-header">
+                <div class="site-header__favicon" style="background:#5288c126;color:#5288c1;">
+                    М
+                </div>
+                <div class="site-header__identity">
+                    <div class="site-header__name">Магазин-Україна</div>
+                    <div class="site-header__url">https://magasin-ukraine.com.ua</div>
+                    <div class="site-header__badges">
+                        <span class="status-dot-inline status-dot-inline--ok" style="color:var(--dot-ok)">Active</span>
+                        <span class="group-pill" style="--pill-color:#5288c1">Alpha</span>
+                        <span class="sync-pill">
+                            <span class="sync-pill__dot" style="background:var(--dot-ok)"></span>
+                            2 год. тому
+                        </span>
+                    </div>
+                </div>
+                <div class="site-header__actions">
+                    <a href="#" class="btn-ghost" target="_blank">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        Відкрити
+                    </a>
+                    <button class="btn-primary">Редагувати</button>
+                </div>
+            </div>
+
+            <!-- ── Stats chips ── -->
+            <div class="site-stats">
+                <a href="#section-phones" class="stat-chip is-active">
+                    <span class="stat-chip__icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l.72-.72a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    </span>
+                    <span class="stat-chip__label">Телефони</span>
+                    <span class="stat-chip__count">3</span>
+                </a>
+                <a href="#section-prices" class="stat-chip">
+                    <span class="stat-chip__icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </span>
+                    <span class="stat-chip__label">Ціни</span>
+                    <span class="stat-chip__count">2</span>
+                </a>
+                <a href="#section-addresses" class="stat-chip">
+                    <span class="stat-chip__icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    </span>
+                    <span class="stat-chip__label">Адреси</span>
+                    <span class="stat-chip__count">1</span>
+                </a>
+                <a href="#section-socials" class="stat-chip">
+                    <span class="stat-chip__icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    </span>
+                    <span class="stat-chip__label">Соцмережі</span>
+                    <span class="stat-chip__count">4</span>
+                </a>
+            </div>
+
+            <!-- ── Two-column layout ── -->
+            <div class="site-overview">
+
+                <!-- ─ Left: data sections ─ -->
+                <div class="site-overview__main">
+
+                    <!-- PHONES -->
+                    <div class="site-section" id="section-phones">
+                        <div class="site-section__head" onclick="toggleSection(this)">
+                            <svg class="site-section__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                            <svg class="site-section__icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l.72-.72a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            <span class="site-section__title">Телефони</span>
+                            <span class="site-section__count">3</span>
+                            <a href="#" class="site-section__add" onclick="event.stopPropagation()">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Додати
+                            </a>
+                        </div>
+                        <div class="site-section__body">
+                            <ul class="data-list">
+                                <li class="data-row">
+                                    <div class="data-row__indicator">
+                                        <span class="data-badge">UA +380</span>
+                                    </div>
+                                    <div class="data-row__main">
+                                        <span class="data-row__val">44 123-45-67</span>
+                                    </div>
+                                    <div class="data-row__secondary">
+                                        <span class="data-badge data-badge--primary">Primary</span>
+                                        <span class="data-row__label">Офіс</span>
+                                        <span class="geo-badge geo-badge--all geo-badge--sm">Всі</span>
+                                    </div>
+                                    <div class="data-row__actions">
+                                        <button class="btn-icon" title="Редагувати">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        </button>
+                                        <button class="btn-icon btn-icon--danger" title="Видалити">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                                        </button>
+                                    </div>
+                                </li>
+                                <li class="data-row">
+                                    <div class="data-row__indicator">
+                                        <span class="data-badge">UA +380</span>
+                                    </div>
+                                    <div class="data-row__main">
+                                        <span class="data-row__val">67 987-65-43</span>
+                                    </div>
+                                    <div class="data-row__secondary">
+                                        <span class="data-row__label">Мобільний</span>
+                                        <span class="geo-badge geo-badge--all geo-badge--sm">Всі</span>
+                                    </div>
+                                    <div class="data-row__actions">
+                                        <button class="btn-icon" title="Редагувати">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        </button>
+                                        <button class="btn-icon btn-icon--danger" title="Видалити">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                                        </button>
+                                    </div>
+                                </li>
+                                <li class="data-row">
+                                    <div class="data-row__indicator">
+                                        <span class="data-badge">UA +380</span>
+                                    </div>
+                                    <div class="data-row__main">
+                                        <span class="data-row__val">800 333-222</span>
+                                    </div>
+                                    <div class="data-row__secondary">
+                                        <span class="data-row__label">Toll-free</span>
+                                        <span class="geo-badge geo-badge--include geo-badge--sm">UA, PL</span>
+                                    </div>
+                                    <div class="data-row__actions">
+                                        <button class="btn-icon" title="Редагувати">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        </button>
+                                        <button class="btn-icon btn-icon--danger" title="Видалити">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                                        </button>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div><!-- /phones -->
+
+                    <!-- PRICES -->
+                    <div class="site-section" id="section-prices">
+                        <div class="site-section__head" onclick="toggleSection(this)">
+                            <svg class="site-section__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                            <svg class="site-section__icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            <span class="site-section__title">Ціни</span>
+                            <span class="site-section__count">2</span>
+                            <a href="#" class="site-section__add" onclick="event.stopPropagation()">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Додати
+                            </a>
+                        </div>
+                        <div class="site-section__body">
+                            <ul class="data-list">
+                                <li class="data-row">
+                                    <div class="data-row__indicator">
+                                        <span class="data-badge data-badge--currency">UAH</span>
+                                    </div>
+                                    <div class="data-row__main">
+                                        <span class="data-row__val">1 200,00</span>
+                                    </div>
+                                    <div class="data-row__secondary">
+                                        <span class="data-row__label">Базовий пакет</span>
+                                        <span class="data-row__meta">/ місяць</span>
+                                        <span class="geo-badge geo-badge--all geo-badge--sm">Всі</span>
+                                    </div>
+                                    <div class="data-row__actions">
+                                        <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                                        <button class="btn-icon btn-icon--danger"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+                                    </div>
+                                </li>
+                                <li class="data-row data-row--muted">
+                                    <div class="data-row__indicator">
+                                        <span class="data-badge data-badge--currency">UAH</span>
+                                        <span class="data-badge data-badge--hidden">Прих.</span>
+                                    </div>
+                                    <div class="data-row__main">
+                                        <span class="data-row__val">950,00</span>
+                                    </div>
+                                    <div class="data-row__secondary">
+                                        <span class="data-row__label">Ціна UA</span>
+                                        <span class="geo-badge geo-badge--include geo-badge--sm">UA</span>
+                                    </div>
+                                    <div class="data-row__actions">
+                                        <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                                        <button class="btn-icon btn-icon--danger"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div><!-- /prices -->
+
+                    <!-- ADDRESSES -->
+                    <div class="site-section" id="section-addresses">
+                        <div class="site-section__head" onclick="toggleSection(this)">
+                            <svg class="site-section__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                            <svg class="site-section__icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            <span class="site-section__title">Адреси</span>
+                            <span class="site-section__count">1</span>
+                            <a href="#" class="site-section__add" onclick="event.stopPropagation()">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Додати
+                            </a>
+                        </div>
+                        <div class="site-section__body">
+                            <ul class="data-list">
+                                <li class="data-row">
+                                    <div class="data-row__indicator">
+                                        <span class="data-badge">UA</span>
+                                        <span class="data-badge data-badge--primary">Primary</span>
+                                    </div>
+                                    <div class="data-row__main">
+                                        <span class="data-row__val">вул. Хрещатик, 22</span>
+                                        <span class="data-row__label" style="display:block;margin-top:2px">м. Київ, 01001</span>
+                                    </div>
+                                    <div class="data-row__secondary">
+                                        <span class="geo-badge geo-badge--all geo-badge--sm">Всі</span>
+                                    </div>
+                                    <div class="data-row__actions">
+                                        <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                                        <button class="btn-icon btn-icon--danger"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div><!-- /addresses -->
+
+                    <!-- SOCIALS -->
+                    <div class="site-section" id="section-socials">
+                        <div class="site-section__head" onclick="toggleSection(this)">
+                            <svg class="site-section__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                            <svg class="site-section__icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                            <span class="site-section__title">Соцмережі</span>
+                            <span class="site-section__count">4</span>
+                            <a href="#" class="site-section__add" onclick="event.stopPropagation()">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Додати
+                            </a>
+                        </div>
+                        <div class="site-section__body">
+                            <ul class="data-list">
+                                <li class="data-row">
+                                    <div class="data-row__indicator">
+                                        <span class="data-badge data-badge--platform">Facebook</span>
+                                    </div>
+                                    <div class="data-row__main">
+                                        <span class="data-row__val">@magasin.ukraine</span>
+                                    </div>
+                                    <div class="data-row__secondary">
+                                        <a href="#" class="data-row__link">↗ відкрити</a>
+                                        <span class="geo-badge geo-badge--all geo-badge--sm">Всі</span>
+                                    </div>
+                                    <div class="data-row__actions">
+                                        <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                                        <button class="btn-icon btn-icon--danger"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+                                    </div>
+                                </li>
+                                <li class="data-row">
+                                    <div class="data-row__indicator">
+                                        <span class="data-badge data-badge--platform">Instagram</span>
+                                    </div>
+                                    <div class="data-row__main">
+                                        <span class="data-row__val">@magasin_ukraine</span>
+                                    </div>
+                                    <div class="data-row__secondary">
+                                        <a href="#" class="data-row__link">↗ відкрити</a>
+                                        <span class="geo-badge geo-badge--all geo-badge--sm">Всі</span>
+                                    </div>
+                                    <div class="data-row__actions">
+                                        <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                                        <button class="btn-icon btn-icon--danger"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+                                    </div>
+                                </li>
+                                <li class="data-row">
+                                    <div class="data-row__indicator">
+                                        <span class="data-badge data-badge--platform">Telegram</span>
+                                    </div>
+                                    <div class="data-row__main">
+                                        <span class="data-row__val">@magasin_ua</span>
+                                    </div>
+                                    <div class="data-row__secondary">
+                                        <a href="#" class="data-row__link">↗ відкрити</a>
+                                        <span class="geo-badge geo-badge--all geo-badge--sm">Всі</span>
+                                    </div>
+                                    <div class="data-row__actions">
+                                        <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                                        <button class="btn-icon btn-icon--danger"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+                                    </div>
+                                </li>
+                                <li class="data-row">
+                                    <div class="data-row__indicator">
+                                        <span class="data-badge data-badge--platform">YouTube</span>
+                                    </div>
+                                    <div class="data-row__main">
+                                        <span class="data-row__val">@magasin</span>
+                                    </div>
+                                    <div class="data-row__secondary">
+                                        <a href="#" class="data-row__link">↗ відкрити</a>
+                                        <span class="geo-badge geo-badge--exclude geo-badge--sm">≠ RU</span>
+                                    </div>
+                                    <div class="data-row__actions">
+                                        <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                                        <button class="btn-icon btn-icon--danger"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div><!-- /socials -->
+
+                </div><!-- /main -->
+
+                <!-- ─ Right aside ─ -->
+                <aside class="site-aside">
+
+                    <!-- Metadata -->
+                    <div class="aside-card">
+                        <div class="aside-card__head">Інформація</div>
+                        <div class="aside-card__body" style="padding: 6px 16px 10px">
+                            <div class="aside-meta-row">
+                                <span class="aside-meta-row__label">Статус</span>
+                                <span class="aside-meta-row__val" style="color:var(--dot-ok)">● Active</span>
+                            </div>
+                            <div class="aside-meta-row">
+                                <span class="aside-meta-row__label">Група</span>
+                                <span class="aside-meta-row__val">
+                                    <span class="group-pill" style="--pill-color:#5288c1;font-size:11px">Alpha</span>
+                                </span>
+                            </div>
+                            <div class="aside-meta-row">
+                                <span class="aside-meta-row__label">Синхронізація</span>
+                                <span class="aside-meta-row__val" style="color:var(--dot-ok)">✓ 2 год. тому</span>
+                            </div>
+                            <div class="aside-meta-row">
+                                <span class="aside-meta-row__label">Тривалість</span>
+                                <span class="aside-meta-row__val">342 ms</span>
+                            </div>
+                            <div class="aside-meta-row">
+                                <span class="aside-meta-row__label">Додано</span>
+                                <span class="aside-meta-row__val">10.03.2026</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- API Key -->
+                    <div class="aside-card">
+                        <div class="aside-card__head">API Key</div>
+                        <div class="aside-apikey">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                                <div class="aside-apikey__status">
+                                    <span class="aside-apikey__dot" style="background:var(--dot-ok)"></span>
+                                    <span style="color:var(--dot-ok);font-size:var(--font-size-xs);font-weight:600">Активний</span>
+                                </div>
+                                <span style="font-size:10px;color:var(--text-muted)">оновл. 15.04.2026</span>
+                            </div>
+                            <div class="aside-apikey__row">
+                                <span class="aside-apikey__code">dbapi_a1b2c3d4ef...</span>
+                                <button class="btn-icon" title="Копіювати" style="width:22px;height:22px;border-radius:5px">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                </button>
+                            </div>
+                            <div class="aside-apikey__actions">
+                                <button class="aside-apikey__btn">Перегенерувати</button>
+                                <button class="aside-apikey__btn aside-apikey__btn--danger">Відкликати</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent sync log -->
+                    <div class="aside-card">
+                        <div class="aside-card__head">Останні синхр.</div>
+                        <div class="aside-card__body" style="padding: 6px 16px 12px">
+                            <div class="aside-sync-row">
+                                <span class="aside-sync-dot" style="background:var(--dot-ok)"></span>
+                                <span style="font-size:var(--font-size-xs);color:var(--text-primary);font-weight:500">Успішно · 342ms</span>
+                                <span class="aside-sync-time">2 год.</span>
+                            </div>
+                            <div class="aside-sync-row">
+                                <span class="aside-sync-dot" style="background:var(--dot-ok)"></span>
+                                <span style="font-size:var(--font-size-xs);color:var(--text-primary);font-weight:500">Успішно · 298ms</span>
+                                <span class="aside-sync-time">5 год.</span>
+                            </div>
+                            <div class="aside-sync-row">
+                                <span class="aside-sync-dot" style="background:var(--dot-pause)"></span>
+                                <span style="font-size:var(--font-size-xs);color:var(--text-secondary)">Timeout</span>
+                                <span class="aside-sync-time">8 год.</span>
+                            </div>
+                            <div class="aside-sync-row">
+                                <span class="aside-sync-dot" style="background:var(--dot-ok)"></span>
+                                <span style="font-size:var(--font-size-xs);color:var(--text-primary);font-weight:500">Успішно · 411ms</span>
+                                <span class="aside-sync-time">11 год.</span>
+                            </div>
+                            <div style="margin-top:10px;text-align:center">
+                                <a href="#" style="font-size:var(--font-size-xs);color:var(--accent);text-decoration:none">Показати всі →</a>
+                            </div>
+                        </div>
+                    </div>
+
+                </aside><!-- /aside -->
+
+            </div><!-- /site-overview -->
+
+        </main>
+    </div><!-- /shell-body -->
+</div><!-- /shell -->
+
+<script>
+function toggleSection(headEl) {
+    var section = headEl.closest('.site-section');
+    section.classList.toggle('is-collapsed');
+}
+
+// Stat chip active scroll
+document.querySelectorAll('.stat-chip').forEach(function(chip) {
+    chip.addEventListener('click', function(e) {
+        document.querySelectorAll('.stat-chip').forEach(function(c) { c.classList.remove('is-active'); });
+        chip.classList.add('is-active');
+    });
+});
+</script>
+
+</body>
+</html>
