@@ -319,59 +319,41 @@
                                     Матриця
                                     <span style="font-family:var(--font-mono);font-weight:700;font-size:12px;color:{{ $totalVis === $totalAll ? '#34d399' : ($totalVis > 0 ? 'var(--warning)' : '#f87171') }};">{{ $totalVis }}/{{ $totalAll }}</span>
                                 </div>
-                                <table style="width:100%;border-collapse:collapse;font-size:11px;">
+                                @php
+                                    $matrixRows = [
+                                        ['Телефони',  $site->phones,    'data-phones'],
+                                        ['Ціни',      $site->prices,    'data-prices'],
+                                        ['Адреси',    $site->addresses, 'data-addresses'],
+                                        ['Соцмережі', $site->socials,   'data-socials'],
+                                    ];
+                                @endphp
+                                <table style="width:100%;border-collapse:collapse;font-size:12px;">
                                     <thead>
                                         <tr>
-                                            <th style="text-align:left;padding:4px 6px;color:var(--text-3);font-weight:500;border-bottom:1px solid var(--border-2);font-size:10px;">Запис</th>
+                                            <th style="text-align:left;padding:6px 8px;color:var(--text-3);font-weight:500;border-bottom:1px solid var(--border-2);font-size:11px;">Категорія</th>
                                             @foreach($allVisitorIsos as $matIso)
-                                                <th style="text-align:center;padding:4px 5px;font-family:var(--font-mono);font-size:10px;font-weight:700;border-bottom:1px solid var(--border-2);color:{{ $matIso === $visIso ? 'var(--accent)' : 'var(--text-3)' }};">{{ $matIso }}</th>
+                                                <th style="text-align:center;padding:6px 8px;font-family:var(--font-mono);font-size:11px;font-weight:700;border-bottom:1px solid var(--border-2);color:{{ $matIso === $visIso ? 'var(--accent)' : 'var(--text-3)' }};">{{ $matIso }}</th>
                                             @endforeach
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($site->phones as $mp)
-                                        <tr style="border-bottom:1px solid var(--border-2);">
-                                            <td style="padding:4px 6px;color:var(--text-2);font-family:var(--font-mono);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;"
-                                                title="{{ ($mp->dial_code ? '+'.$mp->dial_code.' ' : '') . $mp->number }}"
-                                                onclick="location='{{ $url(['tab'=>'data']) }}#dt-edit-phone-{{ $mp->id }}'">тел. {{ $mp->number }}</td>
-                                            @foreach($allVisitorIsos as $matIso)
-                                                @php $mok = ($mp->is_visible ?? true) && $geoVis($mp->geo_mode, $mp->geo_countries, $matIso); @endphp
-                                                <td style="text-align:center;padding:4px 5px;background:{{ $matIso === $visIso ? 'var(--accent-2)' : 'transparent' }};"><span style="color:{{ $mok ? '#34d399' : '#f87171' }};font-weight:700;">{{ $mok ? '✓' : '✗' }}</span></td>
-                                            @endforeach
-                                        </tr>
-                                        @endforeach
-                                        @foreach($site->prices as $mpr)
-                                        <tr style="border-bottom:1px solid var(--border-2);">
-                                            <td style="padding:4px 6px;color:var(--text-2);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;"
-                                                title="{{ $mpr->label }}"
-                                                onclick="location='{{ $url(['tab'=>'data']) }}#dt-edit-price-{{ $mpr->id }}'">ціна {{ $mpr->label }}</td>
-                                            @foreach($allVisitorIsos as $matIso)
-                                                @php $mok = ($mpr->is_visible ?? true) && $geoVis($mpr->geo_mode, $mpr->geo_countries, $matIso); @endphp
-                                                <td style="text-align:center;padding:4px 5px;background:{{ $matIso === $visIso ? 'var(--accent-2)' : 'transparent' }};"><span style="color:{{ $mok ? '#34d399' : '#f87171' }};font-weight:700;">{{ $mok ? '✓' : '✗' }}</span></td>
-                                            @endforeach
-                                        </tr>
-                                        @endforeach
-                                        @foreach($site->addresses as $ma)
-                                        <tr style="border-bottom:1px solid var(--border-2);">
-                                            <td style="padding:4px 6px;color:var(--text-2);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;"
-                                                title="{{ $ma->city }}"
-                                                onclick="location='{{ $url(['tab'=>'data']) }}#dt-edit-addr-{{ $ma->id }}'">адр. {{ $ma->city }}</td>
-                                            @foreach($allVisitorIsos as $matIso)
-                                                @php $mok = ($ma->is_visible ?? true) && $geoVis($ma->geo_mode, $ma->geo_countries, $matIso); @endphp
-                                                <td style="text-align:center;padding:4px 5px;background:{{ $matIso === $visIso ? 'var(--accent-2)' : 'transparent' }};"><span style="color:{{ $mok ? '#34d399' : '#f87171' }};font-weight:700;">{{ $mok ? '✓' : '✗' }}</span></td>
-                                            @endforeach
-                                        </tr>
-                                        @endforeach
-                                        @foreach($site->socials as $ms)
-                                        <tr style="border-bottom:1px solid var(--border-2);">
-                                            <td style="padding:4px 6px;color:var(--text-2);font-size:10px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;"
-                                                title="{{ ucfirst($ms->platform).': '.$ms->handle }}"
-                                                onclick="location='{{ $url(['tab'=>'data']) }}#dt-edit-social-{{ $ms->id }}'">{{ $ms->platform }} {{ $ms->handle }}</td>
-                                            @foreach($allVisitorIsos as $matIso)
-                                                @php $mok = ($ms->is_visible ?? true) && $geoVis($ms->geo_mode, $ms->geo_countries, $matIso); @endphp
-                                                <td style="text-align:center;padding:4px 5px;background:{{ $matIso === $visIso ? 'var(--accent-2)' : 'transparent' }};"><span style="color:{{ $mok ? '#34d399' : '#f87171' }};font-weight:700;">{{ $mok ? '✓' : '✗' }}</span></td>
-                                            @endforeach
-                                        </tr>
+                                        @foreach($matrixRows as [$catLabel, $catItems, $catAnchor])
+                                            @if($catItems->count())
+                                            <tr style="border-bottom:1px solid var(--border-2);">
+                                                <td style="padding:7px 8px;font-size:12px;font-weight:500;color:var(--text-2);cursor:pointer;white-space:nowrap;"
+                                                    onclick="location='{{ $url(['tab'=>'data']) }}#{{ $catAnchor }}'">{{ $catLabel }} <span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);">{{ $catItems->count() }}</span></td>
+                                                @foreach($allVisitorIsos as $matIso)
+                                                    @php
+                                                        $catTotal = $catItems->count();
+                                                        $catVis   = $catItems->filter(fn($i) => ($i->is_visible ?? true) && $geoVis($i->geo_mode, $i->geo_countries, $matIso))->count();
+                                                        $matColor = $catVis === $catTotal ? '#34d399' : ($catVis > 0 ? 'var(--warning)' : '#f87171');
+                                                    @endphp
+                                                    <td style="text-align:center;padding:7px 8px;background:{{ $matIso === $visIso ? 'var(--accent-2)' : 'transparent' }};">
+                                                        <span style="font-family:var(--font-mono);font-weight:700;font-size:12px;color:{{ $matColor }};">{{ $catVis }}/{{ $catTotal }}</span>
+                                                    </td>
+                                                @endforeach
+                                            </tr>
+                                            @endif
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -446,7 +428,7 @@
             <div class="dt-grid">
 
             {{-- ═══ PHONES ═══════════════════════════════════════════ --}}
-            <div class="dt-card">
+            <div class="dt-card" id="data-phones">
                 <div class="dt-card-head">
                     <span class="dt-card-head__icon">{!! $dtIcons['phones'] !!}</span>
                     <span class="dt-card-head__title">Телефони</span>
@@ -597,7 +579,7 @@
             </div>
 
             {{-- ═══ PRICES ═══════════════════════════════════════════ --}}
-            <div class="dt-card">
+            <div class="dt-card" id="data-prices">
                 <div class="dt-card-head">
                     <span class="dt-card-head__icon">{!! $dtIcons['prices'] !!}</span>
                     <span class="dt-card-head__title">Ціни</span>
@@ -752,7 +734,7 @@
             </div>
 
             {{-- ═══ SOCIALS ══════════════════════════════════════════ --}}
-            <div class="dt-card">
+            <div class="dt-card" id="data-socials">
                 <div class="dt-card-head">
                     <span class="dt-card-head__icon">{!! $dtIcons['socials'] !!}</span>
                     <span class="dt-card-head__title">Соціальні мережі</span>
@@ -933,7 +915,7 @@
             </div>
 
             {{-- ═══ ADDRESSES ═════════════════════════════════════════ --}}
-            <div class="dt-card">
+            <div class="dt-card" id="data-addresses">
                 <div class="dt-card-head">
                     <span class="dt-card-head__icon">{!! $dtIcons['addresses'] !!}</span>
                     <span class="dt-card-head__title">Адреси</span>
