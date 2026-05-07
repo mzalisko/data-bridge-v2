@@ -11,7 +11,7 @@ class StorePriceRequest extends FormRequest
         return [
             'label'      => ['required', 'string', 'max:255'],
             'amount'     => ['required', 'numeric', 'min:0', 'max:999999999.99'],
-            'currency'   => ['required', 'string', 'size:3'],
+            'currency'   => ['nullable', 'string', 'size:3'],
             'period'     => ['nullable', 'string', 'max:32'],
             'is_visible'    => ['nullable'],
             'sort_order'    => ['nullable', 'integer', 'min:0'],

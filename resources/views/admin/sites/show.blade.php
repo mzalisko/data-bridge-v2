@@ -488,7 +488,7 @@
                                            onchange="dtGeoMode('add-ph','{{ $mv }}')">{{ $ml }}
                                 </label>
                             @endforeach
-                            <span id="dtchips-add-ph" style="display:none;display:flex;gap:3px;">
+                            <span id="dtchips-add-ph" style="display:none;gap:3px;">
                                 @foreach($usedIso as $iso)
                                     <label class="dt-geo-chip" id="dtchip-add-ph-{{ $iso }}">
                                         <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
@@ -520,11 +520,16 @@
                             <div class="dt-vis">
                                 @if(count($usedIso)===0 || ($p->geo_mode??'all')==='all')
                                     <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                                @elseif(($p->geo_mode??'all')==='include')
+                                    @forelse((array)($p->geo_countries??[]) as $iso)
+                                        <span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>
+                                    @empty
+                                        <span class="dt-vis-badge dt-vis-badge--no">—</span>
+                                    @endforelse
                                 @else
-                                    @foreach($usedIso as $iso)
-                                        @php $ok=$geoVis($p->geo_mode,$p->geo_countries,$iso); @endphp
-                                        <span class="dt-vis-badge dt-vis-badge--{{ $ok?'ok':'no' }}">{{ $iso }}</span>
-                                    @endforeach
+                                    @php $visIsos=array_values(array_filter($usedIso,fn($i)=>!in_array($i,(array)($p->geo_countries??[])))); @endphp
+                                    @foreach($visIsos as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@endforeach
+                                    @if(!count($visIsos))<span class="dt-vis-badge dt-vis-badge--no">—</span>@endif
                                 @endif
                             </div>
                             <div class="dt-item-actions" onclick="event.stopPropagation()">
@@ -629,8 +634,8 @@
                                 <input type="number" name="amount" step="0.01" min="0" class="dt-input" placeholder="0" required>
                             </div>
                             <div>
-                                <label class="dt-label">Валюта *</label>
-                                <input type="text" name="currency" class="dt-input" placeholder="UAH" maxlength="3" style="text-transform:uppercase;" required>
+                                <label class="dt-label">Валюта</label>
+                                <input type="text" name="currency" class="dt-input" placeholder="UAH" maxlength="3" style="text-transform:uppercase;">
                             </div>
                             <div>
                                 <label class="dt-label">Період</label>
@@ -673,11 +678,16 @@
                             <div class="dt-vis">
                                 @if(count($usedIso)===0 || ($p->geo_mode??'all')==='all')
                                     <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                                @elseif(($p->geo_mode??'all')==='include')
+                                    @forelse((array)($p->geo_countries??[]) as $iso)
+                                        <span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>
+                                    @empty
+                                        <span class="dt-vis-badge dt-vis-badge--no">—</span>
+                                    @endforelse
                                 @else
-                                    @foreach($usedIso as $iso)
-                                        @php $ok=$geoVis($p->geo_mode,$p->geo_countries,$iso); @endphp
-                                        <span class="dt-vis-badge dt-vis-badge--{{ $ok?'ok':'no' }}">{{ $iso }}</span>
-                                    @endforeach
+                                    @php $visIsos=array_values(array_filter($usedIso,fn($i)=>!in_array($i,(array)($p->geo_countries??[])))); @endphp
+                                    @foreach($visIsos as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@endforeach
+                                    @if(!count($visIsos))<span class="dt-vis-badge dt-vis-badge--no">—</span>@endif
                                 @endif
                             </div>
                             <div class="dt-item-actions" onclick="event.stopPropagation()">
@@ -716,8 +726,8 @@
                                         <input type="number" name="amount" step="0.01" min="0" class="dt-input" value="{{ $p->amount }}" required>
                                     </div>
                                     <div>
-                                        <label class="dt-label">Валюта *</label>
-                                        <input type="text" name="currency" class="dt-input" value="{{ $p->currency }}" maxlength="3" style="text-transform:uppercase;" required>
+                                        <label class="dt-label">Валюта</label>
+                                        <input type="text" name="currency" class="dt-input" value="{{ $p->currency }}" maxlength="3" style="text-transform:uppercase;">
                                     </div>
                                     <div>
                                         <label class="dt-label">Період</label>
@@ -843,11 +853,16 @@
                             <div class="dt-vis">
                                 @if(count($usedIso)===0 || ($s->geo_mode??'all')==='all')
                                     <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                                @elseif(($s->geo_mode??'all')==='include')
+                                    @forelse((array)($s->geo_countries??[]) as $iso)
+                                        <span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>
+                                    @empty
+                                        <span class="dt-vis-badge dt-vis-badge--no">—</span>
+                                    @endforelse
                                 @else
-                                    @foreach($usedIso as $iso)
-                                        @php $ok=$geoVis($s->geo_mode,$s->geo_countries,$iso); @endphp
-                                        <span class="dt-vis-badge dt-vis-badge--{{ $ok?'ok':'no' }}">{{ $iso }}</span>
-                                    @endforeach
+                                    @php $visIsos=array_values(array_filter($usedIso,fn($i)=>!in_array($i,(array)($s->geo_countries??[])))); @endphp
+                                    @foreach($visIsos as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@endforeach
+                                    @if(!count($visIsos))<span class="dt-vis-badge dt-vis-badge--no">—</span>@endif
                                 @endif
                             </div>
                             <div class="dt-item-actions" onclick="event.stopPropagation()">
@@ -1016,11 +1031,16 @@
                             <div class="dt-vis">
                                 @if(count($usedIso)===0 || ($a->geo_mode??'all')==='all')
                                     <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                                @elseif(($a->geo_mode??'all')==='include')
+                                    @forelse((array)($a->geo_countries??[]) as $iso)
+                                        <span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>
+                                    @empty
+                                        <span class="dt-vis-badge dt-vis-badge--no">—</span>
+                                    @endforelse
                                 @else
-                                    @foreach($usedIso as $iso)
-                                        @php $ok=$geoVis($a->geo_mode,$a->geo_countries,$iso); @endphp
-                                        <span class="dt-vis-badge dt-vis-badge--{{ $ok?'ok':'no' }}">{{ $iso }}</span>
-                                    @endforeach
+                                    @php $visIsos=array_values(array_filter($usedIso,fn($i)=>!in_array($i,(array)($a->geo_countries??[])))); @endphp
+                                    @foreach($visIsos as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@endforeach
+                                    @if(!count($visIsos))<span class="dt-vis-badge dt-vis-badge--no">—</span>@endif
                                 @endif
                             </div>
                             <div class="dt-item-actions" onclick="event.stopPropagation()">

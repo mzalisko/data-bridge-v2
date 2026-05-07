@@ -17,7 +17,7 @@
     <div class="field">
         <label class="field__label" for="pr-cur-{{ $pid }}">Валюта</label>
         <input type="text" maxlength="3" id="pr-cur-{{ $pid }}" name="currency"
-               class="field__input" required style="text-transform:uppercase;"
+               class="field__input" style="text-transform:uppercase;"
                placeholder="UAH" value="{{ old('currency', $p?->currency) }}">
     </div>
 </div>
