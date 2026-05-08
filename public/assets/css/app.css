@@ -752,6 +752,32 @@ img, svg { display: block; max-width: 100%; }
 .dt-vis-badge--no  { background: var(--danger-bg);  color: var(--danger);  }
 .dt-vis-badge--all { background: var(--panel-2);    color: var(--text-3);  border-color: var(--border); }
 
+/* Social → phone link badge */
+.dt-link-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  margin-left: 6px; padding: 1px 6px;
+  background: var(--panel-2); border: 1px solid var(--border);
+  border-radius: 99px; font-size: 9px; font-family: var(--font-mono);
+  color: var(--text-3); vertical-align: middle;
+}
+
+/* Preview mode exit banner */
+.vis-preview-bar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 16px; gap: 10px;
+  background: var(--accent); color: #fff;
+  font-size: 12px; font-weight: 500;
+}
+.vis-preview-bar__exit {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 99px;
+  background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.3);
+  cursor: pointer; font-size: 11px; font-weight: 600; color: #fff;
+  transition: background .12s;
+}
+.vis-preview-bar__exit:hover { background: rgba(255,255,255,.30); }
+
 /* Empty state */
 .dt-empty { padding: 16px 14px; font-size: 11px; color: var(--text-3); font-style: italic; }
 

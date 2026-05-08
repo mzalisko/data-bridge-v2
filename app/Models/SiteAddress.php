@@ -14,6 +14,7 @@ class SiteAddress extends Model
         'label',
         'country_iso',
         'city',
+        'region',
         'street',
         'building',
         'postal_code',

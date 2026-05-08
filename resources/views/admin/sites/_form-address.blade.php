@@ -3,14 +3,14 @@
 <input type="hidden" name="sort_order" value="{{ old('sort_order', $a?->sort_order ?? 0) }}">
 
 <div class="field">
-    <label class="field__label" for="ad-label-{{ $aid }}">Мітка (необов'язково)</label>
+    <label class="field__label" for="ad-label-{{ $aid }}">Заголовок — виводиться жирним (напр. ГОЛОВНИЙ ОФІС)</label>
     <input type="text" id="ad-label-{{ $aid }}" name="label" class="field__input"
-           value="{{ old('label', $a?->label) }}" placeholder="Офіс, Склад, …">
+           value="{{ old('label', $a?->label) }}" placeholder="ГОЛОВНИЙ ОФІС, СКЛАД, ФІЛІЯ…">
 </div>
 
 <div class="field">
     <label class="field__label" for="ad-iso-{{ $aid }}">Країна</label>
-    <select id="ad-iso-{{ $aid }}" name="country_iso" class="field__input" required>
+    <select id="ad-iso-{{ $aid }}" name="country_iso" class="field__input">
         <option value="">—</option>
         @foreach($countries as $c)
             <option value="{{ $c->iso }}" {{ old('country_iso', $a?->country_iso ?? ($defaultIso ?? null)) === $c->iso ? 'selected' : '' }}>
@@ -20,10 +20,17 @@
     </select>
 </div>
 
-<div class="field">
-    <label class="field__label" for="ad-city-{{ $aid }}">Місто</label>
-    <input type="text" id="ad-city-{{ $aid }}" name="city" class="field__input" required
-           value="{{ old('city', $a?->city) }}">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="field">
+        <label class="field__label" for="ad-city-{{ $aid }}">Місто / Населений пункт *</label>
+        <input type="text" id="ad-city-{{ $aid }}" name="city" class="field__input" required
+               value="{{ old('city', $a?->city) }}" placeholder="Київ">
+    </div>
+    <div class="field">
+        <label class="field__label" for="ad-region-{{ $aid }}">Область / Район</label>
+        <input type="text" id="ad-region-{{ $aid }}" name="region" class="field__input"
+               value="{{ old('region', $a?->region) }}" placeholder="Київська обл.">
+    </div>
 </div>
 
 <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;">

@@ -49,15 +49,31 @@
     $geoRules = (array) ($site->geo_rules ?? []);
 
     // Per-item visitor geo visibility helper.
-    // Returns true if item with given geo_mode/geo_countries is visible to $visitorIso.
-    $geoVis = function ($geoMode, $geoCountries, $visitorIso): bool {
+    // Priority: item geo_mode first, then site geo_rules for item's data-tab (country_iso).
+    // 'all' = visible to all (unless blocked by geo_rules).
+    // 'include' = only listed visitors; 'exclude' = all except listed.
+    $geoVis = function ($geoMode, $geoCountries, $visitorIso, $itemCountryIso = null) use ($geoRules): bool {
         $mode   = $geoMode ?? 'all';
         $ctries = (array) ($geoCountries ?? []);
-        return match($mode) {
+        $itemOk = match($mode) {
             'include' => in_array($visitorIso, $ctries),
             'exclude' => !in_array($visitorIso, $ctries),
             default   => true,
         };
+        if (!$itemOk) return false;
+        // Site-level geo_rules: which visitors can see the data tab this item belongs to.
+        if ($itemCountryIso && isset($geoRules[$itemCountryIso])) {
+            $rule    = (array) $geoRules[$itemCountryIso];
+            $rMode   = $rule['mode'] ?? 'all';
+            $rCtries = (array) ($rule['countries'] ?? []);
+            $tabOk   = match($rMode) {
+                'include' => in_array($visitorIso, $rCtries),
+                'exclude' => !in_array($visitorIso, $rCtries),
+                default   => true,
+            };
+            if (!$tabOk) return false;
+        }
+        return true;
     };
 
     // ISO options available for rule editor chips (active geos of this site).
@@ -255,14 +271,20 @@
                 {{-- Per-ISO panel: visitor preview (LEFT) + matrix (RIGHT) --}}
                 @foreach($allVisitorIsos as $visIso)
                     @php
-                        $vPhones  = $site->phones->filter(fn($p)  => ($p->is_visible ?? true) && $geoVis($p->geo_mode, $p->geo_countries, $visIso));
-                        $vPrices  = $site->prices->filter(fn($p)  => ($p->is_visible ?? true) && $geoVis($p->geo_mode, $p->geo_countries, $visIso));
-                        $vAddrs   = $site->addresses->filter(fn($a) => ($a->is_visible ?? true) && $geoVis($a->geo_mode, $a->geo_countries, $visIso));
-                        $vSocials = $site->socials->filter(fn($s)  => ($s->is_visible ?? true) && $geoVis($s->geo_mode, $s->geo_countries, $visIso));
+                        $vPhones  = $site->phones->filter(fn($p)  => ($p->is_visible ?? true) && $geoVis($p->geo_mode, $p->geo_countries, $visIso, $p->country_iso));
+                        $vPrices  = $site->prices->filter(fn($p)  => ($p->is_visible ?? true) && $geoVis($p->geo_mode, $p->geo_countries, $visIso, $p->country_iso));
+                        $vAddrs   = $site->addresses->filter(fn($a) => ($a->is_visible ?? true) && $geoVis($a->geo_mode, $a->geo_countries, $visIso, $a->country_iso));
+                        $vSocials = $site->socials->filter(fn($s)  => ($s->is_visible ?? true) && $geoVis($s->geo_mode, $s->geo_countries, $visIso, $s->country_iso));
                         $totalVis = $vPhones->count() + $vPrices->count() + $vAddrs->count() + $vSocials->count();
                         $totalAll = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count();
                     @endphp
                     <div id="vis-panel-{{ $visIso }}" style="{{ $loop->first ? '' : 'display:none;' }}">
+                        @if(!$loop->first)
+                        <div class="vis-preview-bar" id="vis-bar-{{ $visIso }}">
+                            <span>Перегляд: відвідувач <strong>{{ $visIso }}</strong>{{ isset($allIsoCountries[$visIso]) ? ' — '.$allIsoCountries[$visIso] : '' }}</span>
+                            <button class="vis-preview-bar__exit" onclick="showVisitorPanel('{{ $allVisitorIsos->first() }}')">✕ Вийти</button>
+                        </div>
+                        @endif
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
 
                             {{-- LEFT: Що бачить відвідувач --}}
@@ -284,7 +306,7 @@
                                              style="background:var(--panel-2);border-radius:var(--radius-item);padding:8px 10px;margin-bottom:5px;cursor:pointer;transition:background .1s;"
                                              onmouseover="this.style.background='var(--panel-hover,var(--border-2))'"
                                              onmouseout="this.style.background='var(--panel-2)'">
-                                            <div style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text);">{{ ($p->dial_code ? '+'.$p->dial_code.' ' : '') . $p->number }}</div>
+                                            <div style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text);">{{ $p->number }}</div>
                                             @if($p->label)<div style="font-size:11px;color:var(--text-3);margin-top:1px;">{{ $p->label }}</div>@endif
                                         </div>
                                     @endforeach
@@ -369,7 +391,7 @@
                                                 @foreach($allVisitorIsos as $matIso)
                                                     @php
                                                         $catTotal = $catItems->count();
-                                                        $catVis   = $catItems->filter(fn($i) => ($i->is_visible ?? true) && $geoVis($i->geo_mode, $i->geo_countries, $matIso))->count();
+                                                        $catVis   = $catItems->filter(fn($i) => ($i->is_visible ?? true) && $geoVis($i->geo_mode, $i->geo_countries, $matIso, $i->country_iso))->count();
                                                         $matColor = $catVis === $catTotal ? '#34d399' : ($catVis > 0 ? 'var(--warning)' : '#f87171');
                                                     @endphp
                                                     <td style="text-align:center;padding:7px 8px;background:{{ $matIso === $visIso ? 'var(--accent-2)' : 'transparent' }};">
@@ -854,7 +876,15 @@
                             <span class="dt-item-icon" style="color:{{ $sic['c'] }}">{!! $sic['svg'] !!}</span>
                             <div class="dt-item-main">
                                 <div class="dt-item-name">{{ $s->handle }}</div>
-                                <div class="dt-item-sub">{{ ucfirst($s->platform) }}</div>
+                                <div class="dt-item-sub">
+                                    {{ ucfirst($s->platform) }}
+                                    @if($s->phone_id && ($linkedPh = $site->phones->find($s->phone_id)))
+                                        <span class="dt-link-badge">
+                                            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 10a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.59a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.72 16z"/></svg>
+                                            {{ $linkedPh->number }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                             <div class="dt-vis">
                                 @if(count($usedIso)===0 || ($s->geo_mode??'all')==='all')
@@ -1034,8 +1064,12 @@
                         <div class="dt-item-row" onclick="dtExpandItem('addr-{{ $a->id }}')">
                             <span class="dt-item-icon">{!! $dtIcons['addresses'] !!}</span>
                             <div class="dt-item-main">
-                                <div class="dt-item-name">{{ $a->city }}{{ $a->street ? ', '.$a->street.($a->building ? ' '.$a->building : '') : '' }}</div>
-                                <div class="dt-item-sub">{{ $a->country_iso }}{{ $a->postal_code ? ' · '.$a->postal_code : '' }}</div>
+                                <div class="dt-item-name">
+                                    @if($a->label)<strong>{{ $a->label }}</strong> · @endif{{ $a->city }}
+                                </div>
+                                <div class="dt-item-sub">
+                                    {{ $a->country_iso }}{{ $a->region ? ' · '.$a->region : '' }}{{ $a->street ? ' · '.$a->street.($a->building ? ' '.$a->building : '') : '' }}{{ $a->postal_code ? ' · '.$a->postal_code : '' }}
+                                </div>
                             </div>
                             <div class="dt-vis">
                                 @if(count($usedIso)===0 || ($a->geo_mode??'all')==='all')
