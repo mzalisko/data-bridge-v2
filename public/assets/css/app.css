@@ -715,13 +715,19 @@ img, svg { display: block; max-width: 100%; }
   background: var(--panel-2); color: var(--text-2);
 }
 .dt-geo-chip.is-on { background: var(--accent-2); color: var(--accent-text); border-color: var(--accent-2); }
+.dt-geo-chips { flex-basis: 100%; margin-top: 4px; display: none; grid-template-columns: repeat(3, auto); gap: 4px; padding-left: 2px; }
 
 /* Item rows */
 .dt-items { flex: 1; overflow-y: auto; max-height: 320px; }
 .dt-item { border-bottom: 1px solid var(--border-2); transition: opacity .15s; }
 .dt-item:last-child { border-bottom: 0; }
-.dt-items.has-edit .dt-item:not(.is-editing) { opacity: .3; pointer-events: none; }
-.dt-item.is-editing { background: var(--panel-2); border-radius: var(--radius-item); border-bottom: 0; }
+.dt-items.has-edit .dt-item:not(.is-editing) { opacity: .25; pointer-events: none; }
+.dt-item.is-editing {
+  background: var(--accent-2);
+  border-radius: var(--radius-item);
+  border-bottom: 0;
+  box-shadow: inset 3px 0 0 var(--accent), var(--shadow-sm);
+}
 .dt-item-row {
   display: flex; align-items: center; gap: 8px;
   padding: 8px 14px; min-height: 40px;

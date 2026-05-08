@@ -488,7 +488,7 @@
                                            onchange="dtGeoMode('add-ph','{{ $mv }}')">{{ $ml }}
                                 </label>
                             @endforeach
-                            <span id="dtchips-add-ph" style="display:none;grid-template-columns:repeat(3,auto);gap:4px;">
+                            <span id="dtchips-add-ph" class="dt-geo-chips" style="display:none;">
                                 @foreach($usedIso as $iso)
                                     <label class="dt-geo-chip" id="dtchip-add-ph-{{ $iso }}">
                                         <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
@@ -582,7 +582,7 @@
                                         </label>
                                     @endforeach
                                     @if(count($usedIso))
-                                    <span id="dtchips-ph{{ $p->id }}" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};grid-template-columns:repeat(3,auto);gap:4px;">
+                                    <span id="dtchips-ph{{ $p->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};">
                                         @foreach($usedIso as $iso)
                                             <label class="dt-geo-chip {{ in_array($iso,(array)($p->geo_countries??[]))?'is-on':'' }}" id="dtchip-ph{{ $p->id }}-{{ $iso }}">
                                                 <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($p->geo_countries??[]))?'checked':'' }} style="display:none;"
@@ -653,7 +653,7 @@
                                            onchange="dtGeoMode('add-pr','{{ $mv }}')">{{ $ml }}
                                 </label>
                             @endforeach
-                            <span id="dtchips-add-pr" style="display:none;grid-template-columns:repeat(3,auto);gap:4px;">
+                            <span id="dtchips-add-pr" class="dt-geo-chips" style="display:none;">
                                 @foreach($usedIso as $iso)
                                     <label class="dt-geo-chip" id="dtchip-add-pr-{{ $iso }}">
                                         <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
@@ -750,7 +750,7 @@
                                         </label>
                                     @endforeach
                                     @if(count($usedIso))
-                                    <span id="dtchips-pr{{ $p->id }}" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};grid-template-columns:repeat(3,auto);gap:4px;">
+                                    <span id="dtchips-pr{{ $p->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};">
                                         @foreach($usedIso as $iso)
                                             <label class="dt-geo-chip {{ in_array($iso,(array)($p->geo_countries??[]))?'is-on':'' }}" id="dtchip-pr{{ $p->id }}-{{ $iso }}">
                                                 <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($p->geo_countries??[]))?'checked':'' }} style="display:none;"
@@ -827,7 +827,7 @@
                                            onchange="dtGeoMode('add-so','{{ $mv }}')">{{ $ml }}
                                 </label>
                             @endforeach
-                            <span id="dtchips-add-so" style="display:none;grid-template-columns:repeat(3,auto);gap:4px;">
+                            <span id="dtchips-add-so" class="dt-geo-chips" style="display:none;">
                                 @foreach($usedIso as $iso)
                                     <label class="dt-geo-chip" id="dtchip-add-so-{{ $iso }}">
                                         <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
@@ -939,7 +939,7 @@
                                         </label>
                                     @endforeach
                                     @if(count($usedIso))
-                                    <span id="dtchips-so{{ $s->id }}" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};grid-template-columns:repeat(3,auto);gap:4px;">
+                                    <span id="dtchips-so{{ $s->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};">
                                         @foreach($usedIso as $iso)
                                             <label class="dt-geo-chip {{ in_array($iso,(array)($s->geo_countries??[]))?'is-on':'' }}" id="dtchip-so{{ $s->id }}-{{ $iso }}">
                                                 <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($s->geo_countries??[]))?'checked':'' }} style="display:none;"
@@ -1012,7 +1012,7 @@
                                            onchange="dtGeoMode('add-ad','{{ $mv }}')">{{ $ml }}
                                 </label>
                             @endforeach
-                            <span id="dtchips-add-ad" style="display:none;grid-template-columns:repeat(3,auto);gap:4px;">
+                            <span id="dtchips-add-ad" class="dt-geo-chips" style="display:none;">
                                 @foreach($usedIso as $iso)
                                     <label class="dt-geo-chip" id="dtchip-add-ad-{{ $iso }}">
                                         <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
@@ -1116,7 +1116,7 @@
                                         </label>
                                     @endforeach
                                     @if(count($usedIso))
-                                    <span id="dtchips-ad{{ $a->id }}" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};grid-template-columns:repeat(3,auto);gap:4px;">
+                                    <span id="dtchips-ad{{ $a->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};">
                                         @foreach($usedIso as $iso)
                                             <label class="dt-geo-chip {{ in_array($iso,(array)($a->geo_countries??[]))?'is-on':'' }}" id="dtchip-ad{{ $a->id }}-{{ $iso }}">
                                                 <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($a->geo_countries??[]))?'checked':'' }} style="display:none;"
