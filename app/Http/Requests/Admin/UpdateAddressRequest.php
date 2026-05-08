@@ -10,7 +10,7 @@ class UpdateAddressRequest extends FormRequest
     {
         return [
             'label'       => ['nullable', 'string', 'max:100'],
-            'country_iso' => ['required', 'string', 'size:2'],
+            'country_iso' => ['nullable', 'string', 'size:2'],
             'city'        => ['required', 'string', 'max:255'],
             'street'      => ['nullable', 'string', 'max:255'],
             'building'    => ['nullable', 'string', 'max:50'],
