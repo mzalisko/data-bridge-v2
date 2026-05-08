@@ -718,8 +718,10 @@ img, svg { display: block; max-width: 100%; }
 
 /* Item rows */
 .dt-items { flex: 1; overflow-y: auto; max-height: 320px; }
-.dt-item { border-bottom: 1px solid var(--border-2); }
+.dt-item { border-bottom: 1px solid var(--border-2); transition: opacity .15s; }
 .dt-item:last-child { border-bottom: 0; }
+.dt-items.has-edit .dt-item:not(.is-editing) { opacity: .3; pointer-events: none; }
+.dt-item.is-editing { background: var(--panel-2); border-radius: var(--radius-item); border-bottom: 0; }
 .dt-item-row {
   display: flex; align-items: center; gap: 8px;
   padding: 8px 14px; min-height: 40px;

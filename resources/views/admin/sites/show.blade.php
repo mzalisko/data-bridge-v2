@@ -488,7 +488,7 @@
                                            onchange="dtGeoMode('add-ph','{{ $mv }}')">{{ $ml }}
                                 </label>
                             @endforeach
-                            <span id="dtchips-add-ph" style="display:none;gap:3px;">
+                            <span id="dtchips-add-ph" style="display:none;grid-template-columns:repeat(3,auto);gap:4px;">
                                 @foreach($usedIso as $iso)
                                     <label class="dt-geo-chip" id="dtchip-add-ph-{{ $iso }}">
                                         <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
@@ -511,7 +511,7 @@
                             <span class="dt-item-icon">{!! $dtIcons['phones'] !!}</span>
                             <div class="dt-item-main">
                                 <div class="dt-item-name" style="font-family:var(--font-mono);">
-                                    {{ ($p->dial_code ? '+'.$p->dial_code.' ' : '') . $p->number }}
+                                    {{ $p->number }}
                                 </div>
                                 @if($p->label || $p->is_primary)
                                     <div class="dt-item-sub">{{ $p->label }}{{ $p->is_primary ? ($p->label ? ' · ' : '').'основний' : '' }}</div>
@@ -527,9 +527,12 @@
                                         <span class="dt-vis-badge dt-vis-badge--no">—</span>
                                     @endforelse
                                 @else
-                                    @php $visIsos=array_values(array_filter($usedIso,fn($i)=>!in_array($i,(array)($p->geo_countries??[])))); @endphp
-                                    @foreach($visIsos as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@endforeach
-                                    @if(!count($visIsos))<span class="dt-vis-badge dt-vis-badge--no">—</span>@endif
+                                    <span class="dt-vis-badge" style="font-size:9px;opacity:.6;letter-spacing:.02em;">Крім</span>
+                                    @forelse((array)($p->geo_countries??[]) as $iso)
+                                        <span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>
+                                    @empty
+                                        <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                                    @endforelse
                                 @endif
                             </div>
                             <div class="dt-item-actions" onclick="event.stopPropagation()">
@@ -549,7 +552,7 @@
                                         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
                                     </button>
                                 </form>
-                                <button class="icon-btn" id="dt-expand-phone-{{ $p->id }}" title="Редагувати">
+                                <button class="icon-btn" id="dt-expand-phone-{{ $p->id }}" title="Редагувати" onclick="dtExpandItem('phone-{{ $p->id }}')">
                                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg>
                                 </button>
                             </div>
@@ -579,7 +582,7 @@
                                         </label>
                                     @endforeach
                                     @if(count($usedIso))
-                                    <span id="dtchips-ph{{ $p->id }}" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};gap:3px;">
+                                    <span id="dtchips-ph{{ $p->id }}" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};grid-template-columns:repeat(3,auto);gap:4px;">
                                         @foreach($usedIso as $iso)
                                             <label class="dt-geo-chip {{ in_array($iso,(array)($p->geo_countries??[]))?'is-on':'' }}" id="dtchip-ph{{ $p->id }}-{{ $iso }}">
                                                 <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($p->geo_countries??[]))?'checked':'' }} style="display:none;"
@@ -650,7 +653,7 @@
                                            onchange="dtGeoMode('add-pr','{{ $mv }}')">{{ $ml }}
                                 </label>
                             @endforeach
-                            <span id="dtchips-add-pr" style="display:none;gap:3px;">
+                            <span id="dtchips-add-pr" style="display:none;grid-template-columns:repeat(3,auto);gap:4px;">
                                 @foreach($usedIso as $iso)
                                     <label class="dt-geo-chip" id="dtchip-add-pr-{{ $iso }}">
                                         <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
@@ -685,9 +688,12 @@
                                         <span class="dt-vis-badge dt-vis-badge--no">—</span>
                                     @endforelse
                                 @else
-                                    @php $visIsos=array_values(array_filter($usedIso,fn($i)=>!in_array($i,(array)($p->geo_countries??[])))); @endphp
-                                    @foreach($visIsos as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@endforeach
-                                    @if(!count($visIsos))<span class="dt-vis-badge dt-vis-badge--no">—</span>@endif
+                                    <span class="dt-vis-badge" style="font-size:9px;opacity:.6;letter-spacing:.02em;">Крім</span>
+                                    @forelse((array)($p->geo_countries??[]) as $iso)
+                                        <span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>
+                                    @empty
+                                        <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                                    @endforelse
                                 @endif
                             </div>
                             <div class="dt-item-actions" onclick="event.stopPropagation()">
@@ -707,7 +713,7 @@
                                         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
                                     </button>
                                 </form>
-                                <button class="icon-btn" id="dt-expand-price-{{ $p->id }}" title="Редагувати">
+                                <button class="icon-btn" id="dt-expand-price-{{ $p->id }}" title="Редагувати" onclick="dtExpandItem('price-{{ $p->id }}')">
                                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg>
                                 </button>
                             </div>
@@ -744,7 +750,7 @@
                                         </label>
                                     @endforeach
                                     @if(count($usedIso))
-                                    <span id="dtchips-pr{{ $p->id }}" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};gap:3px;">
+                                    <span id="dtchips-pr{{ $p->id }}" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};grid-template-columns:repeat(3,auto);gap:4px;">
                                         @foreach($usedIso as $iso)
                                             <label class="dt-geo-chip {{ in_array($iso,(array)($p->geo_countries??[]))?'is-on':'' }}" id="dtchip-pr{{ $p->id }}-{{ $iso }}">
                                                 <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($p->geo_countries??[]))?'checked':'' }} style="display:none;"
@@ -821,7 +827,7 @@
                                            onchange="dtGeoMode('add-so','{{ $mv }}')">{{ $ml }}
                                 </label>
                             @endforeach
-                            <span id="dtchips-add-so" style="display:none;gap:3px;">
+                            <span id="dtchips-add-so" style="display:none;grid-template-columns:repeat(3,auto);gap:4px;">
                                 @foreach($usedIso as $iso)
                                     <label class="dt-geo-chip" id="dtchip-add-so-{{ $iso }}">
                                         <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
@@ -860,9 +866,12 @@
                                         <span class="dt-vis-badge dt-vis-badge--no">—</span>
                                     @endforelse
                                 @else
-                                    @php $visIsos=array_values(array_filter($usedIso,fn($i)=>!in_array($i,(array)($s->geo_countries??[])))); @endphp
-                                    @foreach($visIsos as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@endforeach
-                                    @if(!count($visIsos))<span class="dt-vis-badge dt-vis-badge--no">—</span>@endif
+                                    <span class="dt-vis-badge" style="font-size:9px;opacity:.6;letter-spacing:.02em;">Крім</span>
+                                    @forelse((array)($s->geo_countries??[]) as $iso)
+                                        <span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>
+                                    @empty
+                                        <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                                    @endforelse
                                 @endif
                             </div>
                             <div class="dt-item-actions" onclick="event.stopPropagation()">
@@ -882,7 +891,7 @@
                                         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
                                     </button>
                                 </form>
-                                <button class="icon-btn" id="dt-expand-social-{{ $s->id }}" title="Редагувати">
+                                <button class="icon-btn" id="dt-expand-social-{{ $s->id }}" title="Редагувати" onclick="dtExpandItem('social-{{ $s->id }}')">
                                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg>
                                 </button>
                             </div>
@@ -930,7 +939,7 @@
                                         </label>
                                     @endforeach
                                     @if(count($usedIso))
-                                    <span id="dtchips-so{{ $s->id }}" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};gap:3px;">
+                                    <span id="dtchips-so{{ $s->id }}" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};grid-template-columns:repeat(3,auto);gap:4px;">
                                         @foreach($usedIso as $iso)
                                             <label class="dt-geo-chip {{ in_array($iso,(array)($s->geo_countries??[]))?'is-on':'' }}" id="dtchip-so{{ $s->id }}-{{ $iso }}">
                                                 <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($s->geo_countries??[]))?'checked':'' }} style="display:none;"
@@ -1003,7 +1012,7 @@
                                            onchange="dtGeoMode('add-ad','{{ $mv }}')">{{ $ml }}
                                 </label>
                             @endforeach
-                            <span id="dtchips-add-ad" style="display:none;gap:3px;">
+                            <span id="dtchips-add-ad" style="display:none;grid-template-columns:repeat(3,auto);gap:4px;">
                                 @foreach($usedIso as $iso)
                                     <label class="dt-geo-chip" id="dtchip-add-ad-{{ $iso }}">
                                         <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
@@ -1038,9 +1047,12 @@
                                         <span class="dt-vis-badge dt-vis-badge--no">—</span>
                                     @endforelse
                                 @else
-                                    @php $visIsos=array_values(array_filter($usedIso,fn($i)=>!in_array($i,(array)($a->geo_countries??[])))); @endphp
-                                    @foreach($visIsos as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@endforeach
-                                    @if(!count($visIsos))<span class="dt-vis-badge dt-vis-badge--no">—</span>@endif
+                                    <span class="dt-vis-badge" style="font-size:9px;opacity:.6;letter-spacing:.02em;">Крім</span>
+                                    @forelse((array)($a->geo_countries??[]) as $iso)
+                                        <span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>
+                                    @empty
+                                        <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                                    @endforelse
                                 @endif
                             </div>
                             <div class="dt-item-actions" onclick="event.stopPropagation()">
@@ -1060,7 +1072,7 @@
                                         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
                                     </button>
                                 </form>
-                                <button class="icon-btn" id="dt-expand-addr-{{ $a->id }}" title="Редагувати">
+                                <button class="icon-btn" id="dt-expand-addr-{{ $a->id }}" title="Редагувати" onclick="dtExpandItem('addr-{{ $a->id }}')">
                                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg>
                                 </button>
                             </div>
@@ -1104,7 +1116,7 @@
                                         </label>
                                     @endforeach
                                     @if(count($usedIso))
-                                    <span id="dtchips-ad{{ $a->id }}" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};gap:3px;">
+                                    <span id="dtchips-ad{{ $a->id }}" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};grid-template-columns:repeat(3,auto);gap:4px;">
                                         @foreach($usedIso as $iso)
                                             <label class="dt-geo-chip {{ in_array($iso,(array)($a->geo_countries??[]))?'is-on':'' }}" id="dtchip-ad{{ $a->id }}-{{ $iso }}">
                                                 <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($a->geo_countries??[]))?'checked':'' }} style="display:none;"
@@ -1635,6 +1647,20 @@ function dtExpandItem(id) {
     var open = panel.style.display !== 'none';
     panel.style.display = open ? 'none' : '';
     if (chevron) chevron.style.transform = open ? '' : 'rotate(90deg)';
+
+    var item  = panel.closest ? panel.closest('.dt-item') : null;
+    var items = panel.closest ? panel.closest('.dt-items') : null;
+    if (item && items) {
+        if (!open) {
+            item.classList.add('is-editing');
+            items.classList.add('has-edit');
+        } else {
+            item.classList.remove('is-editing');
+            if (!items.querySelector('.dt-item.is-editing')) {
+                items.classList.remove('has-edit');
+            }
+        }
+    }
 }
 
 function dtGeoMode(prefix, mode) {
@@ -1647,7 +1673,7 @@ function dtGeoMode(prefix, mode) {
         if (radio) radio.checked = on;
     });
     var chips = document.getElementById('dtchips-' + prefix);
-    if (chips) chips.style.display = (mode === 'include' || mode === 'exclude') ? 'flex' : 'none';
+    if (chips) chips.style.display = (mode === 'include' || mode === 'exclude') ? 'grid' : 'none';
 }
 
 function dtGeoChip(prefix, iso, el) {
