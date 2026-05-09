@@ -2168,8 +2168,8 @@ function actToggle(row) {
                 banner.style.display = 'none';
             } else {
                 var names = others.map(function(o) { return o.name; }).join(', ');
-                bannerText.textContent = names + (others.length === 1 ? ' зараз тут' : ' зараз тут') + ' — редагування може конфліктувати';
-                banner.style.removeProperty('display');
+                bannerText.textContent = names + ' зараз тут — редагування може конфліктувати';
+                banner.style.display = 'flex';
             }
         })
         .catch(function() {});

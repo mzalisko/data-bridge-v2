@@ -33,7 +33,7 @@
     // Online users: active in last 5 minutes via cache (one read per page load)
     $onlineData    = \Illuminate\Support\Facades\Cache::get('crm_online', []);
     $fiveMinAgo    = now()->subMinutes(5)->timestamp;
-    $onlineUserIds = array_keys(array_filter($onlineData, fn($ts) => $ts >= $fiveMinAgo));
+    $onlineUserIds = array_map('intval', array_keys(array_filter($onlineData, fn($ts) => $ts >= $fiveMinAgo)));
 @endphp
 
 <div class="shell">
@@ -115,7 +115,7 @@
                         <a href="{{ route('users.index') }}" title="{{ $titleText }}"
                            class="avatar sidebar-ws-avatar" style="width:24px;height:24px;font-size:9px;{{ auth()->id() === $member->id ? 'border:2px solid var(--accent);' : '' }}">{{ $initials }}</a>
                         @if($isOnline)
-                            <span style="position:absolute;bottom:0;right:0;width:7px;height:7px;background:var(--success);border:1.5px solid var(--bg-card);border-radius:50%;"></span>
+                            <span style="position:absolute;bottom:-1px;right:-1px;width:8px;height:8px;background:var(--success);border:2px solid var(--panel);border-radius:50%;display:block;"></span>
                         @endif
                     </span>
                 @endforeach
