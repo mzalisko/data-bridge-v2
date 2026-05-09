@@ -62,6 +62,9 @@
    RESET / BASE
    ============================================================ */
 *, *::before, *::after { box-sizing: border-box; }
+html {
+  scrollbar-gutter: stable; /* prevent layout shift when scrollbar appears/disappears */
+}
 html, body {
   margin: 0; padding: 0;
   font-family: var(--font-sans); font-size: 14px;
@@ -745,6 +748,11 @@ img, svg { display: block; max-width: 100%; }
   border-bottom: 0;
   box-shadow: inset 3px 0 0 var(--accent), var(--shadow-sm);
 }
+@keyframes dt-item-flash {
+  0%, 30% { outline: 2.5px solid var(--accent); outline-offset: 1px; background: var(--accent-2); }
+  100%     { outline: 2.5px solid transparent; outline-offset: 1px; }
+}
+.dt-item.hash-opened { animation: dt-item-flash 1.8s ease-out forwards; }
 .dt-item-row {
   display: flex; align-items: center; gap: 8px;
   padding: 8px 14px; min-height: 40px;

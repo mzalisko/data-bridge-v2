@@ -1933,16 +1933,23 @@ function dtGeoChip(prefix, iso, el) {
 // ── Auto-open dt-edit panel from URL hash (e.g. #dt-edit-phone-123) ─────
 window.addEventListener('DOMContentLoaded', function() {
     var hash = window.location.hash;
-    if (hash && hash.indexOf('dt-edit-') !== -1) {
-        var id = hash.replace('#dt-edit-', '');
-        var panel = document.getElementById('dt-edit-' + id);
-        if (panel) {
-            panel.style.display = '';
-            var chevron = document.querySelector('#dt-expand-' + id + ' svg');
-            if (chevron) chevron.style.transform = 'rotate(90deg)';
-            setTimeout(function() { panel.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 80);
-        }
+    if (!hash || hash.indexOf('dt-edit-') === -1) return;
+    var id = hash.replace('#dt-edit-', '');
+    var panel = document.getElementById('dt-edit-' + id);
+    if (!panel) return;
+    // Open via dtExpandItem so dimming + chevron are handled correctly
+    dtExpandItem(id);
+    // Flash highlight so user sees where they landed
+    var item = panel.closest ? panel.closest('.dt-item') : null;
+    if (item) {
+        item.classList.add('hash-opened');
+        setTimeout(function() { item.classList.remove('hash-opened'); }, 2000);
     }
+    setTimeout(function() {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 80);
+    // Clean hash without reloading
+    history.replaceState(null, '', window.location.pathname + window.location.search);
 });
 
 // ── Visitor preview tab switcher (Overview tab) ────────────────
