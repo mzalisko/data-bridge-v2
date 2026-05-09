@@ -1,12 +1,12 @@
 <div class="form-group">
     <label class="form-label" for="group_id">Група *</label>
     @php $selGroupId = old('group_id', $site?->group_id); @endphp
-    <div class="cselect" id="cs-form-group" style="width:100%;">
-        <button type="button" class="cselect__trigger" onclick="csToggle('cs-form-group')" style="width:100%;">
+    <div class="cselect cselect--form" id="cs-form-group">
+        <button type="button" class="cselect__trigger" onclick="csToggle('cs-form-group')">
             <span class="cselect__label">{{ $groups->firstWhere('id', $selGroupId)?->name ?? '— Оберіть групу —' }}</span>
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="cselect__menu" style="min-width:100%;">
+        <div class="cselect__menu">
             @foreach($groups as $group)
                 <div class="cselect__option {{ (string)$selGroupId === (string)$group->id ? 'is-active' : '' }}"
                      onclick="csFormSelect('cs-form-group','{{ $group->id }}','{{ addslashes($group->name) }}')">{{ $group->name }}</div>

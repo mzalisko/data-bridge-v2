@@ -410,9 +410,9 @@ img, svg { display: block; max-width: 100%; }
 .act-row__verb { color: var(--text-2); }
 .act-row__verb--create { color: var(--dot-ok); }
 .act-row__verb--delete { color: var(--dot-off); font-weight: 700; }
-.act-row--delete { border-left: 3px solid var(--dot-off); background: rgba(245,101,101,.04); }
-.act-row--delete:hover { background: rgba(245,101,101,.07); }
-[data-theme="dark"] .act-row--delete { background: rgba(245,101,101,.06); }
+.act-row--delete { border-left: 3px solid var(--dot-off); background: rgba(245,101,101,.09); }
+.act-row--delete:hover { background: rgba(245,101,101,.14); }
+[data-theme="dark"] .act-row--delete { background: rgba(245,101,101,.12); }
 .act-row__summary { color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
 .act-row__meta-inline { color: var(--text-3); font-size: 11px; }
 .act-row__error { color: var(--dot-off); font-size: 11px; }
@@ -467,6 +467,15 @@ img, svg { display: block; max-width: 100%; }
 .cselect__option:hover { background: var(--panel-2); color: var(--text); }
 .cselect__option.is-active { color: var(--accent); font-weight: 600; background: var(--accent-2); }
 .cselect__divider { height: 1px; background: var(--border-2); margin: 4px 0; }
+/* Form variant — looks like a form-input (used inside drawers/forms) */
+.cselect--form { display: block; width: 100%; }
+.cselect--form .cselect__trigger {
+  width: 100%; padding: 8px 12px; font-size: 14px;
+  background: var(--panel-2); border-radius: var(--radius-sm);
+}
+.cselect--form .cselect__trigger:hover,
+.cselect--form.is-open .cselect__trigger { background: var(--panel-2); border-color: var(--accent); }
+.cselect--form .cselect__menu { font-size: 14px; }
 
 /* ============================================================
    ACTIVITY DIFF

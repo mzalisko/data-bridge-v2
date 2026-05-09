@@ -18,7 +18,7 @@
     $geoModes   = ['all'=>'Всім','include'=>'Тільки для','exclude'=>'Всім крім'];
     $tv         = fn($v) => is_array($v)
         ? implode(', ', array_map(fn($x) => $geoModes[$x] ?? $x, $v))
-        : ($v === null ? '—' : ($geoModes[(string)$v] ?? (string)$v));
+        : (is_bool($v) ? ($v ? 'Так' : 'Ні') : ($v === null ? '—' : ($geoModes[(string)$v] ?? (string)$v)));
 @endphp
 
 <div class="page-stack">

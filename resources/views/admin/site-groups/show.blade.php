@@ -144,7 +144,7 @@
                         $geoModes2    = ['all'=>'Всім','include'=>'Тільки для','exclude'=>'Всім крім'];
                         $tv2          = fn($v) => is_array($v)
                             ? implode(', ', array_map(fn($x) => $geoModes2[$x] ?? $x, $v))
-                            : ($v === null ? '—' : ($geoModes2[(string)$v] ?? (string)$v));
+                            : (is_bool($v) ? ($v ? 'Так' : 'Ні') : ($v === null ? '—' : ($geoModes2[(string)$v] ?? (string)$v)));
                     @endphp
                     <div class="act-diff__grid">
                         <div class="act-diff__hdr">Параметр</div><div class="act-diff__hdr">Було</div><div class="act-diff__hdr">Стало</div>

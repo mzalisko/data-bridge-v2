@@ -1516,7 +1516,7 @@
             $geoModes    = ['all'=>'Всім','include'=>'Тільки для','exclude'=>'Всім крім'];
             $tv          = fn($v) => is_array($v)
                 ? implode(', ', array_map(fn($x) => $geoModes[$x] ?? $x, $v))
-                : ($v === null ? '—' : ($geoModes[(string)$v] ?? (string)$v));
+                : (is_bool($v) ? ($v ? 'Так' : 'Ні') : ($v === null ? '—' : ($geoModes[(string)$v] ?? (string)$v)));
 
             // Merge CRM logs + sync logs into one sorted timeline
             $timeline = collect();
@@ -1577,7 +1577,7 @@
                             @foreach($it->snapshot['before'] as $field => $value)
                                 @if(!in_array($field, $skipFields) && $value !== null && $value !== '' && $value !== [])
                                 <div class="act-diff__key">{{ $fieldLabels[$field] ?? $field }}</div>
-                                <div class="act-diff__old" style="color:var(--text-2);">{{ is_array($value) ? implode(', ', $value) : $value }}</div>
+                                <div class="act-diff__old" style="color:var(--text-2);">{{ $tv($value) }}</div>
                                 @endif
                             @endforeach
                         </div>
@@ -1588,7 +1588,7 @@
                             @foreach($it->snapshot['after'] as $field => $value)
                                 @if(!in_array($field, $skipFields) && $value !== null && $value !== '' && $value !== [])
                                 <div class="act-diff__key">{{ $fieldLabels[$field] ?? $field }}</div>
-                                <div class="act-diff__new">{{ is_array($value) ? implode(', ', $value) : $value }}</div>
+                                <div class="act-diff__new">{{ $tv($value) }}</div>
                                 @endif
                             @endforeach
                         </div>
