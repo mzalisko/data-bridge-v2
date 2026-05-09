@@ -147,6 +147,18 @@
         </div>
     </div>
 
+    {{-- ========= PRESENCE BANNER ========= --}}
+    <div id="presence-banner" style="{{ count($presenceOthers) > 0 ? '' : 'display:none;' }}
+         background:var(--warning-bg);border:1px solid var(--warning);border-radius:var(--radius-item);
+         padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--warning);margin-bottom:4px;">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="presence-text">
+            @if(count($presenceOthers) > 0)
+                {{ collect($presenceOthers)->pluck('name')->join(', ') }} {{ count($presenceOthers) === 1 ? 'зараз тут' : 'зараз тут' }} — редагування може конфліктувати
+            @endif
+        </span>
+    </div>
+
     {{-- ========= 5 MINI STATS ========= --}}
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;">
         <div class="card" style="padding:14px 16px;">
@@ -1944,5 +1956,36 @@ function showVisitorPanel(iso) {
     var tab = document.getElementById('vis-tab-' + iso);
     if (tab) tab.className = tab.className.replace('btn--ghost', 'btn--primary');
 }
+
+// ── Site presence heartbeat ───────────────────────────────────────────────
+(function() {
+    var presenceUrl  = '{{ route("sites.presence", $site) }}';
+    var csrfToken    = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    var banner       = document.getElementById('presence-banner');
+    var bannerText   = document.getElementById('presence-text');
+
+    function ping() {
+        fetch(presenceUrl, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var others = data.others || [];
+            if (!banner) return;
+            if (others.length === 0) {
+                banner.style.display = 'none';
+            } else {
+                var names = others.map(function(o) { return o.name; }).join(', ');
+                bannerText.textContent = names + (others.length === 1 ? ' зараз тут' : ' зараз тут') + ' — редагування може конфліктувати';
+                banner.style.removeProperty('display');
+            }
+        })
+        .catch(function() {});
+    }
+
+    ping();
+    setInterval(ping, 60000);
+})();
 </script>
 @endpush

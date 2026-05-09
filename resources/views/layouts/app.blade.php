@@ -109,9 +109,6 @@
                 @if($teamMembers->count() > 5)
                     <span class="avatar" style="width:24px;height:24px;font-size:8px;background:var(--panel-2);color:var(--text-3);margin-left:-7px;">+{{ $teamMembers->count()-5 }}</span>
                 @endif
-                <a href="{{ route('users.index') }}" class="sidebar-ws-add" title="Команда">
-                    <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                </a>
             </div>
         </div>
 

@@ -8,8 +8,10 @@ use App\Http\Requests\Admin\UpdateSiteRequest;
 use App\Models\Country;
 use App\Models\Site;
 use App\Models\SiteGroup;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class SiteController extends Controller
@@ -67,7 +69,34 @@ class SiteController extends Controller
         $groups    = SiteGroup::orderBy('name')->get(['id', 'name', 'color']);
         $countries = Country::orderBy('sort_order')->orderBy('iso')->get(['iso', 'dial_code', 'name']);
 
-        return view('admin.sites.show', compact('site', 'groups', 'tab', 'countries'));
+        $presenceOthers = $this->getPresence($site->id);
+
+        return view('admin.sites.show', compact('site', 'groups', 'tab', 'countries', 'presenceOthers'));
+    }
+
+    public function presence(Request $request, Site $site): JsonResponse
+    {
+        $key    = "site_presence_{$site->id}";
+        $userId = auth()->id();
+        $now    = time();
+
+        $list = Cache::get($key, []);
+        // drop stale (>90s) and self
+        $list = array_values(array_filter($list, fn($p) => $p['id'] !== $userId && ($now - $p['at']) < 90));
+        // register self
+        $list[] = ['id' => $userId, 'name' => auth()->user()->name, 'at' => $now];
+        Cache::put($key, $list, 120);
+
+        $others = array_values(array_filter($list, fn($p) => $p['id'] !== $userId));
+        return response()->json(['others' => $others]);
+    }
+
+    private function getPresence(int $siteId): array
+    {
+        $key  = "site_presence_{$siteId}";
+        $now  = time();
+        $list = Cache::get($key, []);
+        return array_values(array_filter($list, fn($p) => $p['id'] !== auth()->id() && ($now - $p['at']) < 90));
     }
 
     public function store(StoreSiteRequest $request): RedirectResponse

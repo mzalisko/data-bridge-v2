@@ -67,6 +67,8 @@ Route::middleware('auth')->group(function () {
     Route::put(   'sites/{site}/socials/{social}',    [SiteSocialController::class,  'update'] )->name('socials.update');
     Route::delete('sites/{site}/socials/{social}',    [SiteSocialController::class,  'destroy'])->name('socials.destroy');
 
+    Route::post(  'sites/{site}/presence',           [SiteController::class,            'presence'])->name('sites.presence');
+
     Route::post(  'sites/{site}/fields',             [SiteCustomFieldController::class, 'store']  )->name('fields.store');
     Route::put(   'sites/{site}/fields/{field}',     [SiteCustomFieldController::class, 'update'] )->name('fields.update');
     Route::delete('sites/{site}/fields/{field}',     [SiteCustomFieldController::class, 'destroy'])->name('fields.destroy');
