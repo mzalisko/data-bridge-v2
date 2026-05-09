@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreSiteRequest;
 use App\Http\Requests\Admin\UpdateSiteRequest;
+use App\Models\ActivityLog;
 use App\Models\Country;
 use App\Models\Site;
 use App\Models\SiteGroup;
+use App\Models\SyncLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -64,14 +66,28 @@ class SiteController extends Controller
 
     public function show(Request $request, Site $site): View
     {
-        $tab = $request->get('tab', 'overview');
+        $tab = $request->query('tab', 'overview');
         $site->load(['siteGroup', 'apiKey', 'phones', 'prices', 'addresses', 'socials', 'customFields']);
         $groups    = SiteGroup::orderBy('name')->get(['id', 'name', 'color']);
         $countries = Country::orderBy('sort_order')->orderBy('iso')->get(['iso', 'dial_code', 'name']);
 
         $presenceOthers = $this->getPresence($site->id);
 
-        return view('admin.sites.show', compact('site', 'groups', 'tab', 'countries', 'presenceOthers'));
+        $activityLogs = ActivityLog::where('site_id', $site->id)
+            ->with('user:id,name')
+            ->orderByDesc('created_at')
+            ->limit(100)
+            ->get();
+
+        $siteSyncs = SyncLog::where('site_id', $site->id)
+            ->orderByDesc('synced_at')
+            ->limit(50)
+            ->get();
+
+        return view('admin.sites.show', compact(
+            'site', 'groups', 'tab', 'countries', 'presenceOthers',
+            'activityLogs', 'siteSyncs',
+        ));
     }
 
     public function presence(Request $request, Site $site): JsonResponse
@@ -97,6 +113,34 @@ class SiteController extends Controller
         $now  = time();
         $list = Cache::get($key, []);
         return array_values(array_filter($list, fn($p) => $p['id'] !== auth()->id() && ($now - $p['at']) < 90));
+    }
+
+    public function restoreActivity(Site $site, ActivityLog $log): RedirectResponse
+    {
+        if ($log->site_id !== $site->id || $log->action !== 'delete' || ! $log->snapshot) {
+            return back()->with('error', 'Відновлення неможливе');
+        }
+
+        $modelMap = [
+            'phone'   => \App\Models\SitePhone::class,
+            'price'   => \App\Models\SitePrice::class,
+            'address' => \App\Models\SiteAddress::class,
+            'social'  => \App\Models\SiteSocial::class,
+            'field'   => \App\Models\SiteCustomField::class,
+        ];
+
+        $modelClass = $modelMap[$log->entity_type] ?? null;
+        if (! $modelClass) {
+            return back()->with('error', 'Невідомий тип запису');
+        }
+
+        $data = collect($log->snapshot)
+            ->except(['id', 'created_at', 'updated_at'])
+            ->all();
+
+        $modelClass::create($data);
+
+        return back()->with('success', 'Запис відновлено');
     }
 
     public function store(StoreSiteRequest $request): RedirectResponse

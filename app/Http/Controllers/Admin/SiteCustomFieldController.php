@@ -6,6 +6,7 @@ use App\Http\Requests\Admin\StoreSiteCustomFieldRequest;
 use App\Http\Requests\Admin\UpdateSiteCustomFieldRequest;
 use App\Models\Site;
 use App\Models\SiteCustomField;
+use App\Services\ActivityService;
 use Illuminate\Http\RedirectResponse;
 
 class SiteCustomFieldController extends Controller
@@ -14,18 +15,21 @@ class SiteCustomFieldController extends Controller
     {
         $data = $request->validated();
         $data['field_type'] = $data['field_type'] ?? 'text';
-        $site->customFields()->create($data);
+        $field = $site->customFields()->create($data);
+        ActivityService::log('field', 'create', $field, "Поле «{$field->field_key}» додано", $site);
         return back()->with('success', 'Поле додано');
     }
 
     public function update(UpdateSiteCustomFieldRequest $request, Site $site, SiteCustomField $field): RedirectResponse
     {
         $field->update($request->validated());
+        ActivityService::log('field', 'update', $field, "Поле «{$field->field_key}» оновлено", $site);
         return back()->with('success', 'Поле оновлено');
     }
 
     public function destroy(Site $site, SiteCustomField $field): RedirectResponse
     {
+        ActivityService::log('field', 'delete', $field, "Поле «{$field->field_key}» видалено", $site);
         $field->delete();
         return back()->with('success', 'Поле видалено');
     }

@@ -148,9 +148,7 @@
     </div>
 
     {{-- ========= PRESENCE BANNER ========= --}}
-    <div id="presence-banner" style="{{ count($presenceOthers) > 0 ? '' : 'display:none;' }}
-         background:var(--warning-bg);border:1px solid var(--warning);border-radius:var(--radius-item);
-         padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--warning);margin-bottom:4px;">
+    <div id="presence-banner" style="background:var(--warning-bg);border:1px solid var(--warning);border-radius:var(--radius-item);padding:10px 14px;align-items:center;gap:10px;font-size:13px;color:var(--warning);margin-bottom:4px;display:{{ count($presenceOthers) > 0 ? 'flex' : 'none' }};">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <span id="presence-text">
             @if(count($presenceOthers) > 0)
@@ -1393,34 +1391,75 @@
 
         {{-- ========= ACTIVITY ========= --}}
         @if($tab === 'activity')
-            @php
-                $siteSyncs = \App\Models\SyncLog::where('site_id', $site->id)
-                    ->orderByDesc('synced_at')->take(20)->get();
-            @endphp
-            @forelse($siteSyncs as $sync)
-                @php
-                    $kind = $sync->status === 'success' ? 'success' : ($sync->status === 'error' ? 'danger' : 'warning');
-                @endphp
-                <div class="activity-row">
-                    <span class="activity-row__when">{{ $sync->synced_at?->diffForHumans() ?? '—' }}</span>
-                    <div class="activity-row__body">
-                        <span class="dot dot--{{ $kind }}"></span>
-                        <span class="activity-row__who-system">система</span>
-                        <span class="activity-row__action">
-                            {{ $sync->status === 'success' ? 'синхронізовано успішно' : ($sync->status === 'error' ? 'помилка синхронізації' : 'синхронізація...') }}
-                        </span>
-                        @if($sync->duration_ms)
-                            <span style="color:var(--text-3);font-size:12px;">· {{ $sync->duration_ms }}ms</span>
-                        @endif
-                        @if($sync->error_msg)
-                            <span style="color:var(--text-3);font-size:12px;">· {{ \Illuminate\Support\Str::limit($sync->error_msg, 60) }}</span>
-                        @endif
-                    </div>
-                    <span class="activity-row__kind">{{ $sync->status }}</span>
+        @php
+            $actIcons = [
+                'phone'   => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.06 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/></svg>',
+                'price'   => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+                'address' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+                'social'  => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
+                'field'   => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>',
+                'sync'    => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 4v4h-4"/><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 20v-4h4"/></svg>',
+            ];
+            $actLabels = ['phone'=>'Телефон','price'=>'Ціна','address'=>'Адреса','social'=>'Соцмережа','field'=>'Поле'];
+            $actionLabel = ['create'=>'додано','update'=>'оновлено','delete'=>'видалено'];
+
+            // Merge CRM logs + sync logs into one sorted timeline
+            $timeline = collect();
+            foreach ($activityLogs as $log) {
+                $timeline->push(['type' => 'crm', 'at' => $log->created_at, 'item' => $log]);
+            }
+            foreach ($siteSyncs as $sync) {
+                $timeline->push(['type' => 'sync', 'at' => $sync->synced_at, 'item' => $sync]);
+            }
+            $timeline = $timeline->sortByDesc('at')->values();
+        @endphp
+
+        <div style="padding:0;">
+            @forelse($timeline as $entry)
+            @php $it = $entry['item']; @endphp
+            @if($entry['type'] === 'crm')
+            <div class="act-row">
+                <div class="act-row__icon act-row__icon--{{ $it->entity_type }}">
+                    {!! $actIcons[$it->entity_type] ?? $actIcons['field'] !!}
                 </div>
+                <div class="act-row__body">
+                    <span class="act-row__who">{{ $it->user?->name ?? 'Система' }}</span>
+                    <span class="act-row__verb act-row__verb--{{ $it->action }}">{{ $actionLabel[$it->action] ?? $it->action }}</span>
+                    <span class="act-row__summary">{{ $it->summary }}</span>
+                </div>
+                <div class="act-row__meta">
+                    <span class="act-row__when" title="{{ $it->created_at->format('d.m.Y H:i') }}">{{ $it->created_at->diffForHumans() }}</span>
+                    <span class="act-badge act-badge--{{ $it->entity_type }}">{{ $actLabels[$it->entity_type] ?? $it->entity_type }}</span>
+                    @if($it->action === 'delete' && $it->snapshot)
+                    <form method="POST" action="{{ route('sites.activity.restore', [$site, $it]) }}" style="margin:0;" onsubmit="return confirm('Відновити запис?')">
+                        @csrf
+                        <button type="submit" class="btn btn--ghost btn--xs">Відновити</button>
+                    </form>
+                    @endif
+                </div>
+            </div>
+            @else
+            @php $kind = $it->status === 'success' ? 'ok' : ($it->status === 'error' ? 'off' : 'pause'); @endphp
+            <div class="act-row">
+                <div class="act-row__icon act-row__icon--sync">
+                    {!! $actIcons['sync'] !!}
+                </div>
+                <div class="act-row__body">
+                    <span class="act-row__who act-row__who--system">Система</span>
+                    <span class="act-row__verb">{{ $it->status === 'success' ? 'синхронізація OK' : ($it->status === 'error' ? 'помилка синхронізації' : 'синхронізація...') }}</span>
+                    @if($it->duration_ms)<span class="act-row__meta-inline">{{ $it->duration_ms }}ms</span>@endif
+                    @if($it->error_msg)<span class="act-row__error">{{ \Str::limit($it->error_msg, 60) }}</span>@endif
+                </div>
+                <div class="act-row__meta">
+                    <span class="act-row__when" title="{{ $it->synced_at?->format('d.m.Y H:i') }}">{{ $it->synced_at?->diffForHumans() ?? '—' }}</span>
+                    <span class="dot dot--{{ $kind }}" style="width:7px;height:7px;"></span>
+                </div>
+            </div>
+            @endif
             @empty
-                <div style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;">Активності ще немає</div>
+            <div style="padding:48px 20px;text-align:center;color:var(--text-3);font-size:13px;">Активності ще немає</div>
             @endforelse
+        </div>
         @endif
 
         {{-- ========= SETTINGS ========= --}}

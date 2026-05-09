@@ -372,8 +372,69 @@ img, svg { display: block; max-width: 100%; }
 .crm-table td.mono { font-family: var(--font-mono); font-size: 12px; color: var(--text-2); }
 
 /* ============================================================
-   ACTIVITY ROW
+   ACTIVITY FEED (new act-row)
    ============================================================ */
+.act-row {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: center; gap: 10px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border-2);
+}
+.act-row:last-child { border-bottom: 0; }
+.act-row__icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  background: var(--panel-2);
+  color: var(--text-3);
+}
+.act-row__icon--phone   { background: #e8f5e9; color: #2e7d32; }
+.act-row__icon--price   { background: #e3f2fd; color: #1565c0; }
+.act-row__icon--address { background: #fce4ec; color: #880e4f; }
+.act-row__icon--social  { background: #f3e5f5; color: #6a1b9a; }
+.act-row__icon--field   { background: #fff3e0; color: #e65100; }
+.act-row__icon--sync    { background: var(--panel-2); color: var(--text-3); }
+[data-theme="dark"] .act-row__icon--phone   { background: #1b2e1c; color: #81c784; }
+[data-theme="dark"] .act-row__icon--price   { background: #0d1b2a; color: #64b5f6; }
+[data-theme="dark"] .act-row__icon--address { background: #2a0e1b; color: #f48fb1; }
+[data-theme="dark"] .act-row__icon--social  { background: #1e0d2a; color: #ce93d8; }
+[data-theme="dark"] .act-row__icon--field   { background: #2a1a00; color: #ffb74d; }
+.act-row__body {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; min-width: 0; flex-wrap: wrap;
+}
+.act-row__who { font-weight: 600; color: var(--text); }
+.act-row__who--system { color: var(--text-3); font-size: 12px; }
+.act-row__verb { color: var(--text-2); }
+.act-row__verb--create { color: var(--dot-ok); }
+.act-row__verb--delete { color: var(--dot-off); }
+.act-row__summary { color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
+.act-row__meta-inline { color: var(--text-3); font-size: 11px; }
+.act-row__error { color: var(--dot-off); font-size: 11px; }
+.act-row__meta {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+}
+.act-row__when { color: var(--text-3); font-size: 11px; white-space: nowrap; }
+.act-badge {
+  font-size: 10px; font-weight: 600; letter-spacing: .03em;
+  padding: 2px 7px; border-radius: 99px;
+  background: var(--panel-2); color: var(--text-3);
+}
+.act-badge--phone   { background: #e8f5e9; color: #2e7d32; }
+.act-badge--price   { background: #e3f2fd; color: #1565c0; }
+.act-badge--address { background: #fce4ec; color: #880e4f; }
+.act-badge--social  { background: #f3e5f5; color: #6a1b9a; }
+.act-badge--field   { background: #fff3e0; color: #e65100; }
+[data-theme="dark"] .act-badge--phone   { background: #1b2e1c; color: #81c784; }
+[data-theme="dark"] .act-badge--price   { background: #0d1b2a; color: #64b5f6; }
+[data-theme="dark"] .act-badge--address { background: #2a0e1b; color: #f48fb1; }
+[data-theme="dark"] .act-badge--social  { background: #1e0d2a; color: #ce93d8; }
+[data-theme="dark"] .act-badge--field   { background: #2a1a00; color: #ffb74d; }
+.btn--xs { padding: 2px 8px; font-size: 11px; }
+
+/* Legacy activity-row (sync logs fallback) */
 .activity-row {
   display: grid;
   grid-template-columns: 110px 1fr auto;
@@ -386,9 +447,7 @@ img, svg { display: block; max-width: 100%; }
   display: flex; align-items: center; gap: 8px; font-size: 13px;
   min-width: 0;
 }
-.activity-row__who-system {
-  color: var(--text-3); font-family: var(--font-mono); font-size: 12px;
-}
+.activity-row__who-system { color: var(--text-3); font-family: var(--font-mono); font-size: 12px; }
 .activity-row__action { color: var(--text-2); }
 .activity-row__target { font-weight: 500; color: var(--text); }
 .activity-row__kind { color: var(--text-3); font-size: 11px; }
@@ -738,7 +797,7 @@ img, svg { display: block; max-width: 100%; }
 .dt-geo-chips { flex-basis: 100%; margin-top: 4px; display: none; grid-template-columns: repeat(3, auto); gap: 4px; padding-left: 2px; }
 
 /* Item rows */
-.dt-items { flex: 1; overflow-y: auto; max-height: 320px; }
+.dt-items { flex: 1; }
 .dt-item { border-bottom: 1px solid var(--border-2); transition: opacity .15s; }
 .dt-item:last-child { border-bottom: 0; }
 .dt-items.has-edit .dt-item:not(.is-editing) { opacity: .25; pointer-events: none; }

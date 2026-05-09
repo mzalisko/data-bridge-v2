@@ -78,6 +78,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('sites/{site}/geos/{iso}',        [SiteGeoController::class, 'removeGeo'])->name('sites.geos.remove');
     Route::post(  'sites/{site}/geo-rules',         [SiteGeoController::class, 'saveRules'])->name('sites.geo-rules.save');
     Route::post(  'sites/{site}/visibility/{type}/{id}', [SiteGeoController::class, 'toggleVisibility'])->name('sites.visibility.toggle');
+    Route::post(  'sites/{site}/activity/{log}/restore', [SiteController::class, 'restoreActivity'])->name('sites.activity.restore');
 
     // Bulk data operations (multi-site) — UI planned, controller scaffolded
     Route::post('bulk/phones',  [BulkDataController::class, 'addPhone'])->name('bulk.phones');
