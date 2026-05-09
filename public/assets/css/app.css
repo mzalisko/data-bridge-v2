@@ -805,7 +805,6 @@ img, svg { display: block; max-width: 100%; }
   background: var(--accent-2);
   border-radius: var(--radius-item);
   border-bottom: 0;
-  box-shadow: inset 3px 0 0 var(--accent), var(--shadow-sm);
 }
 @keyframes dt-item-flash {
   0%, 30% { outline: 2.5px solid var(--accent); outline-offset: 1px; background: var(--accent-2); }
