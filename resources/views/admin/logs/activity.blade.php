@@ -15,6 +15,10 @@
     $actionLabel= ['create'=>'додано','update'=>'оновлено','delete'=>'видалено'];
     $fieldLabels= ['number'=>'Номер','label'=>'Мітка','geo_mode'=>'Гео-правило','geo_countries'=>'Країни','is_primary'=>'Основний','is_visible'=>'Видимий','amount'=>'Сума','currency'=>'Валюта','city'=>'Місто','street'=>'Вулиця','region'=>'Регіон','country_iso'=>'Країна','platform'=>'Платформа','handle'=>'Handle','url'=>'URL','field_key'=>'Ключ','field_value'=>'Значення','dial_code'=>'Код'];
     $skipFields = ['id','site_id','group_id','created_at','updated_at','sort_order'];
+    $geoModes   = ['all'=>'Всім','include'=>'Тільки для','exclude'=>'Всім крім'];
+    $tv         = fn($v) => is_array($v)
+        ? implode(', ', array_map(fn($x) => $geoModes[$x] ?? $x, $v))
+        : ($v === null ? '—' : ($geoModes[(string)$v] ?? (string)$v));
 @endphp
 
 <div class="page-stack">
@@ -155,8 +159,8 @@
                         <div class="act-diff__hdr">Стало</div>
                         @foreach($log->snapshot['diff'] as $field => $change)
                             <div class="act-diff__key">{{ $fieldLabels[$field] ?? $field }}</div>
-                            <div class="act-diff__old">{{ is_array($change['before']) ? implode(', ', $change['before']) : ($change['before'] === null ? '—' : $change['before']) }}</div>
-                            <div class="act-diff__new">{{ is_array($change['after'])  ? implode(', ', $change['after'])  : ($change['after']  === null ? '—' : $change['after'])  }}</div>
+                            <div class="act-diff__old">{{ $tv($change['before']) }}</div>
+                            <div class="act-diff__new">{{ $tv($change['after']) }}</div>
                         @endforeach
                     </div>
                 @elseif($isDelete && $beforeData)
@@ -167,7 +171,7 @@
                         @foreach($beforeData as $field => $value)
                             @if(!in_array($field, $skipFields) && $value !== null && $value !== '' && $value !== [])
                             <div class="act-diff__key">{{ $fieldLabels[$field] ?? $field }}</div>
-                            <div class="act-diff__old" style="color:var(--text-2);">{{ is_array($value) ? implode(', ', $value) : $value }}</div>
+                            <div class="act-diff__old" style="color:var(--text-2);">{{ $tv($value) }}</div>
                             @endif
                         @endforeach
                     </div>
@@ -179,7 +183,7 @@
                         @foreach($log->snapshot['after'] as $field => $value)
                             @if(!in_array($field, $skipFields) && $value !== null && $value !== '' && $value !== [])
                             <div class="act-diff__key">{{ $fieldLabels[$field] ?? $field }}</div>
-                            <div class="act-diff__new" style="">{{ is_array($value) ? implode(', ', $value) : $value }}</div>
+                            <div class="act-diff__new">{{ $tv($value) }}</div>
                             @endif
                         @endforeach
                     </div>
@@ -210,27 +214,5 @@ function actToggle(row) {
     var open = row.classList.toggle('is-open');
     if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
 }
-
-// ── Custom select ────────────────────────────────────────────
-function csToggle(id) {
-    var cs = document.getElementById(id);
-    var isOpen = cs.classList.contains('is-open');
-    document.querySelectorAll('.cselect.is-open').forEach(function(el) { el.classList.remove('is-open'); });
-    if (!isOpen) cs.classList.add('is-open');
-}
-function csSelect(id, value, label) {
-    var cs = document.getElementById(id);
-    cs.querySelector('input[type=hidden]').value = value;
-    cs.querySelector('.cselect__label').textContent = label;
-    cs.querySelectorAll('.cselect__option').forEach(function(o) { o.classList.remove('is-active'); });
-    event.target.classList.add('is-active');
-    cs.classList.remove('is-open');
-    document.getElementById('act-filter-form').submit();
-}
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.cselect')) {
-        document.querySelectorAll('.cselect.is-open').forEach(function(el) { el.classList.remove('is-open'); });
-    }
-});
 </script>
 @endpush

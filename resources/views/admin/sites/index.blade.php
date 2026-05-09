@@ -44,26 +44,32 @@
                 </span>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Пошук сайту за назвою або доменом…">
             </div>
-            <div class="select-wrap">
-                <select name="group_id" onchange="this.form.submit()">
-                    <option value="">Всі групи</option>
+            <div class="cselect" id="cs-sites-group">
+                <button type="button" class="cselect__trigger" onclick="csToggle('cs-sites-group')">
+                    <span class="cselect__label">{{ $groups->firstWhere('id', request('group_id'))?->name ?? 'Всі групи' }}</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="cselect__menu">
+                    <div class="cselect__option {{ !request('group_id') ? 'is-active' : '' }}" onclick="csSelect('cs-sites-group','','Всі групи')">Всі групи</div>
+                    <div class="cselect__divider"></div>
                     @foreach($groups as $g)
-                        <option value="{{ $g->id }}" {{ (string)request('group_id') === (string)$g->id ? 'selected' : '' }}>{{ $g->name }}</option>
+                        <div class="cselect__option {{ (string)request('group_id') === (string)$g->id ? 'is-active' : '' }}" onclick="csSelect('cs-sites-group','{{ $g->id }}','{{ addslashes($g->name) }}')">{{ $g->name }}</div>
                     @endforeach
-                </select>
-                <span class="select-wrap__chevron">
-                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                </span>
+                </div>
+                <input type="hidden" name="group_id" value="{{ request('group_id','') }}">
             </div>
-            <div class="select-wrap">
-                <select name="status" onchange="this.form.submit()">
-                    <option value="">Всі статуси</option>
-                    <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Онлайн</option>
-                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Офлайн</option>
-                </select>
-                <span class="select-wrap__chevron">
-                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                </span>
+            <div class="cselect" id="cs-sites-status">
+                <button type="button" class="cselect__trigger" onclick="csToggle('cs-sites-status')">
+                    <span class="cselect__label">{{ ['active'=>'Онлайн','inactive'=>'Офлайн'][request('status')] ?? 'Всі статуси' }}</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="cselect__menu">
+                    <div class="cselect__option {{ !request('status') ? 'is-active' : '' }}" onclick="csSelect('cs-sites-status','','Всі статуси')">Всі статуси</div>
+                    <div class="cselect__divider"></div>
+                    <div class="cselect__option {{ request('status') === 'active' ? 'is-active' : '' }}" onclick="csSelect('cs-sites-status','active','Онлайн')">Онлайн</div>
+                    <div class="cselect__option {{ request('status') === 'inactive' ? 'is-active' : '' }}" onclick="csSelect('cs-sites-status','inactive','Офлайн')">Офлайн</div>
+                </div>
+                <input type="hidden" name="status" value="{{ request('status','') }}">
             </div>
             <div style="flex:1"></div>
             <span style="font-size:12px;color:var(--text-3);">{{ $sites->total() }} з {{ $totalCount }}</span>

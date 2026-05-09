@@ -47,22 +47,32 @@
                 </span>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Пошук за іменем або email…">
             </div>
-            <div class="select-wrap">
-                <select name="role" onchange="this.form.submit()">
-                    <option value="">Всі ролі</option>
+            <div class="cselect" id="cs-users-role">
+                <button type="button" class="cselect__trigger" onclick="csToggle('cs-users-role')">
+                    <span class="cselect__label">{{ $rolePalette[request('role')]['label'] ?? 'Всі ролі' }}</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="cselect__menu">
+                    <div class="cselect__option {{ !request('role') ? 'is-active' : '' }}" onclick="csSelect('cs-users-role','','Всі ролі')">Всі ролі</div>
+                    <div class="cselect__divider"></div>
                     @foreach($rolePalette as $key => $r)
-                        <option value="{{ $key }}" {{ request('role') === $key ? 'selected' : '' }}>{{ $r['label'] }}</option>
+                        <div class="cselect__option {{ request('role') === $key ? 'is-active' : '' }}" onclick="csSelect('cs-users-role','{{ $key }}','{{ $r['label'] }}')">{{ $r['label'] }}</div>
                     @endforeach
-                </select>
-                <span class="select-wrap__chevron"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 9 6 6 6-6"/></svg></span>
+                </div>
+                <input type="hidden" name="role" value="{{ request('role','') }}">
             </div>
-            <div class="select-wrap">
-                <select name="status" onchange="this.form.submit()">
-                    <option value="">Всі статуси</option>
-                    <option value="active"   {{ request('status') === 'active'   ? 'selected' : '' }}>Активний</option>
-                    <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Вимкнений</option>
-                </select>
-                <span class="select-wrap__chevron"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 9 6 6 6-6"/></svg></span>
+            <div class="cselect" id="cs-users-status">
+                <button type="button" class="cselect__trigger" onclick="csToggle('cs-users-status')">
+                    <span class="cselect__label">{{ ['active'=>'Активний','inactive'=>'Вимкнений'][request('status')] ?? 'Всі статуси' }}</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="cselect__menu">
+                    <div class="cselect__option {{ !request('status') ? 'is-active' : '' }}" onclick="csSelect('cs-users-status','','Всі статуси')">Всі статуси</div>
+                    <div class="cselect__divider"></div>
+                    <div class="cselect__option {{ request('status') === 'active' ? 'is-active' : '' }}" onclick="csSelect('cs-users-status','active','Активний')">Активний</div>
+                    <div class="cselect__option {{ request('status') === 'inactive' ? 'is-active' : '' }}" onclick="csSelect('cs-users-status','inactive','Вимкнений')">Вимкнений</div>
+                </div>
+                <input type="hidden" name="status" value="{{ request('status','') }}">
             </div>
             <div style="flex:1"></div>
             <span style="font-size:12px;color:var(--text-3);">{{ $users->total() }} of {{ $totalCount }}</span>

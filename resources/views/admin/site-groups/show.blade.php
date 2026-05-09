@@ -139,13 +139,19 @@
             @if($hasDiff)
             <div class="act-diff" style="grid-column:1/-1;" onclick="event.stopPropagation()">
                 @if(!empty($log->snapshot['diff']) && count($log->snapshot['diff']))
-                    @php $fieldLabels2 = ['number'=>'Номер','label'=>'Мітка','geo_mode'=>'Гео','amount'=>'Сума','currency'=>'Валюта','city'=>'Місто','street'=>'Вулиця','region'=>'Регіон','platform'=>'Платформа','handle'=>'Handle','field_key'=>'Ключ','field_value'=>'Значення']; @endphp
+                    @php
+                        $fieldLabels2 = ['number'=>'Номер','label'=>'Мітка','geo_mode'=>'Гео-правило','geo_countries'=>'Країни','is_visible'=>'Видимий','amount'=>'Сума','currency'=>'Валюта','city'=>'Місто','street'=>'Вулиця','region'=>'Регіон','platform'=>'Платформа','handle'=>'Handle','field_key'=>'Ключ','field_value'=>'Значення'];
+                        $geoModes2    = ['all'=>'Всім','include'=>'Тільки для','exclude'=>'Всім крім'];
+                        $tv2          = fn($v) => is_array($v)
+                            ? implode(', ', array_map(fn($x) => $geoModes2[$x] ?? $x, $v))
+                            : ($v === null ? '—' : ($geoModes2[(string)$v] ?? (string)$v));
+                    @endphp
                     <div class="act-diff__grid">
                         <div class="act-diff__hdr">Параметр</div><div class="act-diff__hdr">Було</div><div class="act-diff__hdr">Стало</div>
                         @foreach($log->snapshot['diff'] as $field => $change)
                             <div class="act-diff__key">{{ $fieldLabels2[$field] ?? $field }}</div>
-                            <div class="act-diff__old">{{ is_array($change['before']) ? implode(', ', $change['before']) : ($change['before'] ?? '—') }}</div>
-                            <div class="act-diff__new">{{ is_array($change['after'])  ? implode(', ', $change['after'])  : ($change['after']  ?? '—') }}</div>
+                            <div class="act-diff__old">{{ $tv2($change['before']) }}</div>
+                            <div class="act-diff__new">{{ $tv2($change['after']) }}</div>
                         @endforeach
                     </div>
                 @else

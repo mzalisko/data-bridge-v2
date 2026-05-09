@@ -192,6 +192,44 @@ function closeDrawer(id) {
     if (ov) ov.classList.remove('is-open');
     if (dr) dr.classList.remove('is-open');
 }
+// ── Activity diff toggle ─────────────────────────────────────
+function actToggle(row) {
+    var diff = row.querySelector('.act-diff');
+    var chev = row.querySelector('.act-chevron');
+    if (!diff) return;
+    var open = row.classList.toggle('is-open');
+    if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
+}
+// ── Custom select (cselect) ─────────────────────────────────
+function csToggle(id) {
+    var cs = document.getElementById(id);
+    var isOpen = cs.classList.contains('is-open');
+    document.querySelectorAll('.cselect.is-open').forEach(function(el) { el.classList.remove('is-open'); });
+    if (!isOpen) cs.classList.add('is-open');
+}
+function csSelect(id, value, label) {
+    var cs = document.getElementById(id);
+    cs.querySelector('input[type=hidden]').value = value;
+    cs.querySelector('.cselect__label').textContent = label;
+    cs.querySelectorAll('.cselect__option').forEach(function(o) { o.classList.remove('is-active'); });
+    if (event && event.target) event.target.classList.add('is-active');
+    cs.classList.remove('is-open');
+    var form = cs.closest('form');
+    if (form) form.submit();
+}
+function csFormSelect(id, value, label) {
+    var cs = document.getElementById(id);
+    cs.querySelector('input[type=hidden]').value = value;
+    cs.querySelector('.cselect__label').textContent = label;
+    cs.querySelectorAll('.cselect__option').forEach(function(o) { o.classList.remove('is-active'); });
+    if (event && event.target) event.target.classList.add('is-active');
+    cs.classList.remove('is-open');
+}
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.cselect')) {
+        document.querySelectorAll('.cselect.is-open').forEach(function(el) { el.classList.remove('is-open'); });
+    }
+});
 </script>
 @stack('scripts')
 </body>

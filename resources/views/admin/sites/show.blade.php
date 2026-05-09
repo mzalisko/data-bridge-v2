@@ -1513,6 +1513,10 @@
             $actLabels   = ['phone'=>'Телефон','price'=>'Ціна','address'=>'Адреса','social'=>'Соцмережа','field'=>'Поле'];
             $actionLabel = ['create'=>'додано','update'=>'оновлено','delete'=>'видалено'];
             $fieldLabels = ['number'=>'Номер','label'=>'Мітка','geo_mode'=>'Гео-правило','geo_countries'=>'Країни','is_primary'=>'Основний','is_visible'=>'Видимий','amount'=>'Сума','currency'=>'Валюта','city'=>'Місто','street'=>'Вулиця','region'=>'Регіон','country_iso'=>'Країна','platform'=>'Платформа','handle'=>'Handle','url'=>'URL','field_key'=>'Ключ','field_value'=>'Значення','dial_code'=>'Код'];
+            $geoModes    = ['all'=>'Всім','include'=>'Тільки для','exclude'=>'Всім крім'];
+            $tv          = fn($v) => is_array($v)
+                ? implode(', ', array_map(fn($x) => $geoModes[$x] ?? $x, $v))
+                : ($v === null ? '—' : ($geoModes[(string)$v] ?? (string)$v));
 
             // Merge CRM logs + sync logs into one sorted timeline
             $timeline = collect();
@@ -1562,8 +1566,8 @@
                             <div class="act-diff__hdr">Стало</div>
                             @foreach($it->snapshot['diff'] as $field => $change)
                                 <div class="act-diff__key">{{ $fieldLabels[$field] ?? $field }}</div>
-                                <div class="act-diff__old">{{ is_array($change['before']) ? implode(', ', $change['before']) : ($change['before'] === null ? '—' : $change['before']) }}</div>
-                                <div class="act-diff__new">{{ is_array($change['after'])  ? implode(', ', $change['after'])  : ($change['after']  === null ? '—' : $change['after'])  }}</div>
+                                <div class="act-diff__old">{{ $tv($change['before']) }}</div>
+                                <div class="act-diff__new">{{ $tv($change['after']) }}</div>
                             @endforeach
                         </div>
                     @elseif($it->action === 'delete' && !empty($it->snapshot['before']))
