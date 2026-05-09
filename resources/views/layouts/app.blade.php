@@ -30,6 +30,10 @@
     $userName    = auth()->user()->name ?? 'User';
     $userInitial = mb_strtoupper(mb_substr($userName, 0, 1, 'UTF-8'), 'UTF-8');
     $teamMembers = \App\Models\User::where('is_active', true)->orderBy('name')->get(['id','name','role']);
+    // Online users: active in last 5 minutes via cache (one read per page load)
+    $onlineData    = \Illuminate\Support\Facades\Cache::get('crm_online', []);
+    $fiveMinAgo    = now()->subMinutes(5)->timestamp;
+    $onlineUserIds = array_keys(array_filter($onlineData, fn($ts) => $ts >= $fiveMinAgo));
 @endphp
 
 <div class="shell">
@@ -102,14 +106,30 @@
             <div class="sidebar-block__name">DataBridge HQ</div>
             <div class="sidebar-block__avatars">
                 @foreach($teamMembers->take(5) as $i => $member)
-                    @php $initials = collect(explode(' ', $member->name))->map(fn($w) => mb_strtoupper(mb_substr($w,0,1,'UTF-8'),'UTF-8'))->take(2)->implode(''); @endphp
-                    <a href="{{ route('users.index') }}" title="{{ $member->name }} ({{ ucfirst($member->role) }})"
-                       class="avatar sidebar-ws-avatar" style="width:24px;height:24px;font-size:9px;margin-left:{{ $i === 0 ? 0 : -7 }}px;{{ auth()->id() === $member->id ? 'border:2px solid var(--accent);' : '' }}">{{ $initials }}</a>
+                    @php
+                        $initials  = collect(explode(' ', $member->name))->map(fn($w) => mb_strtoupper(mb_substr($w,0,1,'UTF-8'),'UTF-8'))->take(2)->implode('');
+                        $isOnline  = in_array($member->id, $onlineUserIds);
+                        $titleText = $member->name . ' (' . ucfirst($member->role) . ')' . ($isOnline ? ' · онлайн' : '');
+                    @endphp
+                    <span style="position:relative;display:inline-block;margin-left:{{ $i === 0 ? 0 : -7 }}px;">
+                        <a href="{{ route('users.index') }}" title="{{ $titleText }}"
+                           class="avatar sidebar-ws-avatar" style="width:24px;height:24px;font-size:9px;{{ auth()->id() === $member->id ? 'border:2px solid var(--accent);' : '' }}">{{ $initials }}</a>
+                        @if($isOnline)
+                            <span style="position:absolute;bottom:0;right:0;width:7px;height:7px;background:var(--success);border:1.5px solid var(--bg-card);border-radius:50%;"></span>
+                        @endif
+                    </span>
                 @endforeach
                 @if($teamMembers->count() > 5)
                     <span class="avatar" style="width:24px;height:24px;font-size:8px;background:var(--panel-2);color:var(--text-3);margin-left:-7px;">+{{ $teamMembers->count()-5 }}</span>
                 @endif
             </div>
+            @php $onlineNow = $teamMembers->filter(fn($m) => in_array($m->id, $onlineUserIds))->count(); @endphp
+            @if($onlineNow > 0)
+                <div style="font-size:10px;color:var(--success);margin-top:6px;display:flex;align-items:center;gap:4px;">
+                    <span style="width:5px;height:5px;background:var(--success);border-radius:50%;display:inline-block;"></span>
+                    {{ $onlineNow }} онлайн зараз
+                </div>
+            @endif
         </div>
 
         {{-- User row --}}

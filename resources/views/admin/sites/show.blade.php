@@ -148,11 +148,11 @@
     </div>
 
     {{-- ========= PRESENCE BANNER ========= --}}
-    <div id="presence-banner" style="background:var(--warning-bg);border:1px solid var(--warning);border-radius:var(--radius-item);padding:10px 14px;align-items:center;gap:10px;font-size:13px;color:var(--warning);margin-bottom:4px;display:{{ count($presenceOthers) > 0 ? 'flex' : 'none' }};">
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <span id="presence-text">
+    <div id="presence-banner" style="background:rgba(225,29,72,.08);border:1px solid var(--danger);border-radius:var(--radius-item);padding:10px 14px;align-items:center;gap:10px;font-size:13px;color:var(--danger);margin-bottom:4px;flex-wrap:nowrap;white-space:nowrap;display:{{ count($presenceOthers) > 0 ? 'flex' : 'none' }};">
+        <svg style="flex-shrink:0;" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="presence-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
             @if(count($presenceOthers) > 0)
-                {{ collect($presenceOthers)->pluck('name')->join(', ') }} {{ count($presenceOthers) === 1 ? 'зараз тут' : 'зараз тут' }} — редагування може конфліктувати
+                {{ collect($presenceOthers)->pluck('name')->join(', ') }} зараз тут — редагування може конфліктувати
             @endif
         </span>
     </div>

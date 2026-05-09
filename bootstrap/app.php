@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\ApiKeyAuth;
+use App\Http\Middleware\CheckUserActive;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -23,6 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Convert empty strings to null so nullable validation rules work correctly
         // with selects that have an empty first option and hidden inputs with no value.
         $middleware->append(ConvertEmptyStringsToNull::class);
+
+        // Check is_active on every request + track online presence
+        $middleware->web(append: [CheckUserActive::class]);
 
         // 'theme' cookie is set client-side via JS — exclude from encryption.
         $middleware->encryptCookies(except: ['theme']);
