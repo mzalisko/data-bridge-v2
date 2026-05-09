@@ -100,6 +100,65 @@
     </div>
 </div>
 
+{{-- ========= GROUP ACTIVITY ========= --}}
+@if($groupActivity->count())
+@php
+    $actIcons2 = ['phone'=>'☎','price'=>'$','address'=>'📍','social'=>'⇆','field'=>'≡'];
+    $actLabels2 = ['phone'=>'Телефон','price'=>'Ціна','address'=>'Адреса','social'=>'Соцмережа','field'=>'Поле'];
+    $actionLabel2 = ['create'=>'додано','update'=>'оновлено','delete'=>'видалено'];
+@endphp
+<div class="page-stack" style="margin-top:0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 8px;">
+        <h2 style="font-size:14px;font-weight:600;color:var(--text);">Останні зміни в групі</h2>
+        <a href="{{ route('logs.activity') }}?group_id={{ $siteGroup->id }}" class="btn btn--ghost btn--sm">Всі →</a>
+    </div>
+    <div class="card card--flush">
+        @foreach($groupActivity as $log)
+        @php $hasDiff = !empty($log->snapshot['diff']) || !empty($log->snapshot['before']); @endphp
+        <div class="act-row {{ $hasDiff ? '' : 'no-diff' }}" onclick="{{ $hasDiff ? 'actToggle(this)' : '' }}">
+            <div class="act-row__icon act-row__icon--{{ $log->entity_type }}" style="font-size:11px;">
+                {{ $actIcons2[$log->entity_type] ?? '·' }}
+            </div>
+            <div class="act-row__body">
+                <span class="act-row__who">{{ $log->user?->name ?? 'Система' }}</span>
+                <span class="act-row__verb act-row__verb--{{ $log->action }}">{{ $actionLabel2[$log->action] ?? $log->action }}</span>
+                <span class="act-row__summary">{{ $log->summary }}</span>
+                @if($log->site)
+                    <a href="{{ route('sites.show', $log->site_id) }}?tab=activity"
+                       style="font-size:11px;color:var(--text-3);text-decoration:none;margin-left:4px;"
+                       onclick="event.stopPropagation()">↗ {{ $log->site->name }}</a>
+                @endif
+            </div>
+            <div class="act-row__meta">
+                <span class="act-row__when" title="{{ $log->created_at->format('d.m.Y H:i') }}">{{ $log->created_at->diffForHumans() }}</span>
+                <span class="act-badge act-badge--{{ $log->entity_type }}">{{ $actLabels2[$log->entity_type] ?? $log->entity_type }}</span>
+                @if($hasDiff)
+                    <svg class="act-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--text-3);transition:transform .15s;"><polyline points="6 9 12 15 18 9"/></svg>
+                @endif
+            </div>
+            @if($hasDiff)
+            <div class="act-diff" style="grid-column:1/-1;" onclick="event.stopPropagation()">
+                @if(!empty($log->snapshot['diff']) && count($log->snapshot['diff']))
+                    @php $fieldLabels2 = ['number'=>'Номер','label'=>'Мітка','geo_mode'=>'Гео','amount'=>'Сума','currency'=>'Валюта','city'=>'Місто','street'=>'Вулиця','region'=>'Регіон','platform'=>'Платформа','handle'=>'Handle','field_key'=>'Ключ','field_value'=>'Значення']; @endphp
+                    <div class="act-diff__grid">
+                        <div class="act-diff__hdr">Поле</div><div class="act-diff__hdr">Було</div><div class="act-diff__hdr">Стало</div>
+                        @foreach($log->snapshot['diff'] as $field => $change)
+                            <div class="act-diff__key">{{ $fieldLabels2[$field] ?? $field }}</div>
+                            <div class="act-diff__old">{{ is_array($change['before']) ? implode(', ', $change['before']) : ($change['before'] ?? '—') }}</div>
+                            <div class="act-diff__new">{{ is_array($change['after'])  ? implode(', ', $change['after'])  : ($change['after']  ?? '—') }}</div>
+                        @endforeach
+                    </div>
+                @else
+                    <pre class="act-diff__snap">{{ json_encode($log->snapshot['before'] ?? $log->snapshot, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) }}</pre>
+                @endif
+            </div>
+            @endif
+        </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
 {{-- ========= EDIT DRAWER ========= --}}
 <div class="drawer-overlay" id="drawer-group-edit-overlay" onclick="closeDrawer('drawer-group-edit')"></div>
 <div class="drawer" id="drawer-group-edit">

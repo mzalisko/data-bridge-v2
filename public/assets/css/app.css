@@ -434,6 +434,20 @@ img, svg { display: block; max-width: 100%; }
 [data-theme="dark"] .act-badge--field   { background: #2a1a00; color: #ffb74d; }
 .btn--xs { padding: 2px 8px; font-size: 11px; }
 
+/* ============================================================
+   ACTIVITY DIFF
+   ============================================================ */
+.act-diff { display: none; border-top: 1px solid var(--border-2); padding: 10px 14px 10px 50px; background: var(--panel-2); }
+.act-row.is-open .act-diff { display: block; }
+.act-diff__grid { display: grid; grid-template-columns: 140px 1fr 1fr; gap: 0; font-size: 12px; }
+.act-diff__hdr  { font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; padding: 4px 8px; border-bottom: 1px solid var(--border-2); }
+.act-diff__key  { padding: 5px 8px; color: var(--text-3); font-family: var(--font-mono); font-size: 11px; border-bottom: 1px solid var(--border-2); display: flex; align-items: center; }
+.act-diff__old  { padding: 5px 8px; color: var(--dot-off); font-size: 12px; border-bottom: 1px solid var(--border-2); word-break: break-all; }
+.act-diff__new  { padding: 5px 8px; color: var(--dot-ok); font-size: 12px; border-bottom: 1px solid var(--border-2); word-break: break-all; }
+.act-diff__snap { padding: 8px; font-size: 11px; font-family: var(--font-mono); color: var(--text-2); background: var(--bg-page); border-radius: 6px; white-space: pre-wrap; word-break: break-all; }
+.act-row { cursor: pointer; }
+.act-row.no-diff { cursor: default; }
+
 /* Legacy activity-row (sync logs fallback) */
 .activity-row {
   display: grid;

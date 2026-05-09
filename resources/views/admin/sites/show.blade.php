@@ -287,48 +287,52 @@
 
                 {{-- "Весь світ" panel: items visible to everyone (geo_mode=all) --}}
                 @php
-                    $wPhones  = $site->phones->filter(fn($p) => ($p->is_visible ?? true) && ($p->geo_mode ?? 'all') === 'all');
-                    $wPrices  = $site->prices->filter(fn($p) => ($p->is_visible ?? true) && ($p->geo_mode ?? 'all') === 'all');
-                    $wAddrs   = $site->addresses->filter(fn($a) => ($a->is_visible ?? true) && ($a->geo_mode ?? 'all') === 'all');
-                    $wSocials = $site->socials->filter(fn($s) => ($s->is_visible ?? true) && ($s->geo_mode ?? 'all') === 'all');
+                    // Весь світ = all або exclude (відвідувач без конкретної країни не потрапляє до жодного виключення)
+                    $worldVis = fn($item) => ($item->is_visible ?? true) && in_array($item->geo_mode ?? 'all', ['all', 'exclude']);
+                    $wPhones  = $site->phones->filter($worldVis);
+                    $wPrices  = $site->prices->filter($worldVis);
+                    $wAddrs   = $site->addresses->filter($worldVis);
+                    $wSocials = $site->socials->filter($worldVis);
                     $wTotal   = $wPhones->count() + $wPrices->count() + $wAddrs->count() + $wSocials->count();
                     $totalAll = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count();
                 @endphp
                 <div id="vis-panel-_all">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
                         {{-- Left: what everyone sees --}}
-                        <div style="background:var(--panel);padding:16px;">
-                            <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">
-                                Що бачать усі відвідувачі у світі
-                                <span style="font-family:var(--font-mono);font-weight:700;font-size:11px;color:var(--text-2);margin-left:6px;">{{ $wTotal }}/{{ $totalAll }}</span>
+                        <div style="background:var(--panel);padding:20px;">
+                            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
+                                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                                Що бачать усі відвідувачі
+                                <span style="font-family:var(--font-mono);font-weight:700;color:var(--text-2);">{{ $wTotal }}/{{ $totalAll }}</span>
                             </div>
+                            @if($wTotal === 0)
+                                <div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px;">Усі записи мають гео-обмеження</div>
+                            @else
                             @if($wPhones->count())
-                                <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin:8px 0 4px;">Телефони</div>
+                                <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px;">Телефони</div>
                                 @foreach($wPhones as $p)
                                     <div style="font-size:13px;font-weight:500;color:var(--text);font-family:var(--font-mono);padding:2px 0;">{{ ($p->dial_code ? '+'.$p->dial_code.' ' : '') . $p->number }}</div>
-                                    @if($p->label)<div style="font-size:11px;color:var(--text-3);">{{ $p->label }}</div>@endif
+                                    @if($p->label)<div style="font-size:11px;color:var(--text-3);margin-bottom:4px;">{{ $p->label }}</div>@endif
                                 @endforeach
                             @endif
                             @if($wPrices->count())
-                                <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin:8px 0 4px;">Ціни</div>
+                                <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:10px 0 6px;">Ціни</div>
                                 @foreach($wPrices as $p)
                                     <div style="font-size:13px;color:var(--text);padding:2px 0;">{{ $p->label }} — <strong>{{ number_format($p->amount,2) }}</strong> <span style="color:var(--text-3);">{{ $p->currency }}</span></div>
                                 @endforeach
                             @endif
                             @if($wAddrs->count())
-                                <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin:8px 0 4px;">Адреси</div>
+                                <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:10px 0 6px;">Адреси</div>
                                 @foreach($wAddrs as $a)
                                     <div style="font-size:13px;color:var(--text);padding:2px 0;">{{ $a->city }}{{ $a->street ? ', '.$a->street : '' }}</div>
                                 @endforeach
                             @endif
                             @if($wSocials->count())
-                                <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin:8px 0 4px;">Соцмережі</div>
+                                <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:10px 0 6px;">Соцмережі</div>
                                 @foreach($wSocials as $s)
                                     <div style="font-size:13px;color:var(--text);padding:2px 0;">{{ ucfirst($s->platform) }}: {{ $s->handle }}</div>
                                 @endforeach
                             @endif
-                            @if($wTotal === 0)
-                                <div style="color:var(--text-3);font-size:12px;">Немає записів без гео-обмежень</div>
                             @endif
                         </div>
                         {{-- Right: matrix --}}
@@ -1493,8 +1497,9 @@
                 'field'   => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>',
                 'sync'    => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 4v4h-4"/><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 20v-4h4"/></svg>',
             ];
-            $actLabels = ['phone'=>'Телефон','price'=>'Ціна','address'=>'Адреса','social'=>'Соцмережа','field'=>'Поле'];
+            $actLabels   = ['phone'=>'Телефон','price'=>'Ціна','address'=>'Адреса','social'=>'Соцмережа','field'=>'Поле'];
             $actionLabel = ['create'=>'додано','update'=>'оновлено','delete'=>'видалено'];
+            $fieldLabels = ['number'=>'Номер','label'=>'Мітка','geo_mode'=>'Гео-правило','geo_countries'=>'Країни','is_primary'=>'Основний','is_visible'=>'Видимий','amount'=>'Сума','currency'=>'Валюта','city'=>'Місто','street'=>'Вулиця','region'=>'Регіон','country_iso'=>'Країна','platform'=>'Платформа','handle'=>'Handle','url'=>'URL','field_key'=>'Ключ','field_value'=>'Значення','dial_code'=>'Код'];
 
             // Merge CRM logs + sync logs into one sorted timeline
             $timeline = collect();
@@ -1511,7 +1516,8 @@
             @forelse($timeline as $entry)
             @php $it = $entry['item']; @endphp
             @if($entry['type'] === 'crm')
-            <div class="act-row">
+            @php $hasDiff = !empty($it->snapshot['diff']) || !empty($it->snapshot['before']); @endphp
+            <div class="act-row {{ $hasDiff ? '' : 'no-diff' }}" onclick="{{ $hasDiff ? 'actToggle(this)' : '' }}">
                 <div class="act-row__icon act-row__icon--{{ $it->entity_type }}">
                     {!! $actIcons[$it->entity_type] ?? $actIcons['field'] !!}
                 </div>
@@ -1524,16 +1530,37 @@
                     <span class="act-row__when" title="{{ $it->created_at->format('d.m.Y H:i') }}">{{ $it->created_at->diffForHumans() }}</span>
                     <span class="act-badge act-badge--{{ $it->entity_type }}">{{ $actLabels[$it->entity_type] ?? $it->entity_type }}</span>
                     @if($it->action === 'delete' && $it->snapshot)
-                    <form method="POST" action="{{ route('sites.activity.restore', [$site, $it]) }}" style="margin:0;" onsubmit="return confirm('Відновити запис?')">
+                    <form method="POST" action="{{ route('sites.activity.restore', [$site, $it]) }}" style="margin:0;" onsubmit="event.stopPropagation();return confirm('Відновити запис?')">
                         @csrf
                         <button type="submit" class="btn btn--ghost btn--xs">Відновити</button>
                     </form>
                     @endif
+                    @if($hasDiff)
+                    <svg class="act-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--text-3);transition:transform .15s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+                    @endif
                 </div>
+                @if($hasDiff)
+                <div class="act-diff" style="grid-column:1/-1;" onclick="event.stopPropagation()">
+                    @if(!empty($it->snapshot['diff']) && count($it->snapshot['diff']))
+                        <div class="act-diff__grid">
+                            <div class="act-diff__hdr">Поле</div>
+                            <div class="act-diff__hdr">Було</div>
+                            <div class="act-diff__hdr">Стало</div>
+                            @foreach($it->snapshot['diff'] as $field => $change)
+                                <div class="act-diff__key">{{ $fieldLabels[$field] ?? $field }}</div>
+                                <div class="act-diff__old">{{ is_array($change['before']) ? implode(', ', $change['before']) : ($change['before'] === null ? '—' : $change['before']) }}</div>
+                                <div class="act-diff__new">{{ is_array($change['after'])  ? implode(', ', $change['after'])  : ($change['after']  === null ? '—' : $change['after'])  }}</div>
+                            @endforeach
+                        </div>
+                    @else
+                        <pre class="act-diff__snap">{{ json_encode($it->snapshot['before'] ?? $it->snapshot, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) }}</pre>
+                    @endif
+                </div>
+                @endif
             </div>
             @else
             @php $kind = $it->status === 'success' ? 'ok' : ($it->status === 'error' ? 'off' : 'pause'); @endphp
-            <div class="act-row">
+            <div class="act-row no-diff">
                 <div class="act-row__icon act-row__icon--sync">
                     {!! $actIcons['sync'] !!}
                 </div>
@@ -2094,6 +2121,15 @@ function showVisitorPanel(iso) {
     if (panel) panel.style.display = '';
     var tab = document.getElementById('vis-tab-' + iso);
     if (tab) tab.className = tab.className.replace('btn--ghost', 'btn--primary');
+}
+
+// ── Activity diff toggle ───────────────────────────────────────────────────
+function actToggle(row) {
+    var diff = row.querySelector('.act-diff');
+    var chev = row.querySelector('.act-chevron');
+    if (!diff) return;
+    var open = row.classList.toggle('is-open');
+    if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
 }
 
 // ── Site presence heartbeat ───────────────────────────────────────────────

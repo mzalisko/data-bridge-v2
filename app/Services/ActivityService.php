@@ -8,15 +8,26 @@ use Illuminate\Database\Eloquent\Model;
 
 class ActivityService
 {
+    // Fields to skip when building diffs (internal/meta columns)
+    private const SKIP_FIELDS = ['created_at', 'updated_at', 'site_id', 'group_id'];
+
     public static function log(
         string $entityType,
         string $action,
         Model  $entity,
         string $summary,
         ?Site  $site = null,
+        array  $before = [],
     ): void {
         $siteId  = $site?->id ?? ($entity->site_id ?? null);
         $groupId = $site?->group_id ?? null;
+
+        $snapshot = match($action) {
+            'create' => ['after'  => self::clean($entity->toArray())],
+            'update' => ['before' => self::clean($before), 'after' => self::clean($entity->toArray()), 'diff' => self::diff($before, $entity->toArray())],
+            'delete' => ['before' => self::clean($entity->toArray())],
+            default  => null,
+        };
 
         ActivityLog::create([
             'site_id'     => $siteId,
@@ -27,7 +38,26 @@ class ActivityService
             'entity_id'   => $entity->id,
             'action'      => $action,
             'summary'     => $summary,
-            'snapshot'    => $action === 'delete' ? $entity->toArray() : null,
+            'snapshot'    => $snapshot,
         ]);
+    }
+
+    private static function clean(array $data): array
+    {
+        return collect($data)->except(self::SKIP_FIELDS)->all();
+    }
+
+    private static function diff(array $before, array $after): array
+    {
+        $changes = [];
+        $skip    = array_merge(self::SKIP_FIELDS, ['id']);
+        foreach ($after as $key => $newVal) {
+            if (in_array($key, $skip)) continue;
+            $oldVal = $before[$key] ?? null;
+            if ($oldVal != $newVal) {
+                $changes[$key] = ['before' => $oldVal, 'after' => $newVal];
+            }
+        }
+        return $changes;
     }
 }

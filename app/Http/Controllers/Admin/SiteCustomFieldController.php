@@ -22,8 +22,9 @@ class SiteCustomFieldController extends Controller
 
     public function update(UpdateSiteCustomFieldRequest $request, Site $site, SiteCustomField $field): RedirectResponse
     {
+        $before = $field->toArray();
         $field->update($request->validated());
-        ActivityService::log('field', 'update', $field, "Поле «{$field->field_key}» оновлено", $site);
+        ActivityService::log('field', 'update', $field, "Поле «{$field->field_key}» оновлено", $site, $before);
         return back()->with('success', 'Поле оновлено');
     }
 

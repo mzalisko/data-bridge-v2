@@ -94,8 +94,9 @@ Route::middleware('auth')->group(function () {
     Route::get('users/{user}/permissions/form', [PermissionController::class, 'fragment'])->name('users.permissions.fragment');
     Route::post('users/{user}/permissions', [PermissionController::class, 'update'])->name('users.permissions.update');
 
-    Route::get('/logs/system', [LogController::class, 'system'])->name('logs.system');
-    Route::get('/logs/sync', [LogController::class, 'sync'])->name('logs.sync');
+    Route::get('/logs/system',   [LogController::class, 'system'])->name('logs.system');
+    Route::get('/logs/sync',     [LogController::class, 'sync'])->name('logs.sync');
+    Route::get('/logs/activity', [LogController::class, 'activity'])->name('logs.activity');
 
     // Data Browser
     Route::get( 'data',             [DataBrowserController::class, 'index'])->name('data.index');

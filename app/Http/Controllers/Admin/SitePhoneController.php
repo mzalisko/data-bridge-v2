@@ -29,8 +29,9 @@ class SitePhoneController extends Controller
         $data['is_primary']    = $request->boolean('is_primary');
         $data['geo_mode']      = $data['geo_mode'] ?? 'all';
         $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
+        $before = $phone->toArray();
         $phone->update($data);
-        ActivityService::log('phone', 'update', $phone, "Телефон {$phone->number} оновлено", $site);
+        ActivityService::log('phone', 'update', $phone, "Телефон {$phone->number} оновлено", $site, $before);
 
         return back()->with('success', 'Телефон оновлено');
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreSiteGroupRequest;
 use App\Http\Requests\Admin\UpdateSiteGroupRequest;
+use App\Models\ActivityLog;
 use App\Models\SiteGroup;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,7 +38,13 @@ class SiteGroupController extends Controller
         $sites = $siteGroup->sites()->orderByDesc('created_at')->get();
         $allGroups = SiteGroup::orderBy('name')->get(['id', 'name', 'color']);
 
-        return view('admin.site-groups.show', compact('siteGroup', 'sites', 'allGroups'));
+        $groupActivity = ActivityLog::where('group_id', $siteGroup->id)
+            ->with(['user:id,name', 'site:id,name'])
+            ->orderByDesc('created_at')
+            ->limit(30)
+            ->get();
+
+        return view('admin.site-groups.show', compact('siteGroup', 'sites', 'allGroups', 'groupActivity'));
     }
 
     public function store(StoreSiteGroupRequest $request): RedirectResponse

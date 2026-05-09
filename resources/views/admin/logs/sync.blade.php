@@ -23,8 +23,9 @@
 
     {{-- ========= SOURCE TABS ========= --}}
     <div class="region-tabs" style="border-bottom:none;background:transparent;padding:0;">
-        <a href="{{ route('logs.system') }}" class="{{ request()->routeIs('logs.system') ? 'is-active' : '' }}">Системні події</a>
-        <a href="{{ route('logs.sync') }}" class="{{ request()->routeIs('logs.sync') ? 'is-active' : '' }}">Синхронізації</a>
+        <a href="{{ route('logs.system') }}"   class="{{ request()->routeIs('logs.system')   ? 'is-active' : '' }}">Системні події</a>
+        <a href="{{ route('logs.sync') }}"     class="{{ request()->routeIs('logs.sync')     ? 'is-active' : '' }}">Синхронізації</a>
+        <a href="{{ route('logs.activity') }}" class="{{ request()->routeIs('logs.activity') ? 'is-active' : '' }}">Зміни даних</a>
     </div>
 
     {{-- ========= MAIN CARD ========= --}}

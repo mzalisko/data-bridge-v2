@@ -134,9 +134,10 @@ class SiteController extends Controller
             return back()->with('error', 'Невідомий тип запису');
         }
 
-        $data = collect($log->snapshot)
-            ->except(['id', 'created_at', 'updated_at'])
-            ->all();
+        // snapshot is {before: {...}, after: {...}} for update/delete
+        $raw  = $log->snapshot;
+        $data = $raw['before'] ?? $raw; // fallback: old format was flat array
+        $data = collect($data)->except(['id', 'created_at', 'updated_at'])->all();
 
         $modelClass::create($data);
 

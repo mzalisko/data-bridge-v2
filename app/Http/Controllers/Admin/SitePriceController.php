@@ -28,8 +28,9 @@ class SitePriceController extends Controller
         $data['is_visible']    = $request->boolean('is_visible', true);
         $data['geo_mode']      = $data['geo_mode'] ?? 'all';
         $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
+        $before = $price->toArray();
         $price->update($data);
-        ActivityService::log('price', 'update', $price, "Ціна «{$price->label}» оновлена", $site);
+        ActivityService::log('price', 'update', $price, "Ціна «{$price->label}» оновлена", $site, $before);
         return back()->with('success', 'Ціну оновлено');
     }
 

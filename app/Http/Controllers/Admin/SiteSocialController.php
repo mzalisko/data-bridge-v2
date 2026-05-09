@@ -26,8 +26,9 @@ class SiteSocialController extends Controller
         $data = $request->validated();
         $data['geo_mode']      = $data['geo_mode'] ?? 'all';
         $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
+        $before = $social->toArray();
         $social->update($data);
-        ActivityService::log('social', 'update', $social, "{$social->platform} {$social->handle} оновлено", $site);
+        ActivityService::log('social', 'update', $social, "{$social->platform} {$social->handle} оновлено", $site, $before);
         return back()->with('success', 'Соцмережу оновлено');
     }
 

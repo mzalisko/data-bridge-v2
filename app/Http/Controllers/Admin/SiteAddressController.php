@@ -28,8 +28,9 @@ class SiteAddressController extends Controller
         $data['is_primary']    = $request->boolean('is_primary');
         $data['geo_mode']      = $data['geo_mode'] ?? 'all';
         $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
+        $before = $address->toArray();
         $address->update($data);
-        ActivityService::log('address', 'update', $address, "Адресу {$address->city} оновлено", $site);
+        ActivityService::log('address', 'update', $address, "Адресу {$address->city} оновлено", $site, $before);
         return back()->with('success', 'Адресу оновлено');
     }
 
