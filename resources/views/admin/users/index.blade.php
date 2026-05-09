@@ -10,6 +10,12 @@
         'editor'  => ['bg' => 'var(--success-bg)','fg' => 'var(--success)',     'label' => 'Редактор'],
         'viewer'  => ['bg' => 'var(--panel-2)',   'fg' => 'var(--text-3)',      'label' => 'Спостерігач'],
     ];
+    $roleCaps = [
+        'admin'   => 'Повний доступ — всі операції',
+        'manager' => 'Перегляд · редагування · синхронізація',
+        'editor'  => 'Перегляд · редагування даних',
+        'viewer'  => 'Тільки перегляд',
+    ];
     $totalCount    = \App\Models\User::count();
     $activeCount   = \App\Models\User::where('is_active', true)->count();
     $inactiveCount = $totalCount - $activeCount;
@@ -84,7 +90,7 @@
                 <thead>
                     <tr>
                         <th>Учасник</th>
-                        <th>Роль</th>
+                        <th>Роль / Доступ</th>
                         <th>Статус</th>
                         <th>Доданий</th>
                         <th style="width:80px;"></th>
@@ -112,6 +118,7 @@
                             </td>
                             <td>
                                 <span class="pill" style="background:{{ $r['bg'] }};color:{{ $r['fg'] }};">{{ $r['label'] }}</span>
+                                <div style="font-size:11px;color:var(--text-3);margin-top:4px;">{{ $roleCaps[$user->role] ?? '' }}</div>
                             </td>
                             <td>
                                 @if($user->is_active)

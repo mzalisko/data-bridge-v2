@@ -157,36 +157,39 @@
         </span>
     </div>
 
-    {{-- ========= 5 MINI STATS ========= --}}
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;">
-        <div class="card" style="padding:14px 16px;">
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Статус</div>
+    {{-- ========= SITE INFO BAR ========= --}}
+    @php $totalRecords = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count(); @endphp
+    <div class="card site-info-bar">
+        <div class="site-info-bar__item">
+            <span class="site-info-bar__label">Статус</span>
             <div><x-status-pill :status="$statusName"/></div>
         </div>
-        <div class="card" style="padding:14px 16px;">
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Група</div>
-            <div style="font-size:14px;font-weight:600;">
-                @if($site->siteGroup)
-                    <span class="group-chip">
-                        <span class="group-chip__dot" style="background:{{ $site->siteGroup->color ?? '#71717a' }}"></span>
-                        {{ $site->siteGroup->name }}
-                    </span>
-                @else
-                    <span style="color:var(--text-3);">—</span>
-                @endif
-            </div>
+        <div class="site-info-bar__sep"></div>
+        <div class="site-info-bar__item">
+            <span class="site-info-bar__label">Група</span>
+            @if($site->siteGroup)
+                <span class="group-chip" style="font-size:13px;">
+                    <span class="group-chip__dot" style="background:{{ $site->siteGroup->color ?? '#71717a' }}"></span>
+                    {{ $site->siteGroup->name }}
+                </span>
+            @else
+                <span class="site-info-bar__val" style="color:var(--text-3);">—</span>
+            @endif
         </div>
-        <div class="card" style="padding:14px 16px;">
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Гео</div>
-            <div style="font-size:18px;font-weight:600;color:var(--text);">{{ count($usedIso) }}</div>
+        <div class="site-info-bar__sep"></div>
+        <div class="site-info-bar__item">
+            <span class="site-info-bar__label">Записів</span>
+            <span class="site-info-bar__val">{{ $totalRecords }}</span>
         </div>
-        <div class="card" style="padding:14px 16px;">
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Телефони</div>
-            <div style="font-size:18px;font-weight:600;">{{ $site->phones->count() }}</div>
+        <div class="site-info-bar__sep"></div>
+        <div class="site-info-bar__item">
+            <span class="site-info-bar__label">Додано</span>
+            <span class="site-info-bar__val">{{ $site->created_at->format('d M Y') }}</span>
         </div>
-        <div class="card" style="padding:14px 16px;">
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Остання синхр.</div>
-            <div style="font-size:13px;font-weight:600;color:var(--text-2);">{{ $syncWhen }}</div>
+        <div class="site-info-bar__sep"></div>
+        <div class="site-info-bar__item">
+            <span class="site-info-bar__label">Остання синхр.</span>
+            <span class="site-info-bar__val" style="color:var(--text-2);">{{ $syncWhen }}</span>
         </div>
     </div>
 
@@ -1508,32 +1511,20 @@
                 'address' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
                 'social'  => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
                 'field'   => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>',
-                'sync'    => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 4v4h-4"/><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 20v-4h4"/></svg>',
             ];
             $actLabels   = ['phone'=>'Телефон','price'=>'Ціна','address'=>'Адреса','social'=>'Соцмережа','field'=>'Поле'];
             $actionLabel = ['create'=>'додано','update'=>'оновлено','delete'=>'видалено'];
             $fieldLabels = ['number'=>'Номер','label'=>'Мітка','geo_mode'=>'Гео-правило','geo_countries'=>'Країни','is_primary'=>'Основний','is_visible'=>'Видимий','amount'=>'Сума','currency'=>'Валюта','city'=>'Місто','street'=>'Вулиця','region'=>'Регіон','country_iso'=>'Країна','platform'=>'Платформа','handle'=>'Handle','url'=>'URL','field_key'=>'Ключ','field_value'=>'Значення','dial_code'=>'Код'];
             $geoModes    = ['all'=>'Всім','include'=>'Тільки для','exclude'=>'Всім крім'];
+            $skipFields  = ['id','site_id','group_id','created_at','updated_at','sort_order'];
             $tv          = fn($v) => is_array($v)
                 ? implode(', ', array_map(fn($x) => $geoModes[$x] ?? $x, $v))
                 : (is_bool($v) ? ($v ? 'Так' : 'Ні') : ($v === null ? '—' : ($geoModes[(string)$v] ?? (string)$v)));
-
-            // Merge CRM logs + sync logs into one sorted timeline
-            $timeline = collect();
-            foreach ($activityLogs as $log) {
-                $timeline->push(['type' => 'crm', 'at' => $log->created_at, 'item' => $log]);
-            }
-            foreach ($siteSyncs as $sync) {
-                $timeline->push(['type' => 'sync', 'at' => $sync->synced_at, 'item' => $sync]);
-            }
-            $timeline = $timeline->sortByDesc('at')->values();
         @endphp
 
         <div style="padding:0;">
-            @forelse($timeline as $entry)
-            @php $it = $entry['item']; @endphp
-            @if($entry['type'] === 'crm')
-            @php $hasDiff = !empty($it->snapshot['diff']) || !empty($it->snapshot['before']); @endphp
+            @forelse($activityLogs as $it)
+            @php $hasDiff = !empty($it->snapshot['diff']) || !empty($it->snapshot['before']) || !empty($it->snapshot['after']); @endphp
             <div class="act-row act-row--{{ $it->action }} {{ $hasDiff ? '' : 'no-diff' }}" onclick="{{ $hasDiff ? 'actToggle(this)' : '' }}">
                 <div class="act-row__icon act-row__icon--{{ $it->entity_type }}">
                     {!! $actIcons[$it->entity_type] ?? $actIcons['field'] !!}
@@ -1558,7 +1549,6 @@
                 </div>
                 @if($hasDiff)
                 <div class="act-diff" style="grid-column:1/-1;" onclick="event.stopPropagation()">
-                    @php $skipFields = ['id','site_id','group_id','created_at','updated_at','sort_order']; @endphp
                     @if(!empty($it->snapshot['diff']) && count($it->snapshot['diff']))
                         <div class="act-diff__grid">
                             <div class="act-diff__hdr">Параметр</div>
@@ -1596,27 +1586,15 @@
                 </div>
                 @endif
             </div>
-            @else
-            @php $kind = $it->status === 'success' ? 'ok' : ($it->status === 'error' ? 'off' : 'pause'); @endphp
-            <div class="act-row no-diff">
-                <div class="act-row__icon act-row__icon--sync">
-                    {!! $actIcons['sync'] !!}
-                </div>
-                <div class="act-row__body">
-                    <span class="act-row__who act-row__who--system">Система</span>
-                    <span class="act-row__verb">{{ $it->status === 'success' ? 'синхронізація OK' : ($it->status === 'error' ? 'помилка синхронізації' : 'синхронізація...') }}</span>
-                    @if($it->duration_ms)<span class="act-row__meta-inline">{{ $it->duration_ms }}ms</span>@endif
-                    @if($it->error_msg)<span class="act-row__error">{{ \Str::limit($it->error_msg, 60) }}</span>@endif
-                </div>
-                <div class="act-row__meta">
-                    <span class="act-row__when" title="{{ $it->synced_at?->format('d.m.Y H:i') }}">{{ $it->synced_at?->diffForHumans() ?? '—' }}</span>
-                    <span class="dot dot--{{ $kind }}" style="width:7px;height:7px;"></span>
-                </div>
-            </div>
-            @endif
             @empty
             <div style="padding:48px 20px;text-align:center;color:var(--text-3);font-size:13px;">Активності ще немає</div>
             @endforelse
+
+            @if($activityLogs->hasPages())
+            <div style="padding:14px 20px;border-top:1px solid var(--border-2);">
+                {{ $activityLogs->links() }}
+            </div>
+            @endif
         </div>
         @endif
 

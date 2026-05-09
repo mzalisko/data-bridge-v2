@@ -76,12 +76,12 @@ class SiteController extends Controller
         $activityLogs = ActivityLog::where('site_id', $site->id)
             ->with('user:id,name')
             ->orderByDesc('created_at')
-            ->limit(100)
-            ->get();
+            ->paginate(30, ['*'], 'act_page')
+            ->withQueryString();
 
         $siteSyncs = SyncLog::where('site_id', $site->id)
             ->orderByDesc('synced_at')
-            ->limit(50)
+            ->limit(20)
             ->get();
 
         return view('admin.sites.show', compact(

@@ -142,18 +142,10 @@
                 Workspace healthy · {{ $onlineCount }} of {{ $sitesCount }} sites online
             </div>
             <div style="flex:1"></div>
-            <button class="btn btn--ghost btn--sm" type="button">
+            <a href="{{ route('logs.activity') }}" class="btn btn--ghost btn--sm" title="Журнал змін">
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2H4.5L6 16z"/><path d="M10 20a2 2 0 0 0 4 0"/>
                 </svg>
-                <span>4</span>
-            </button>
-            <a class="btn btn--secondary btn--sm" href="#" target="_blank">
-                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 4h6v6"/><path d="M20 4 10 14"/>
-                    <path d="M20 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4"/>
-                </svg>
-                Docs
             </a>
         </header>
 

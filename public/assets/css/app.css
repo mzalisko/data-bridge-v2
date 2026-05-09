@@ -534,6 +534,15 @@ img, svg { display: block; max-width: 100%; }
 .stat-card__delta { color: var(--text-3); font-size: 12px; margin-top: 6px; }
 
 /* ============================================================
+   SITE INFO BAR
+   ============================================================ */
+.site-info-bar { display: flex; align-items: center; padding: 0; overflow: hidden; }
+.site-info-bar__item { display: flex; flex-direction: column; gap: 5px; padding: 14px 20px; flex: 1; min-width: 0; }
+.site-info-bar__label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); white-space: nowrap; }
+.site-info-bar__val { font-size: 13px; font-weight: 600; color: var(--text); }
+.site-info-bar__sep { width: 1px; height: 36px; background: var(--border-2); flex-shrink: 0; }
+
+/* ============================================================
    GROUP CHIP
    ============================================================ */
 .group-chip {
