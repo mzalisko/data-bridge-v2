@@ -724,7 +724,7 @@
                                         </label>
                                     @endforeach
                                     @if(count($usedIso))
-                                    <span id="dtchips-ph{{ $p->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};">
+                                    <span id="dtchips-ph{{ $p->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">
                                         @foreach($usedIso as $iso)
                                             <label class="dt-geo-chip {{ in_array($iso,(array)($p->geo_countries??[]))?'is-on':'' }}" id="dtchip-ph{{ $p->id }}-{{ $iso }}">
                                                 <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($p->geo_countries??[]))?'checked':'' }} style="display:none;"
@@ -892,7 +892,7 @@
                                         </label>
                                     @endforeach
                                     @if(count($usedIso))
-                                    <span id="dtchips-pr{{ $p->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};">
+                                    <span id="dtchips-pr{{ $p->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">
                                         @foreach($usedIso as $iso)
                                             <label class="dt-geo-chip {{ in_array($iso,(array)($p->geo_countries??[]))?'is-on':'' }}" id="dtchip-pr{{ $p->id }}-{{ $iso }}">
                                                 <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($p->geo_countries??[]))?'checked':'' }} style="display:none;"
@@ -1089,7 +1089,7 @@
                                         </label>
                                     @endforeach
                                     @if(count($usedIso))
-                                    <span id="dtchips-so{{ $s->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};">
+                                    <span id="dtchips-so{{ $s->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">
                                         @foreach($usedIso as $iso)
                                             <label class="dt-geo-chip {{ in_array($iso,(array)($s->geo_countries??[]))?'is-on':'' }}" id="dtchip-so{{ $s->id }}-{{ $iso }}">
                                                 <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($s->geo_countries??[]))?'checked':'' }} style="display:none;"
@@ -1270,7 +1270,7 @@
                                         </label>
                                     @endforeach
                                     @if(count($usedIso))
-                                    <span id="dtchips-ad{{ $a->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'grid':'none' }};">
+                                    <span id="dtchips-ad{{ $a->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">
                                         @foreach($usedIso as $iso)
                                             <label class="dt-geo-chip {{ in_array($iso,(array)($a->geo_countries??[]))?'is-on':'' }}" id="dtchip-ad{{ $a->id }}-{{ $iso }}">
                                                 <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($a->geo_countries??[]))?'checked':'' }} style="display:none;"
@@ -2119,7 +2119,7 @@ function dtGeoMode(prefix, mode) {
         if (radio) radio.checked = on;
     });
     var chips = document.getElementById('dtchips-' + prefix);
-    if (chips) chips.style.display = (mode === 'include' || mode === 'exclude') ? 'grid' : 'none';
+    if (chips) chips.style.display = (mode === 'include' || mode === 'exclude') ? 'flex' : 'none';
 }
 
 function dtGeoChip(prefix, iso, el) {
