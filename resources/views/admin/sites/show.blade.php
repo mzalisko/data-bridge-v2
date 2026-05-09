@@ -271,11 +271,106 @@
                 {{-- Country selector tabs --}}
                 <div style="border-top:1px solid var(--border-2);padding:10px 16px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--panel-2);">
                     <span style="font-size:11px;color:var(--text-3);font-weight:600;margin-right:4px;">Перегляд для:</span>
+                    <button onclick="showVisitorPanel('_all')" id="vis-tab-_all"
+                            class="btn btn--sm btn--primary"
+                            style="font-weight:700;gap:5px;">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                        Весь світ
+                    </button>
+                    <span style="color:var(--border);font-size:16px;margin:0 2px;">|</span>
                     @foreach($allVisitorIsos as $visIso)
                         <button onclick="showVisitorPanel('{{ $visIso }}')" id="vis-tab-{{ $visIso }}"
-                                class="btn btn--sm {{ $loop->first ? 'btn--primary' : 'btn--ghost' }}"
+                                class="btn btn--sm btn--ghost"
                                 style="font-family:var(--font-mono);font-weight:700;">{{ $visIso }}</button>
                     @endforeach
+                </div>
+
+                {{-- "Весь світ" panel: items visible to everyone (geo_mode=all) --}}
+                @php
+                    $wPhones  = $site->phones->filter(fn($p) => ($p->is_visible ?? true) && ($p->geo_mode ?? 'all') === 'all');
+                    $wPrices  = $site->prices->filter(fn($p) => ($p->is_visible ?? true) && ($p->geo_mode ?? 'all') === 'all');
+                    $wAddrs   = $site->addresses->filter(fn($a) => ($a->is_visible ?? true) && ($a->geo_mode ?? 'all') === 'all');
+                    $wSocials = $site->socials->filter(fn($s) => ($s->is_visible ?? true) && ($s->geo_mode ?? 'all') === 'all');
+                    $wTotal   = $wPhones->count() + $wPrices->count() + $wAddrs->count() + $wSocials->count();
+                    $totalAll = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count();
+                @endphp
+                <div id="vis-panel-_all">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
+                        {{-- Left: what everyone sees --}}
+                        <div style="background:var(--panel);padding:16px;">
+                            <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">
+                                Що бачать усі відвідувачі у світі
+                                <span style="font-family:var(--font-mono);font-weight:700;font-size:11px;color:var(--text-2);margin-left:6px;">{{ $wTotal }}/{{ $totalAll }}</span>
+                            </div>
+                            @if($wPhones->count())
+                                <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin:8px 0 4px;">Телефони</div>
+                                @foreach($wPhones as $p)
+                                    <div style="font-size:13px;font-weight:500;color:var(--text);font-family:var(--font-mono);padding:2px 0;">{{ ($p->dial_code ? '+'.$p->dial_code.' ' : '') . $p->number }}</div>
+                                    @if($p->label)<div style="font-size:11px;color:var(--text-3);">{{ $p->label }}</div>@endif
+                                @endforeach
+                            @endif
+                            @if($wPrices->count())
+                                <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin:8px 0 4px;">Ціни</div>
+                                @foreach($wPrices as $p)
+                                    <div style="font-size:13px;color:var(--text);padding:2px 0;">{{ $p->label }} — <strong>{{ number_format($p->amount,2) }}</strong> <span style="color:var(--text-3);">{{ $p->currency }}</span></div>
+                                @endforeach
+                            @endif
+                            @if($wAddrs->count())
+                                <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin:8px 0 4px;">Адреси</div>
+                                @foreach($wAddrs as $a)
+                                    <div style="font-size:13px;color:var(--text);padding:2px 0;">{{ $a->city }}{{ $a->street ? ', '.$a->street : '' }}</div>
+                                @endforeach
+                            @endif
+                            @if($wSocials->count())
+                                <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin:8px 0 4px;">Соцмережі</div>
+                                @foreach($wSocials as $s)
+                                    <div style="font-size:13px;color:var(--text);padding:2px 0;">{{ ucfirst($s->platform) }}: {{ $s->handle }}</div>
+                                @endforeach
+                            @endif
+                            @if($wTotal === 0)
+                                <div style="color:var(--text-3);font-size:12px;">Немає записів без гео-обмежень</div>
+                            @endif
+                        </div>
+                        {{-- Right: matrix --}}
+                        <div style="background:var(--panel);padding:16px;">
+                            <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Видимість по країнах</div>
+                            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:left;padding:6px 8px;color:var(--text-3);font-weight:500;border-bottom:1px solid var(--border-2);font-size:11px;">Категорія</th>
+                                        @foreach($allVisitorIsos as $matIso)
+                                            <th style="text-align:center;padding:6px 8px;font-family:var(--font-mono);font-size:11px;font-weight:700;border-bottom:1px solid var(--border-2);color:var(--text-3);">{{ $matIso }}</th>
+                                        @endforeach
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                @foreach([
+                                    ['Телефони', $site->phones, 'data-phones'],
+                                    ['Ціни',     $site->prices, 'data-prices'],
+                                    ['Адреси',   $site->addresses, 'data-addresses'],
+                                    ['Соцмережі',$site->socials,  'data-socials'],
+                                ] as [$catLabel, $catItems, $catAnchor])
+                                    @if($catItems->count())
+                                    <tr style="border-bottom:1px solid var(--border-2);">
+                                        <td style="padding:7px 8px;font-size:12px;font-weight:500;color:var(--text-2);cursor:pointer;white-space:nowrap;"
+                                            onclick="location='{{ $url(['tab'=>'data']) }}#{{ $catAnchor }}'">{{ $catLabel }} <span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);">{{ $catItems->count() }}</span></td>
+                                        @foreach($allVisitorIsos as $matIso)
+                                            @php
+                                                $catTotal = $catItems->count();
+                                                $catVis   = $catItems->filter(fn($i) => ($i->is_visible ?? true) && $geoVis($i->geo_mode, $i->geo_countries, $matIso, $i->country_iso))->count();
+                                                $matColor = $catVis === $catTotal ? '#34d399' : ($catVis > 0 ? 'var(--warning)' : '#f87171');
+                                            @endphp
+                                            <td style="text-align:center;padding:7px 8px;">
+                                                <span style="font-size:11px;font-weight:700;color:{{ $matColor }};font-family:var(--font-mono);">{{ $catVis }}/{{ $catTotal }}</span>
+                                            </td>
+                                        @endforeach
+                                    </tr>
+                                    @endif
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Per-ISO panel: visitor preview (LEFT) + matrix (RIGHT) --}}
@@ -288,13 +383,11 @@
                         $totalVis = $vPhones->count() + $vPrices->count() + $vAddrs->count() + $vSocials->count();
                         $totalAll = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count();
                     @endphp
-                    <div id="vis-panel-{{ $visIso }}" style="{{ $loop->first ? '' : 'display:none;' }}">
-                        @if(!$loop->first)
+                    <div id="vis-panel-{{ $visIso }}" style="display:none;">
                         <div class="vis-preview-bar" id="vis-bar-{{ $visIso }}">
                             <span>Перегляд: відвідувач <strong>{{ $visIso }}</strong>{{ isset($allIsoCountries[$visIso]) ? ' — '.$allIsoCountries[$visIso] : '' }}</span>
-                            <button class="vis-preview-bar__exit" onclick="showVisitorPanel('{{ $allVisitorIsos[0] ?? '' }}')">✕ Вийти</button>
+                            <button class="vis-preview-bar__exit" onclick="showVisitorPanel('_all')">✕ Вийти</button>
                         </div>
-                        @endif
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
 
                             {{-- LEFT: Що бачить відвідувач --}}
