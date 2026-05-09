@@ -29,6 +29,7 @@
     $onlineCount = Site::where('is_active', true)->count();
     $userName    = auth()->user()->name ?? 'User';
     $userInitial = mb_strtoupper(mb_substr($userName, 0, 1, 'UTF-8'), 'UTF-8');
+    $teamMembers = \App\Models\User::where('is_active', true)->orderBy('name')->get(['id','name','role']);
 @endphp
 
 <div class="shell">
@@ -100,10 +101,17 @@
             <div class="sidebar-block__label">Workspace</div>
             <div class="sidebar-block__name">DataBridge HQ</div>
             <div class="sidebar-block__avatars">
-                @foreach(['A','S','D','K'] as $i => $letter)
-                    <span class="avatar" style="width:22px;height:22px;font-size:9px;background:var(--accent-2);color:var(--accent-text);margin-left:{{ $i === 0 ? 0 : -6 }}px;">{{ $letter }}</span>
+                @foreach($teamMembers->take(5) as $i => $member)
+                    @php $initials = collect(explode(' ', $member->name))->map(fn($w) => mb_strtoupper(mb_substr($w,0,1,'UTF-8'),'UTF-8'))->take(2)->implode(''); @endphp
+                    <a href="{{ route('users.index') }}" title="{{ $member->name }} ({{ ucfirst($member->role) }})"
+                       class="avatar sidebar-ws-avatar" style="width:24px;height:24px;font-size:9px;margin-left:{{ $i === 0 ? 0 : -7 }}px;{{ auth()->id() === $member->id ? 'border:2px solid var(--accent);' : '' }}">{{ $initials }}</a>
                 @endforeach
-                <button class="icon-btn" style="width:22px;height:22px;border:1px dashed var(--border);border-radius:99px;font-size:14px;color:var(--text-3);margin-left:2px;padding:0;">+</button>
+                @if($teamMembers->count() > 5)
+                    <span class="avatar" style="width:24px;height:24px;font-size:8px;background:var(--panel-2);color:var(--text-3);margin-left:-7px;">+{{ $teamMembers->count()-5 }}</span>
+                @endif
+                <a href="{{ route('users.index') }}" class="sidebar-ws-add" title="Команда">
+                    <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                </a>
             </div>
         </div>
 

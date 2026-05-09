@@ -148,7 +148,24 @@ img, svg { display: block; max-width: 100%; }
   font-weight: 600;
 }
 .sidebar-block__name { font-size: 13px; font-weight: 600; margin-top: 4px; }
-.sidebar-block__avatars { display: flex; align-items: center; margin-top: 8px; gap: 2px; }
+.sidebar-block__avatars { display: flex; align-items: center; margin-top: 8px; }
+.sidebar-ws-avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 99px; background: var(--accent-2); color: var(--accent-text);
+  font-weight: 700; text-decoration: none;
+  border: 2px solid var(--panel-2);
+  transition: transform .1s, z-index 0s;
+  position: relative; z-index: 1;
+}
+.sidebar-ws-avatar:hover { transform: translateY(-2px); z-index: 10; }
+.sidebar-ws-add {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 99px;
+  border: 1.5px dashed var(--border); color: var(--text-3);
+  margin-left: 4px; text-decoration: none;
+  transition: border-color .12s, color .12s;
+}
+.sidebar-ws-add:hover { border-color: var(--accent); color: var(--accent); }
 
 .sidebar-user {
   display: flex; align-items: center; gap: 10px;

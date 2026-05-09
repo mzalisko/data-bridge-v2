@@ -282,7 +282,7 @@
                         @if(!$loop->first)
                         <div class="vis-preview-bar" id="vis-bar-{{ $visIso }}">
                             <span>Перегляд: відвідувач <strong>{{ $visIso }}</strong>{{ isset($allIsoCountries[$visIso]) ? ' — '.$allIsoCountries[$visIso] : '' }}</span>
-                            <button class="vis-preview-bar__exit" onclick="showVisitorPanel('{{ $allVisitorIsos->first() }}')">✕ Вийти</button>
+                            <button class="vis-preview-bar__exit" onclick="showVisitorPanel('{{ $allVisitorIsos[0] ?? '' }}')">✕ Вийти</button>
                         </div>
                         @endif
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
@@ -1169,6 +1169,209 @@
                     </div>
                     @empty
                         <div class="dt-empty">Адрес немає</div>
+                    @endforelse
+                </div>
+            </div>
+
+            {{-- ═══ LINKS (email / url) ══════════════════════════════ --}}
+            @php
+                $siteLinks = $site->customFields->whereIn('field_type', ['url', 'email']);
+                $siteTexts = $site->customFields->whereNotIn('field_type', ['url', 'email']);
+                $linkIcon  = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+                $textIcon  = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>';
+            @endphp
+            <div class="dt-card" id="data-links">
+                <div class="dt-card-head">
+                    <span class="dt-card-head__icon">{!! $linkIcon !!}</span>
+                    <span class="dt-card-head__title">Посилання</span>
+                    <span class="dt-card-head__count">{{ $siteLinks->count() }}</span>
+                    <button class="dt-add-btn" id="dt-add-btn-links" onclick="dtToggleAdd('links')">
+                        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Додати
+                    </button>
+                </div>
+                <div class="dt-panel" id="dt-add-links" style="display:none;">
+                    <div class="dt-panel__title">Нове посилання</div>
+                    <form method="POST" action="{{ route('fields.store', $site) }}">
+                        @csrf
+                        <input type="hidden" name="field_type" value="url">
+                        <input type="hidden" name="sort_order" value="0">
+                        <div class="dt-row dt-row--2">
+                            <div>
+                                <label class="dt-label">Назва</label>
+                                <input type="text" name="field_key" class="dt-input" placeholder="Сайт, Email підтримки…" required>
+                            </div>
+                            <div>
+                                <label class="dt-label">Тип</label>
+                                <select name="field_type" class="dt-input">
+                                    <option value="url">URL</option>
+                                    <option value="email">Email</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="dt-row" style="margin-bottom:8px;">
+                            <label class="dt-label">Значення (URL або email)</label>
+                            <input type="text" name="field_value" class="dt-input" placeholder="https://… або user@domain.com" required>
+                        </div>
+                        <div class="dt-panel__actions">
+                            <button type="button" class="btn btn--ghost btn--sm" onclick="dtToggleAdd('links')">Скасувати</button>
+                            <button type="submit" class="btn btn--primary btn--sm">Додати</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="dt-items">
+                    @forelse($siteLinks as $cf)
+                    <div class="dt-item">
+                        <div class="dt-item-row" onclick="dtExpandItem('link-{{ $cf->id }}')">
+                            <span class="dt-item-icon">
+                                @if($cf->field_type === 'email')
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                                @else
+                                    {!! $linkIcon !!}
+                                @endif
+                            </span>
+                            <div class="dt-item-main">
+                                <div class="dt-item-name">{{ $cf->field_key }}</div>
+                                <div class="dt-item-sub" style="font-family:var(--font-mono);">{{ $cf->field_value }}</div>
+                            </div>
+                            <div class="dt-item-actions" onclick="event.stopPropagation()">
+                                <form method="POST" action="{{ route('fields.destroy',[$site,$cf]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити">
+                                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                                    </button>
+                                </form>
+                                <button class="icon-btn" id="dt-expand-link-{{ $cf->id }}" title="Редагувати" onclick="dtExpandItem('link-{{ $cf->id }}')">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="dt-panel" id="dt-edit-link-{{ $cf->id }}" style="display:none;">
+                            <form method="POST" action="{{ route('fields.update',[$site,$cf]) }}">
+                                @csrf @method('PUT')
+                                <input type="hidden" name="sort_order" value="{{ $cf->sort_order }}">
+                                <div class="dt-row dt-row--2">
+                                    <div>
+                                        <label class="dt-label">Назва</label>
+                                        <input type="text" name="field_key" class="dt-input" value="{{ $cf->field_key }}" required>
+                                    </div>
+                                    <div>
+                                        <label class="dt-label">Тип</label>
+                                        <select name="field_type" class="dt-input">
+                                            <option value="url" {{ $cf->field_type==='url'?'selected':'' }}>URL</option>
+                                            <option value="email" {{ $cf->field_type==='email'?'selected':'' }}>Email</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="dt-row" style="margin-bottom:8px;">
+                                    <label class="dt-label">Значення</label>
+                                    <input type="text" name="field_value" class="dt-input" value="{{ $cf->field_value }}" required>
+                                </div>
+                                <div class="dt-panel__actions">
+                                    <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('link-{{ $cf->id }}')">Скасувати</button>
+                                    <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    @empty
+                        <div class="dt-empty">Посилань немає</div>
+                    @endforelse
+                </div>
+            </div>
+
+            {{-- ═══ TEXT FIELDS ════════════════════════════════════════ --}}
+            <div class="dt-card" id="data-text">
+                <div class="dt-card-head">
+                    <span class="dt-card-head__icon">{!! $textIcon !!}</span>
+                    <span class="dt-card-head__title">Текстові поля</span>
+                    <span class="dt-card-head__count">{{ $siteTexts->count() }}</span>
+                    <button class="dt-add-btn" id="dt-add-btn-text" onclick="dtToggleAdd('text')">
+                        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Додати
+                    </button>
+                </div>
+                <div class="dt-panel" id="dt-add-text" style="display:none;">
+                    <div class="dt-panel__title">Нове текстове поле</div>
+                    <form method="POST" action="{{ route('fields.store', $site) }}">
+                        @csrf
+                        <input type="hidden" name="sort_order" value="0">
+                        <div class="dt-row dt-row--2">
+                            <div>
+                                <label class="dt-label">Назва поля</label>
+                                <input type="text" name="field_key" class="dt-input" placeholder="Короткий опис, Нотатка…" required>
+                            </div>
+                            <div>
+                                <label class="dt-label">Тип</label>
+                                <select name="field_type" class="dt-input">
+                                    <option value="text">Текст</option>
+                                    <option value="number">Число</option>
+                                    <option value="json">JSON</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="dt-row" style="margin-bottom:8px;">
+                            <label class="dt-label">Значення</label>
+                            <textarea name="field_value" class="dt-input" rows="3" style="resize:vertical;" placeholder="Будь-який текст…" required></textarea>
+                        </div>
+                        <div class="dt-panel__actions">
+                            <button type="button" class="btn btn--ghost btn--sm" onclick="dtToggleAdd('text')">Скасувати</button>
+                            <button type="submit" class="btn btn--primary btn--sm">Додати</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="dt-items">
+                    @forelse($siteTexts as $cf)
+                    <div class="dt-item">
+                        <div class="dt-item-row" onclick="dtExpandItem('text-{{ $cf->id }}')">
+                            <span class="dt-item-icon">{!! $textIcon !!}</span>
+                            <div class="dt-item-main">
+                                <div class="dt-item-name">{{ $cf->field_key }}</div>
+                                <div class="dt-item-sub">{{ Str::limit($cf->field_value, 60) }}</div>
+                            </div>
+                            <div class="dt-item-actions" onclick="event.stopPropagation()">
+                                <form method="POST" action="{{ route('fields.destroy',[$site,$cf]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити">
+                                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                                    </button>
+                                </form>
+                                <button class="icon-btn" id="dt-expand-text-{{ $cf->id }}" title="Редагувати" onclick="dtExpandItem('text-{{ $cf->id }}')">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="dt-panel" id="dt-edit-text-{{ $cf->id }}" style="display:none;">
+                            <form method="POST" action="{{ route('fields.update',[$site,$cf]) }}">
+                                @csrf @method('PUT')
+                                <input type="hidden" name="sort_order" value="{{ $cf->sort_order }}">
+                                <div class="dt-row dt-row--2">
+                                    <div>
+                                        <label class="dt-label">Назва поля</label>
+                                        <input type="text" name="field_key" class="dt-input" value="{{ $cf->field_key }}" required>
+                                    </div>
+                                    <div>
+                                        <label class="dt-label">Тип</label>
+                                        <select name="field_type" class="dt-input">
+                                            <option value="text" {{ $cf->field_type==='text'?'selected':'' }}>Текст</option>
+                                            <option value="number" {{ $cf->field_type==='number'?'selected':'' }}>Число</option>
+                                            <option value="json" {{ $cf->field_type==='json'?'selected':'' }}>JSON</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="dt-row" style="margin-bottom:8px;">
+                                    <label class="dt-label">Значення</label>
+                                    <textarea name="field_value" class="dt-input" rows="3" style="resize:vertical;" required>{{ $cf->field_value }}</textarea>
+                                </div>
+                                <div class="dt-panel__actions">
+                                    <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('text-{{ $cf->id }}')">Скасувати</button>
+                                    <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    @empty
+                        <div class="dt-empty">Текстових полів немає</div>
                     @endforelse
                 </div>
             </div>
