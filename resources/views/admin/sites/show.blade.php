@@ -311,27 +311,40 @@
                             @if($wPhones->count())
                                 <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px;">Телефони</div>
                                 @foreach($wPhones as $p)
-                                    <div style="font-size:13px;font-weight:500;color:var(--text);font-family:var(--font-mono);padding:2px 0;">{{ ($p->dial_code ? '+'.$p->dial_code.' ' : '') . $p->number }}</div>
-                                    @if($p->label)<div style="font-size:11px;color:var(--text-3);margin-bottom:4px;">{{ $p->label }}</div>@endif
+                                    <div style="background:var(--panel-2);border-radius:var(--radius-item);padding:8px 10px;margin-bottom:5px;">
+                                        <div style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text);">{{ $p->number }}</div>
+                                        @if($p->label)<div style="font-size:11px;color:var(--text-3);margin-top:1px;">{{ $p->label }}</div>@endif
+                                    </div>
                                 @endforeach
                             @endif
                             @if($wPrices->count())
-                                <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:10px 0 6px;">Ціни</div>
+                                <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:14px 0 6px;">Ціни</div>
                                 @foreach($wPrices as $p)
-                                    <div style="font-size:13px;color:var(--text);padding:2px 0;">{{ $p->label }} — <strong>{{ number_format($p->amount,2) }}</strong> <span style="color:var(--text-3);">{{ $p->currency }}</span></div>
+                                    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--panel-2);border-radius:var(--radius-item);padding:7px 10px;margin-bottom:5px;">
+                                        <span style="font-size:12px;color:var(--text-2);">{{ $p->label }}</span>
+                                        <span style="font-family:var(--font-mono);font-weight:700;font-size:13px;color:#34d399;">{{ $p->amount }} {{ $p->currency }}</span>
+                                    </div>
                                 @endforeach
                             @endif
                             @if($wAddrs->count())
-                                <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:10px 0 6px;">Адреси</div>
+                                <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:14px 0 6px;">Адреси</div>
                                 @foreach($wAddrs as $a)
-                                    <div style="font-size:13px;color:var(--text);padding:2px 0;">{{ $a->city }}{{ $a->street ? ', '.$a->street : '' }}</div>
+                                    <div style="font-size:12px;color:var(--text-2);background:var(--panel-2);border-radius:var(--radius-item);padding:7px 10px;margin-bottom:5px;">
+                                        {{ trim(($a->city ?? '').' '.($a->street ?? '')) ?: '—' }}
+                                    </div>
                                 @endforeach
                             @endif
                             @if($wSocials->count())
-                                <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:10px 0 6px;">Соцмережі</div>
+                                <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:14px 0 6px;">Соцмережі</div>
+                                <div style="display:flex;flex-direction:column;gap:5px;">
                                 @foreach($wSocials as $s)
-                                    <div style="font-size:13px;color:var(--text);padding:2px 0;">{{ ucfirst($s->platform) }}: {{ $s->handle }}</div>
+                                    @php $sk = strtolower($s->platform ?? ''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'']; @endphp
+                                    <div style="display:flex;align-items:center;gap:8px;background:var(--panel-2);border-radius:var(--radius-item);padding:7px 10px;">
+                                        <span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span>
+                                        <span style="font-size:12px;color:var(--text-2);">{{ ucfirst($s->platform) }}: {{ $s->handle }}</span>
+                                    </div>
                                 @endforeach
+                                </div>
                             @endif
                             @endif
                         </div>
@@ -1517,7 +1530,7 @@
             @php $it = $entry['item']; @endphp
             @if($entry['type'] === 'crm')
             @php $hasDiff = !empty($it->snapshot['diff']) || !empty($it->snapshot['before']); @endphp
-            <div class="act-row {{ $hasDiff ? '' : 'no-diff' }}" onclick="{{ $hasDiff ? 'actToggle(this)' : '' }}">
+            <div class="act-row act-row--{{ $it->action }} {{ $hasDiff ? '' : 'no-diff' }}" onclick="{{ $hasDiff ? 'actToggle(this)' : '' }}">
                 <div class="act-row__icon act-row__icon--{{ $it->entity_type }}">
                     {!! $actIcons[$it->entity_type] ?? $actIcons['field'] !!}
                 </div>
@@ -1541,9 +1554,10 @@
                 </div>
                 @if($hasDiff)
                 <div class="act-diff" style="grid-column:1/-1;" onclick="event.stopPropagation()">
+                    @php $skipFields = ['id','site_id','group_id','created_at','updated_at','sort_order']; @endphp
                     @if(!empty($it->snapshot['diff']) && count($it->snapshot['diff']))
                         <div class="act-diff__grid">
-                            <div class="act-diff__hdr">Поле</div>
+                            <div class="act-diff__hdr">Параметр</div>
                             <div class="act-diff__hdr">Було</div>
                             <div class="act-diff__hdr">Стало</div>
                             @foreach($it->snapshot['diff'] as $field => $change)
@@ -1552,8 +1566,28 @@
                                 <div class="act-diff__new">{{ is_array($change['after'])  ? implode(', ', $change['after'])  : ($change['after']  === null ? '—' : $change['after'])  }}</div>
                             @endforeach
                         </div>
-                    @else
-                        <pre class="act-diff__snap">{{ json_encode($it->snapshot['before'] ?? $it->snapshot, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) }}</pre>
+                    @elseif($it->action === 'delete' && !empty($it->snapshot['before']))
+                        <div class="act-diff__grid" style="grid-template-columns:140px 1fr;">
+                            <div class="act-diff__hdr">Параметр</div>
+                            <div class="act-diff__hdr">Значення</div>
+                            @foreach($it->snapshot['before'] as $field => $value)
+                                @if(!in_array($field, $skipFields) && $value !== null && $value !== '' && $value !== [])
+                                <div class="act-diff__key">{{ $fieldLabels[$field] ?? $field }}</div>
+                                <div class="act-diff__old" style="color:var(--text-2);">{{ is_array($value) ? implode(', ', $value) : $value }}</div>
+                                @endif
+                            @endforeach
+                        </div>
+                    @elseif($it->action === 'create' && !empty($it->snapshot['after']))
+                        <div class="act-diff__grid" style="grid-template-columns:140px 1fr;">
+                            <div class="act-diff__hdr">Параметр</div>
+                            <div class="act-diff__hdr">Значення</div>
+                            @foreach($it->snapshot['after'] as $field => $value)
+                                @if(!in_array($field, $skipFields) && $value !== null && $value !== '' && $value !== [])
+                                <div class="act-diff__key">{{ $fieldLabels[$field] ?? $field }}</div>
+                                <div class="act-diff__new">{{ is_array($value) ? implode(', ', $value) : $value }}</div>
+                                @endif
+                            @endforeach
+                        </div>
                     @endif
                 </div>
                 @endif

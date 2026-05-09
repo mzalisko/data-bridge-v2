@@ -409,7 +409,10 @@ img, svg { display: block; max-width: 100%; }
 .act-row__who--system { color: var(--text-3); font-size: 12px; }
 .act-row__verb { color: var(--text-2); }
 .act-row__verb--create { color: var(--dot-ok); }
-.act-row__verb--delete { color: var(--dot-off); }
+.act-row__verb--delete { color: var(--dot-off); font-weight: 700; }
+.act-row--delete { border-left: 3px solid var(--dot-off); background: rgba(245,101,101,.04); }
+.act-row--delete:hover { background: rgba(245,101,101,.07); }
+[data-theme="dark"] .act-row--delete { background: rgba(245,101,101,.06); }
 .act-row__summary { color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
 .act-row__meta-inline { color: var(--text-3); font-size: 11px; }
 .act-row__error { color: var(--dot-off); font-size: 11px; }
@@ -433,6 +436,37 @@ img, svg { display: block; max-width: 100%; }
 [data-theme="dark"] .act-badge--social  { background: #1e0d2a; color: #ce93d8; }
 [data-theme="dark"] .act-badge--field   { background: #2a1a00; color: #ffb74d; }
 .btn--xs { padding: 2px 8px; font-size: 11px; }
+
+/* ============================================================
+   CUSTOM SELECT (filter dropdowns)
+   ============================================================ */
+.cselect { position: relative; display: inline-block; }
+.cselect__trigger {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; min-width: 120px;
+  background: var(--panel-2); border: 1px solid var(--border);
+  border-radius: var(--radius-item); font-size: 13px; color: var(--text);
+  cursor: pointer; white-space: nowrap; transition: border-color .15s, background .15s;
+  font-family: inherit;
+}
+.cselect__trigger svg { flex-shrink: 0; color: var(--text-3); transition: transform .15s; }
+.cselect__trigger:hover { border-color: var(--accent); background: var(--panel); }
+.cselect.is-open .cselect__trigger { border-color: var(--accent); background: var(--panel); }
+.cselect.is-open .cselect__trigger svg { transform: rotate(180deg); }
+.cselect__menu {
+  position: absolute; top: calc(100% + 5px); left: 0; z-index: 200;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius-item); min-width: 100%;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18); display: none; overflow: hidden;
+}
+.cselect.is-open .cselect__menu { display: block; }
+.cselect__option {
+  padding: 8px 12px; font-size: 13px; color: var(--text-2);
+  cursor: pointer; transition: background .1s; white-space: nowrap;
+}
+.cselect__option:hover { background: var(--panel-2); color: var(--text); }
+.cselect__option.is-active { color: var(--accent); font-weight: 600; background: var(--accent-2); }
+.cselect__divider { height: 1px; background: var(--border-2); margin: 4px 0; }
 
 /* ============================================================
    ACTIVITY DIFF

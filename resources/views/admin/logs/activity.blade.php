@@ -13,12 +13,13 @@
     ];
     $actLabels  = ['phone'=>'Телефон','price'=>'Ціна','address'=>'Адреса','social'=>'Соцмережа','field'=>'Поле'];
     $actionLabel= ['create'=>'додано','update'=>'оновлено','delete'=>'видалено'];
-    $fieldLabels= ['number'=>'Номер','label'=>'Мітка','geo_mode'=>'Гео-правило','geo_countries'=>'Країни','is_primary'=>'Основний','is_visible'=>'Видимий','amount'=>'Сума','currency'=>'Валюта','city'=>'Місто','street'=>'Вулиця','region'=>'Регіон','country_iso'=>'Країна','platform'=>'Платформа','handle'=>'Handle','url'=>'URL','field_key'=>'Ключ','field_value'=>'Значення'];
+    $fieldLabels= ['number'=>'Номер','label'=>'Мітка','geo_mode'=>'Гео-правило','geo_countries'=>'Країни','is_primary'=>'Основний','is_visible'=>'Видимий','amount'=>'Сума','currency'=>'Валюта','city'=>'Місто','street'=>'Вулиця','region'=>'Регіон','country_iso'=>'Країна','platform'=>'Платформа','handle'=>'Handle','url'=>'URL','field_key'=>'Ключ','field_value'=>'Значення','dial_code'=>'Код'];
+    $skipFields = ['id','site_id','group_id','created_at','updated_at','sort_order'];
 @endphp
 
 <div class="page-stack">
 
-    {{-- ========= PAGE HEAD ========= --}}
+    {{-- PAGE HEAD --}}
     <div class="page-head">
         <div>
             <h1 class="page-head__title">Журнал змін</h1>
@@ -26,55 +27,84 @@
         </div>
     </div>
 
-    {{-- ========= SOURCE TABS ========= --}}
+    {{-- SOURCE TABS --}}
     <div class="region-tabs" style="border-bottom:none;background:transparent;padding:0;">
         <a href="{{ route('logs.system') }}"   class="{{ request()->routeIs('logs.system')   ? 'is-active' : '' }}">Системні події</a>
         <a href="{{ route('logs.sync') }}"     class="{{ request()->routeIs('logs.sync')     ? 'is-active' : '' }}">Синхронізації</a>
         <a href="{{ route('logs.activity') }}" class="{{ request()->routeIs('logs.activity') ? 'is-active' : '' }}">Зміни даних</a>
     </div>
 
-    {{-- ========= MAIN CARD ========= --}}
+    {{-- MAIN CARD --}}
     <div class="card card--flush">
 
-        {{-- Filter bar --}}
-        <form method="GET" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--border-2);">
-            <div class="select-wrap">
-                <select name="entity_type" onchange="this.form.submit()">
-                    <option value="">Всі типи</option>
+        {{-- Filter bar with custom selects --}}
+        <form method="GET" id="act-filter-form" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--border-2);">
+
+            {{-- Type --}}
+            <div class="cselect" id="cs-type">
+                <button type="button" class="cselect__trigger" onclick="csToggle('cs-type')">
+                    <span class="cselect__label">{{ $actLabels[request('entity_type')] ?? 'Всі типи' }}</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="cselect__menu">
+                    <div class="cselect__option {{ !request('entity_type') ? 'is-active' : '' }}" onclick="csSelect('cs-type','','Всі типи')">Всі типи</div>
+                    <div class="cselect__divider"></div>
                     @foreach($actLabels as $val => $lab)
-                        <option value="{{ $val }}" {{ request('entity_type') === $val ? 'selected' : '' }}>{{ $lab }}</option>
+                        <div class="cselect__option {{ request('entity_type') === $val ? 'is-active' : '' }}" onclick="csSelect('cs-type','{{ $val }}','{{ $lab }}')">{{ $lab }}</div>
                     @endforeach
-                </select>
-                <span class="select-wrap__chevron"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </div>
+                <input type="hidden" name="entity_type" value="{{ request('entity_type','') }}">
             </div>
-            <div class="select-wrap">
-                <select name="action" onchange="this.form.submit()">
-                    <option value="">Всі дії</option>
+
+            {{-- Action --}}
+            <div class="cselect" id="cs-action">
+                <button type="button" class="cselect__trigger" onclick="csToggle('cs-action')">
+                    <span class="cselect__label">{{ ['create'=>'Додано','update'=>'Оновлено','delete'=>'Видалено'][request('action')] ?? 'Всі дії' }}</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="cselect__menu">
+                    <div class="cselect__option {{ !request('action') ? 'is-active' : '' }}" onclick="csSelect('cs-action','','Всі дії')">Всі дії</div>
+                    <div class="cselect__divider"></div>
                     @foreach(['create'=>'Додано','update'=>'Оновлено','delete'=>'Видалено'] as $val => $lab)
-                        <option value="{{ $val }}" {{ request('action') === $val ? 'selected' : '' }}>{{ $lab }}</option>
+                        <div class="cselect__option {{ request('action') === $val ? 'is-active' : '' }}" onclick="csSelect('cs-action','{{ $val }}','{{ $lab }}')">{{ $lab }}</div>
                     @endforeach
-                </select>
-                <span class="select-wrap__chevron"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </div>
+                <input type="hidden" name="action" value="{{ request('action','') }}">
             </div>
-            <div class="select-wrap">
-                <select name="group_id" onchange="this.form.submit()">
-                    <option value="">Всі групи</option>
+
+            {{-- Group --}}
+            <div class="cselect" id="cs-group">
+                <button type="button" class="cselect__trigger" onclick="csToggle('cs-group')">
+                    <span class="cselect__label">{{ $groups->firstWhere('id', request('group_id'))?->name ?? 'Всі групи' }}</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="cselect__menu">
+                    <div class="cselect__option {{ !request('group_id') ? 'is-active' : '' }}" onclick="csSelect('cs-group','','Всі групи')">Всі групи</div>
+                    <div class="cselect__divider"></div>
                     @foreach($groups as $g)
-                        <option value="{{ $g->id }}" {{ request('group_id') == $g->id ? 'selected' : '' }}>{{ $g->name }}</option>
+                        <div class="cselect__option {{ request('group_id') == $g->id ? 'is-active' : '' }}" onclick="csSelect('cs-group','{{ $g->id }}','{{ $g->name }}')">{{ $g->name }}</div>
                     @endforeach
-                </select>
-                <span class="select-wrap__chevron"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </div>
+                <input type="hidden" name="group_id" value="{{ request('group_id','') }}">
             </div>
-            <div class="select-wrap">
-                <select name="site_id" onchange="this.form.submit()">
-                    <option value="">Всі сайти</option>
+
+            {{-- Site --}}
+            <div class="cselect" id="cs-site">
+                <button type="button" class="cselect__trigger" onclick="csToggle('cs-site')">
+                    <span class="cselect__label">{{ $sites->firstWhere('id', request('site_id'))?->name ?? 'Всі сайти' }}</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="cselect__menu">
+                    <div class="cselect__option {{ !request('site_id') ? 'is-active' : '' }}" onclick="csSelect('cs-site','','Всі сайти')">Всі сайти</div>
+                    <div class="cselect__divider"></div>
                     @foreach($sites as $s)
-                        <option value="{{ $s->id }}" {{ request('site_id') == $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
+                        <div class="cselect__option {{ request('site_id') == $s->id ? 'is-active' : '' }}" onclick="csSelect('cs-site','{{ $s->id }}','{{ $s->name }}')">{{ $s->name }}</div>
                     @endforeach
-                </select>
-                <span class="select-wrap__chevron"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </div>
+                <input type="hidden" name="site_id" value="{{ request('site_id','') }}">
             </div>
-            @if(request()->anyFilled(['entity_type','action','site_id','group_id','user_id']))
+
+            @if(request()->anyFilled(['entity_type','action','site_id','group_id']))
                 <a href="{{ route('logs.activity') }}" class="btn btn--ghost btn--sm">✕ Скинути</a>
             @endif
             <span style="margin-left:auto;font-size:12px;color:var(--text-3);">{{ $logs->total() }} подій</span>
@@ -83,9 +113,11 @@
         {{-- Feed --}}
         @forelse($logs as $log)
         @php
-            $hasDiff = !empty($log->snapshot['diff']) || !empty($log->snapshot['before']) || !empty($log->snapshot['after']);
+            $hasDiff    = !empty($log->snapshot['diff']) || !empty($log->snapshot['before']) || !empty($log->snapshot['after']);
+            $isDelete   = $log->action === 'delete';
+            $beforeData = $log->snapshot['before'] ?? null;
         @endphp
-        <div class="act-row {{ $hasDiff ? '' : 'no-diff' }}" onclick="{{ $hasDiff ? 'actToggle(this)' : '' }}">
+        <div class="act-row act-row--{{ $log->action }} {{ $hasDiff ? '' : 'no-diff' }}" onclick="{{ $hasDiff ? 'actToggle(this)' : '' }}">
             <div class="act-row__icon act-row__icon--{{ $log->entity_type }}">
                 {!! $actIcons[$log->entity_type] ?? $actIcons['field'] !!}
             </div>
@@ -102,10 +134,10 @@
             <div class="act-row__meta">
                 <span class="act-row__when" title="{{ $log->created_at->format('d.m.Y H:i:s') }}">{{ $log->created_at->diffForHumans() }}</span>
                 <span class="act-badge act-badge--{{ $log->entity_type }}">{{ $actLabels[$log->entity_type] ?? $log->entity_type }}</span>
-                @if($log->action === 'delete' && $log->snapshot)
+                @if($isDelete && $log->snapshot)
                     <form method="POST" action="{{ route('sites.activity.restore', [$log->site_id, $log]) }}" style="margin:0;" onsubmit="event.stopPropagation();return confirm('Відновити запис?')">
                         @csrf
-                        <button type="submit" class="btn btn--ghost btn--xs">Відновити</button>
+                        <button type="submit" class="btn btn--ghost btn--xs">↩ Відновити</button>
                     </form>
                 @endif
                 @if($hasDiff)
@@ -113,12 +145,12 @@
                 @endif
             </div>
 
-            {{-- Diff block (collapsed by default) --}}
             @if($hasDiff)
             <div class="act-diff" style="grid-column:1/-1;" onclick="event.stopPropagation()">
                 @if(!empty($log->snapshot['diff']) && count($log->snapshot['diff']))
+                    {{-- Update: show field diff --}}
                     <div class="act-diff__grid">
-                        <div class="act-diff__hdr">Поле</div>
+                        <div class="act-diff__hdr">Параметр</div>
                         <div class="act-diff__hdr">Було</div>
                         <div class="act-diff__hdr">Стало</div>
                         @foreach($log->snapshot['diff'] as $field => $change)
@@ -127,9 +159,30 @@
                             <div class="act-diff__new">{{ is_array($change['after'])  ? implode(', ', $change['after'])  : ($change['after']  === null ? '—' : $change['after'])  }}</div>
                         @endforeach
                     </div>
-                @elseif(!empty($log->snapshot['before']))
-                    <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Знімок запису</div>
-                    <pre class="act-diff__snap">{{ json_encode($log->snapshot['before'] ?? $log->snapshot, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) }}</pre>
+                @elseif($isDelete && $beforeData)
+                    {{-- Delete: show snapshot as field/value table --}}
+                    <div class="act-diff__grid" style="grid-template-columns:140px 1fr;">
+                        <div class="act-diff__hdr">Параметр</div>
+                        <div class="act-diff__hdr">Значення</div>
+                        @foreach($beforeData as $field => $value)
+                            @if(!in_array($field, $skipFields) && $value !== null && $value !== '' && $value !== [])
+                            <div class="act-diff__key">{{ $fieldLabels[$field] ?? $field }}</div>
+                            <div class="act-diff__old" style="color:var(--text-2);">{{ is_array($value) ? implode(', ', $value) : $value }}</div>
+                            @endif
+                        @endforeach
+                    </div>
+                @elseif(!empty($log->snapshot['after']))
+                    {{-- Create: show created fields --}}
+                    <div class="act-diff__grid" style="grid-template-columns:140px 1fr;">
+                        <div class="act-diff__hdr">Параметр</div>
+                        <div class="act-diff__hdr">Значення</div>
+                        @foreach($log->snapshot['after'] as $field => $value)
+                            @if(!in_array($field, $skipFields) && $value !== null && $value !== '' && $value !== [])
+                            <div class="act-diff__key">{{ $fieldLabels[$field] ?? $field }}</div>
+                            <div class="act-diff__new" style="">{{ is_array($value) ? implode(', ', $value) : $value }}</div>
+                            @endif
+                        @endforeach
+                    </div>
                 @endif
             </div>
             @endif
@@ -138,7 +191,6 @@
             <div style="padding:48px;text-align:center;color:var(--text-3);font-size:13px;">Подій ще немає</div>
         @endforelse
 
-        {{-- Pagination --}}
         @if($logs->hasPages())
         <div style="padding:14px 20px;border-top:1px solid var(--border-2);">
             {{ $logs->links() }}
@@ -158,5 +210,27 @@ function actToggle(row) {
     var open = row.classList.toggle('is-open');
     if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
 }
+
+// ── Custom select ────────────────────────────────────────────
+function csToggle(id) {
+    var cs = document.getElementById(id);
+    var isOpen = cs.classList.contains('is-open');
+    document.querySelectorAll('.cselect.is-open').forEach(function(el) { el.classList.remove('is-open'); });
+    if (!isOpen) cs.classList.add('is-open');
+}
+function csSelect(id, value, label) {
+    var cs = document.getElementById(id);
+    cs.querySelector('input[type=hidden]').value = value;
+    cs.querySelector('.cselect__label').textContent = label;
+    cs.querySelectorAll('.cselect__option').forEach(function(o) { o.classList.remove('is-active'); });
+    event.target.classList.add('is-active');
+    cs.classList.remove('is-open');
+    document.getElementById('act-filter-form').submit();
+}
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.cselect')) {
+        document.querySelectorAll('.cselect.is-open').forEach(function(el) { el.classList.remove('is-open'); });
+    }
+});
 </script>
 @endpush

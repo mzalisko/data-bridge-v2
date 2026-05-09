@@ -141,7 +141,7 @@
                 @if(!empty($log->snapshot['diff']) && count($log->snapshot['diff']))
                     @php $fieldLabels2 = ['number'=>'Номер','label'=>'Мітка','geo_mode'=>'Гео','amount'=>'Сума','currency'=>'Валюта','city'=>'Місто','street'=>'Вулиця','region'=>'Регіон','platform'=>'Платформа','handle'=>'Handle','field_key'=>'Ключ','field_value'=>'Значення']; @endphp
                     <div class="act-diff__grid">
-                        <div class="act-diff__hdr">Поле</div><div class="act-diff__hdr">Було</div><div class="act-diff__hdr">Стало</div>
+                        <div class="act-diff__hdr">Параметр</div><div class="act-diff__hdr">Було</div><div class="act-diff__hdr">Стало</div>
                         @foreach($log->snapshot['diff'] as $field => $change)
                             <div class="act-diff__key">{{ $fieldLabels2[$field] ?? $field }}</div>
                             <div class="act-diff__old">{{ is_array($change['before']) ? implode(', ', $change['before']) : ($change['before'] ?? '—') }}</div>
