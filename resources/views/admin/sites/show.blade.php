@@ -1729,75 +1729,81 @@
         @if($tab === 'settings')
 
             {{-- ===== Plugin Push Settings ===== --}}
-            <form method="POST" action="{{ route('sites.push-settings.update', $site) }}" id="form-push-settings">
+            {{-- Hidden forms (no inputs) placed outside main form to avoid nesting --}}
+            <form id="form-push-settings" method="POST" action="{{ route('sites.push-settings.update', $site) }}" style="display:none;">
                 @csrf @method('PUT')
-                <div style="padding:20px;display:flex;flex-direction:column;gap:0;">
-
-                    {{-- Section label --}}
-                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);padding-bottom:14px;border-bottom:1px solid var(--border-2);margin-bottom:4px;">
-                        Підключення WordPress плагіна
-                    </div>
-
-                    {{-- Push URL --}}
-                    <div style="padding:14px 0;border-bottom:1px solid var(--border-2);">
-                        <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:6px;">
-                            Webhook URL
-                            <span style="font-weight:400;color:var(--text-3);margin-left:6px;">— скопіюйте з WP плагіна → Налаштування</span>
-                        </label>
-                        <div class="input input--mono" style="max-width:520px;">
-                            <input type="url" name="push_url" placeholder="https://yoursite.com/wp-json/dbp/v1/sync"
-                                   value="{{ old('push_url', $site->push_url) }}" style="width:100%;">
-                        </div>
-                    </div>
-
-                    {{-- Push Key --}}
-                    <div style="padding:14px 0;border-bottom:1px solid var(--border-2);">
-                        <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:6px;">
-                            Sync Key
-                            <span style="font-weight:400;color:var(--text-3);margin-left:6px;">— скопіюйте з WP плагіна → Налаштування</span>
-                        </label>
-                        <div class="input input--mono" style="max-width:520px;">
-                            <input type="text" name="push_key" placeholder="64-символьний hex ключ"
-                                   value="{{ old('push_key', $site->push_key) }}" style="width:100%;">
-                        </div>
-                    </div>
-
-                    {{-- Status + Test --}}
-                    <div style="padding:14px 0;border-bottom:1px solid var(--border-2);display:flex;align-items:center;gap:12px;">
-                        @if($site->push_url && $site->push_key)
-                            <span class="pill pill--success"><span class="dot dot--success"></span>Налаштовано</span>
-                            <span style="font-size:12px;color:var(--text-3);">Push активний — CRM надсилатиме дані автоматично при кожній зміні</span>
-                        @else
-                            <span class="pill pill--neutral">Не налаштовано</span>
-                            <span style="font-size:12px;color:var(--text-3);">Вставте Webhook URL і Sync Key з WP плагіна</span>
-                        @endif
-                    </div>
-
-                    {{-- Footer --}}
-                    <div style="padding-top:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-                        <form method="POST" action="{{ route('sites.destroy', $site) }}" onsubmit="return confirm('Видалити сайт «{{ $site->name }}»?')" style="margin:0;">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="btn btn--danger btn--md">
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
-                                Видалити сайт
-                            </button>
-                        </form>
-                        <div style="display:flex;gap:8px;">
-                            @if($site->push_url && $site->push_key)
-                            <form method="POST" action="{{ route('sites.push-settings.test', $site) }}" style="margin:0;">
-                                @csrf
-                                <button type="submit" class="btn btn--secondary btn--md">
-                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9l20-7z"/></svg>
-                                    Надіслати тест
-                                </button>
-                            </form>
-                            @endif
-                            <button type="submit" form="form-push-settings" class="btn btn--primary btn--md">Зберегти</button>
-                        </div>
-                    </div>
-
-                </div>
             </form>
+            <form id="form-site-delete" method="POST" action="{{ route('sites.destroy', $site) }}" onsubmit="return confirm('Видалити сайт «{{ $site->name }}»?')" style="display:none;">
+                @csrf @method('DELETE')
+            </form>
+            @if($site->push_url && $site->push_key)
+            <form id="form-push-test" method="POST" action="{{ route('sites.push-settings.test', $site) }}" style="display:none;">
+                @csrf
+            </form>
+            @endif
+
+            <div style="padding:20px;display:flex;flex-direction:column;gap:0;">
+
+                {{-- Section label --}}
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);padding-bottom:14px;border-bottom:1px solid var(--border-2);margin-bottom:4px;">
+                    Підключення WordPress плагіна
+                </div>
+
+                {{-- Push URL --}}
+                <div style="padding:14px 0;border-bottom:1px solid var(--border-2);">
+                    <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:6px;">
+                        Webhook URL
+                        <span style="font-weight:400;color:var(--text-3);margin-left:6px;">— скопіюйте з WP плагіна → Налаштування</span>
+                    </label>
+                    <div class="input input--mono" style="max-width:520px;">
+                        <input type="url" name="push_url" form="form-push-settings"
+                               placeholder="https://yoursite.com/wp-json/dbp/v1/sync"
+                               value="{{ old('push_url', $site->push_url) }}" style="width:100%;">
+                    </div>
+                </div>
+
+                {{-- Push Key --}}
+                <div style="padding:14px 0;border-bottom:1px solid var(--border-2);">
+                    <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:6px;">
+                        Sync Key
+                        <span style="font-weight:400;color:var(--text-3);margin-left:6px;">— скопіюйте з WP плагіна → Налаштування</span>
+                    </label>
+                    <div class="input input--mono" style="max-width:520px;">
+                        <input type="text" name="push_key" form="form-push-settings"
+                               placeholder="64-символьний hex ключ"
+                               value="{{ old('push_key', $site->push_key) }}" style="width:100%;">
+                    </div>
+                </div>
+
+                {{-- Status --}}
+                <div style="padding:14px 0;border-bottom:1px solid var(--border-2);display:flex;align-items:center;gap:12px;">
+                    @if($site->push_url && $site->push_key)
+                        <span class="pill pill--success"><span class="dot dot--success"></span>Налаштовано</span>
+                        <span style="font-size:12px;color:var(--text-3);">Push активний — CRM надсилатиме дані автоматично при кожній зміні</span>
+                    @else
+                        <span class="pill pill--neutral">Не налаштовано</span>
+                        <span style="font-size:12px;color:var(--text-3);">Вставте Webhook URL і Sync Key з WP плагіна</span>
+                    @endif
+                </div>
+
+                {{-- Footer --}}
+                <div style="padding-top:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                    <button type="submit" form="form-site-delete" class="btn btn--danger btn--md">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                        Видалити сайт
+                    </button>
+                    <div style="display:flex;gap:8px;">
+                        @if($site->push_url && $site->push_key)
+                        <button type="submit" form="form-push-test" class="btn btn--secondary btn--md">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9l20-7z"/></svg>
+                            Надіслати тест
+                        </button>
+                        @endif
+                        <button type="submit" form="form-push-settings" class="btn btn--primary btn--md">Зберегти</button>
+                    </div>
+                </div>
+
+            </div>
         @endif
     </div>
 </div>
