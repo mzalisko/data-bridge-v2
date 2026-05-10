@@ -337,10 +337,26 @@
                                     </div>
                                 @endforeach
                             @endif
-                            @if($wSocials->count())
-                                <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:14px 0 6px;">Соцмережі</div>
+                            @php
+                                $wSocNets  = $wSocials->filter(fn($s) => !in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber']));
+                                $wMsgngers = $wSocials->filter(fn($s) =>  in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber']));
+                            @endphp
+                            @if($wSocNets->count())
+                                <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:14px 0 6px;">Соц.мережі</div>
                                 <div style="display:flex;flex-direction:column;gap:5px;">
-                                @foreach($wSocials as $s)
+                                @foreach($wSocNets as $s)
+                                    @php $sk = strtolower($s->platform ?? ''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'']; @endphp
+                                    <div style="display:flex;align-items:center;gap:8px;background:var(--panel-2);border-radius:var(--radius-item);padding:7px 10px;">
+                                        <span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span>
+                                        <span style="font-size:12px;color:var(--text-2);">{{ ucfirst($s->platform) }}: {{ $s->handle }}</span>
+                                    </div>
+                                @endforeach
+                                </div>
+                            @endif
+                            @if($wMsgngers->count())
+                                <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:14px 0 6px;">Месенджери</div>
+                                <div style="display:flex;flex-direction:column;gap:5px;">
+                                @foreach($wMsgngers as $s)
                                     @php $sk = strtolower($s->platform ?? ''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'']; @endphp
                                     <div style="display:flex;align-items:center;gap:8px;background:var(--panel-2);border-radius:var(--radius-item);padding:7px 10px;">
                                         <span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span>
@@ -365,10 +381,11 @@
                                 </thead>
                                 <tbody>
                                 @foreach([
-                                    ['Телефони', $site->phones, 'data-phones'],
-                                    ['Ціни',     $site->prices, 'data-prices'],
-                                    ['Адреси',   $site->addresses, 'data-addresses'],
-                                    ['Соцмережі',$site->socials,  'data-socials'],
+                                    ['Телефони',   $site->phones, 'data-phones'],
+                                    ['Ціни',       $site->prices, 'data-prices'],
+                                    ['Адреси',     $site->addresses, 'data-addresses'],
+                                    ['Соц.мережі', $site->socials->filter(fn($s) => !in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber'])), 'data-socials'],
+                                    ['Месенджери', $site->socials->filter(fn($s) =>  in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber'])), 'data-messengers'],
                                 ] as [$catLabel, $catItems, $catAnchor])
                                     @if($catItems->count())
                                     <tr style="border-bottom:1px solid var(--border-2);">
@@ -396,12 +413,14 @@
                 {{-- Per-ISO panel: visitor preview (LEFT) + matrix (RIGHT) --}}
                 @foreach($allVisitorIsos as $visIso)
                     @php
-                        $vPhones  = $site->phones->filter(fn($p)  => ($p->is_visible ?? true) && $geoVis($p->geo_mode, $p->geo_countries, $visIso, $p->country_iso));
-                        $vPrices  = $site->prices->filter(fn($p)  => ($p->is_visible ?? true) && $geoVis($p->geo_mode, $p->geo_countries, $visIso, $p->country_iso));
-                        $vAddrs   = $site->addresses->filter(fn($a) => ($a->is_visible ?? true) && $geoVis($a->geo_mode, $a->geo_countries, $visIso, $a->country_iso));
-                        $vSocials = $site->socials->filter(fn($s)  => ($s->is_visible ?? true) && $geoVis($s->geo_mode, $s->geo_countries, $visIso, $s->country_iso));
-                        $totalVis = $vPhones->count() + $vPrices->count() + $vAddrs->count() + $vSocials->count();
-                        $totalAll = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count();
+                        $vPhones   = $site->phones->filter(fn($p)  => ($p->is_visible ?? true) && $geoVis($p->geo_mode, $p->geo_countries, $visIso, $p->country_iso));
+                        $vPrices   = $site->prices->filter(fn($p)  => ($p->is_visible ?? true) && $geoVis($p->geo_mode, $p->geo_countries, $visIso, $p->country_iso));
+                        $vAddrs    = $site->addresses->filter(fn($a) => ($a->is_visible ?? true) && $geoVis($a->geo_mode, $a->geo_countries, $visIso, $a->country_iso));
+                        $vSocials  = $site->socials->filter(fn($s)  => ($s->is_visible ?? true) && $geoVis($s->geo_mode, $s->geo_countries, $visIso, $s->country_iso));
+                        $vSocNets  = $vSocials->filter(fn($s) => !in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber']));
+                        $vMsgngers = $vSocials->filter(fn($s) =>  in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber']));
+                        $totalVis  = $vPhones->count() + $vPrices->count() + $vAddrs->count() + $vSocials->count();
+                        $totalAll  = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count();
                     @endphp
                     <div id="vis-panel-{{ $visIso }}" style="display:none;">
                         <div class="vis-preview-bar" id="vis-bar-{{ $visIso }}">
@@ -463,12 +482,28 @@
                                 @endif
 
                                 {{-- Соц.мережі --}}
-                                @if($vSocials->count())
+                                @if($vSocNets->count())
                                     <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px;{{ ($vPhones->count()||$vPrices->count()||$vAddrs->count()) ? 'margin-top:14px;' : '' }}">Соц.мережі</div>
                                     <div style="display:flex;flex-direction:column;gap:5px;">
-                                        @foreach($vSocials as $s)
+                                        @foreach($vSocNets as $s)
                                             @php $sk = strtolower($s->platform ?? ''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'']; @endphp
                                             <div onclick="location='{{ $url(['tab'=>'data']) }}#dt-edit-social-{{ $s->id }}'"
+                                                 style="display:flex;align-items:center;gap:8px;background:var(--panel-2);border-radius:var(--radius-item);padding:7px 10px;cursor:pointer;transition:background .1s;"
+                                                 onmouseover="this.style.background='var(--border-2)'"
+                                                 onmouseout="this.style.background='var(--panel-2)'">
+                                                <span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span>
+                                                <span style="font-size:12px;color:var(--text-2);">{{ ucfirst($s->platform) }}: {{ $s->handle }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                                {{-- Месенджери --}}
+                                @if($vMsgngers->count())
+                                    <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px;{{ ($vPhones->count()||$vPrices->count()||$vAddrs->count()||$vSocNets->count()) ? 'margin-top:14px;' : '' }}">Месенджери</div>
+                                    <div style="display:flex;flex-direction:column;gap:5px;">
+                                        @foreach($vMsgngers as $s)
+                                            @php $sk = strtolower($s->platform ?? ''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'']; @endphp
+                                            <div onclick="location='{{ $url(['tab'=>'data']) }}#dt-edit-messenger-{{ $s->id }}'"
                                                  style="display:flex;align-items:center;gap:8px;background:var(--panel-2);border-radius:var(--radius-item);padding:7px 10px;cursor:pointer;transition:background .1s;"
                                                  onmouseover="this.style.background='var(--border-2)'"
                                                  onmouseout="this.style.background='var(--panel-2)'">
@@ -490,10 +525,11 @@
                                 </div>
                                 @php
                                     $matrixRows = [
-                                        ['Телефони',  $site->phones,    'data-phones'],
-                                        ['Ціни',      $site->prices,    'data-prices'],
-                                        ['Адреси',    $site->addresses, 'data-addresses'],
-                                        ['Соцмережі', $site->socials,   'data-socials'],
+                                        ['Телефони',   $site->phones,    'data-phones'],
+                                        ['Ціни',       $site->prices,    'data-prices'],
+                                        ['Адреси',     $site->addresses, 'data-addresses'],
+                                        ['Соц.мережі', $site->socials->filter(fn($s) => !in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber'])), 'data-socials'],
+                                        ['Месенджери', $site->socials->filter(fn($s) =>  in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber'])), 'data-messengers'],
                                     ];
                                 @endphp
                                 <table style="width:100%;border-collapse:collapse;font-size:12px;">
@@ -568,12 +604,18 @@
             {{-- ===== DATA GRID ===== --}}
             @php
                 $dtIcons = [
-                    'phones'    => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
-                    'prices'    => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
-                    'addresses' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
-                    'socials'   => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
+                    'phones'     => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+                    'prices'     => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+                    'addresses'  => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+                    'socials'    => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
+                    'messengers' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
                 ];
-                $socialPlatforms = ['instagram'=>'Instagram','facebook'=>'Facebook','telegram'=>'Telegram','linkedin'=>'LinkedIn','x'=>'X / Twitter','whatsapp'=>'WhatsApp','viber'=>'Viber','youtube'=>'YouTube'];
+                $messengerPlatforms = ['telegram' => 'Telegram', 'whatsapp' => 'WhatsApp', 'viber' => 'Viber'];
+                $socialNetPlatforms = ['instagram' => 'Instagram', 'facebook' => 'Facebook', 'linkedin' => 'LinkedIn', 'x' => 'X / Twitter', 'youtube' => 'YouTube'];
+                $socialPlatforms    = $socialNetPlatforms + $messengerPlatforms;
+                $messengerKeys      = array_keys($messengerPlatforms);
+                $shownSocNetworks   = $shownSocials->filter(fn($s) => !in_array(strtolower($s->platform ?? ''), $messengerKeys))->values();
+                $shownMessengers    = $shownSocials->filter(fn($s) => in_array(strtolower($s->platform ?? ''), $messengerKeys))->values();
             @endphp
 
             {{-- ── Geo mini-bar: active geos + add/remove ────────────── --}}
@@ -918,12 +960,17 @@
                 </div>
             </div>
 
-            {{-- ═══ SOCIALS ══════════════════════════════════════════ --}}
+            @php
+                // Macro for a social item row — used in both Socials and Messengers blocks
+                // (inline for Blade, no separate component needed)
+            @endphp
+
+            {{-- ═══ SOCIAL NETWORKS ══════════════════════════════════ --}}
             <div class="dt-card" id="data-socials">
                 <div class="dt-card-head">
                     <span class="dt-card-head__icon">{!! $dtIcons['socials'] !!}</span>
                     <span class="dt-card-head__title">Соціальні мережі</span>
-                    <span class="dt-card-head__count">{{ $site->socials->count() }}</span>
+                    <span class="dt-card-head__count">{{ $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$messengerKeys))->count() }}</span>
                     <button class="dt-add-btn" id="dt-add-btn-socials" onclick="dtToggleAdd('socials')">
                         <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                         Додати
@@ -939,7 +986,7 @@
                             <div>
                                 <label class="dt-label">Платформа *</label>
                                 <select name="platform" class="dt-input" required>
-                                    @foreach($socialPlatforms as $val => $lbl)
+                                    @foreach($socialNetPlatforms as $val => $lbl)
                                         <option value="{{ $val }}">{{ $lbl }}</option>
                                     @endforeach
                                 </select>
@@ -953,17 +1000,6 @@
                             <label class="dt-label">URL *</label>
                             <input type="url" name="url" class="dt-input" placeholder="https://…" required>
                         </div>
-                        @if($site->phones->count())
-                        <div class="dt-row" style="margin-bottom:8px;">
-                            <label class="dt-label">Прив'язати до номеру</label>
-                            <select name="phone_id" class="dt-input">
-                                <option value="">— незалежно —</option>
-                                @foreach($site->phones as $ph)
-                                    <option value="{{ $ph->id }}">{{ ($ph->dial_code ? '+'.$ph->dial_code.' ' : '') . $ph->number }}{{ $ph->label ? ' · '.$ph->label : '' }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        @endif
                         <div class="dt-geo-row">
                             <span class="dt-geo-label">Видно:</span>
                             @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
@@ -989,16 +1025,145 @@
                 </div>
 
                 <div class="dt-items">
-                    @forelse($shownSocials as $s)
-                    @php
-                        $sk  = strtolower($s->platform ?? '');
-                        $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>'];
-                    @endphp
+                    @forelse($shownSocNetworks as $s)
+                    @php $sk = strtolower($s->platform ?? ''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>']; @endphp
                     <div class="dt-item">
                         <div class="dt-item-row" onclick="dtExpandItem('social-{{ $s->id }}')">
                             <span class="dt-item-icon" style="color:{{ $sic['c'] }}">{!! $sic['svg'] !!}</span>
                             <div class="dt-item-main">
                                 <div class="dt-item-name">{{ $s->handle }}</div>
+                                <div class="dt-item-sub">{{ ucfirst($s->platform) }}</div>
+                            </div>
+                            <div class="dt-vis">
+                                @if(count($usedIso)===0||($s->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                                @elseif(($s->geo_mode??'all')==='include')@forelse((array)($s->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
+                                @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($s->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse
+                                @endif
+                            </div>
+                            <div class="dt-item-actions" onclick="event.stopPropagation()">
+                                <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'socials',$s->id]) }}" style="margin:0;">@csrf
+                                    <button type="submit" class="icon-btn" title="{{ ($s->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($s->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
+                                        @if($s->is_visible??true)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('socials.destroy',[$site,$s]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
+                                    <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
+                                </form>
+                                <button class="icon-btn" id="dt-expand-social-{{ $s->id }}" title="Редагувати" onclick="dtExpandItem('social-{{ $s->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
+                            </div>
+                        </div>
+                        <div class="dt-panel" id="dt-edit-social-{{ $s->id }}" style="display:none;">
+                            <form method="POST" action="{{ route('socials.update',[$site,$s]) }}">
+                                @csrf @method('PUT')
+                                <input type="hidden" name="sort_order" value="{{ $s->sort_order }}">
+                                <div class="dt-row dt-row--2">
+                                    <div><label class="dt-label">Платформа *</label>
+                                        <select name="platform" class="dt-input" required>
+                                            @foreach($socialNetPlatforms as $val => $lbl)<option value="{{ $val }}" {{ $s->platform===$val?'selected':'' }}>{{ $lbl }}</option>@endforeach
+                                        </select>
+                                    </div>
+                                    <div><label class="dt-label">Нікнейм *</label><input type="text" name="handle" class="dt-input" value="{{ $s->handle }}" required></div>
+                                </div>
+                                <div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">URL *</label><input type="url" name="url" class="dt-input" value="{{ $s->url }}" required></div>
+                                <div class="dt-geo-row">
+                                    <span class="dt-geo-label">Видно:</span>
+                                    @php $em = $s->geo_mode ?? 'all'; @endphp
+                                    @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
+                                        <label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-so{{ $s->id }}-{{ $mv }}"><input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;" onchange="dtGeoMode('so{{ $s->id }}','{{ $mv }}')">{{ $ml }}</label>
+                                    @endforeach
+                                    @if(count($usedIso))<span id="dtchips-so{{ $s->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">@foreach($usedIso as $iso)<label class="dt-geo-chip {{ in_array($iso,(array)($s->geo_countries??[]))?'is-on':'' }}" id="dtchip-so{{ $s->id }}-{{ $iso }}"><input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($s->geo_countries??[]))?'checked':'' }} style="display:none;" onchange="dtGeoChip('so{{ $s->id }}','{{ $iso }}',this)">{{ $iso }}</label>@endforeach</span>@endif
+                                </div>
+                                <div class="dt-panel__actions">
+                                    <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('social-{{ $s->id }}')">Скасувати</button>
+                                    <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    @empty
+                        <div class="dt-empty">Соціальних мереж немає</div>
+                    @endforelse
+                </div>
+            </div>
+
+            {{-- ═══ MESSENGERS ════════════════════════════════════════ --}}
+            <div class="dt-card" id="data-messengers">
+                <div class="dt-card-head">
+                    <span class="dt-card-head__icon">{!! $dtIcons['messengers'] !!}</span>
+                    <span class="dt-card-head__title">Месенджери</span>
+                    <span class="dt-card-head__count">{{ $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$messengerKeys))->count() }}</span>
+                    <button class="dt-add-btn" id="dt-add-btn-messengers" onclick="dtToggleAdd('messengers')">
+                        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Додати
+                    </button>
+                </div>
+
+                <div class="dt-panel" id="dt-add-messengers" style="display:none;">
+                    <div class="dt-panel__title">Новий месенджер</div>
+                    <form method="POST" action="{{ route('socials.store', $site) }}">
+                        @csrf
+                        <input type="hidden" name="sort_order" value="{{ $site->socials->count() }}">
+                        <div class="dt-row dt-row--2">
+                            <div>
+                                <label class="dt-label">Платформа *</label>
+                                <select name="platform" class="dt-input" required>
+                                    @foreach($messengerPlatforms as $val => $lbl)
+                                        <option value="{{ $val }}">{{ $lbl }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="dt-label">Нікнейм / номер</label>
+                                <input type="text" name="handle" class="dt-input" placeholder="@username або номер">
+                            </div>
+                        </div>
+                        <div class="dt-row" style="margin-bottom:8px;">
+                            <label class="dt-label">Посилання</label>
+                            <input type="url" name="url" class="dt-input" placeholder="https://t.me/…">
+                        </div>
+                        @if($site->phones->count())
+                        <div class="dt-row" style="margin-bottom:8px;">
+                            <label class="dt-label">Прив'язати до номеру</label>
+                            <select name="phone_id" class="dt-input">
+                                <option value="">— без прив'язки —</option>
+                                @foreach($site->phones as $ph)
+                                    <option value="{{ $ph->id }}">{{ ($ph->dial_code ? '+'.$ph->dial_code.' ' : '').$ph->number }}{{ $ph->label ? ' · '.$ph->label : '' }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
+                        <div class="dt-geo-row">
+                            <span class="dt-geo-label">Видно:</span>
+                            @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
+                                <label class="dt-geo-pill {{ $mv==='all'?'is-on':'' }}" id="dtpill-add-ms-{{ $mv }}">
+                                    <input type="radio" name="geo_mode" value="{{ $mv }}" {{ $mv==='all'?'checked':'' }} style="display:none;"
+                                           onchange="dtGeoMode('add-ms','{{ $mv }}')">{{ $ml }}
+                                </label>
+                            @endforeach
+                            <span id="dtchips-add-ms" class="dt-geo-chips" style="display:none;">
+                                @foreach($usedIso as $iso)
+                                    <label class="dt-geo-chip" id="dtchip-add-ms-{{ $iso }}">
+                                        <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
+                                               onchange="dtGeoChip('add-ms','{{ $iso }}',this)">{{ $iso }}
+                                    </label>
+                                @endforeach
+                            </span>
+                        </div>
+                        <div class="dt-panel__actions">
+                            <button type="button" class="btn btn--ghost btn--sm" onclick="dtToggleAdd('messengers')">Скасувати</button>
+                            <button type="submit" class="btn btn--primary btn--sm">Додати</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="dt-items">
+                    @forelse($shownMessengers as $s)
+                    @php $sk = strtolower($s->platform ?? ''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>']; @endphp
+                    <div class="dt-item">
+                        <div class="dt-item-row" onclick="dtExpandItem('social-{{ $s->id }}')">
+                            <span class="dt-item-icon" style="color:{{ $sic['c'] }}">{!! $sic['svg'] !!}</span>
+                            <div class="dt-item-main">
+                                <div class="dt-item-name">{{ $s->handle ?: ucfirst($s->platform) }}</div>
                                 <div class="dt-item-sub">
                                     {{ ucfirst($s->platform) }}
                                     @if($s->phone_id && ($linkedPh = $site->phones->find($s->phone_id)))
@@ -1010,43 +1175,21 @@
                                 </div>
                             </div>
                             <div class="dt-vis">
-                                @if(count($usedIso)===0 || ($s->geo_mode??'all')==='all')
-                                    <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
-                                @elseif(($s->geo_mode??'all')==='include')
-                                    @forelse((array)($s->geo_countries??[]) as $iso)
-                                        <span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>
-                                    @empty
-                                        <span class="dt-vis-badge dt-vis-badge--no">—</span>
-                                    @endforelse
-                                @else
-                                    <span class="dt-vis-badge" style="font-size:9px;opacity:.6;letter-spacing:.02em;">Крім</span>
-                                    @forelse((array)($s->geo_countries??[]) as $iso)
-                                        <span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>
-                                    @empty
-                                        <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
-                                    @endforelse
+                                @if(count($usedIso)===0||($s->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                                @elseif(($s->geo_mode??'all')==='include')@forelse((array)($s->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
+                                @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($s->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse
                                 @endif
                             </div>
                             <div class="dt-item-actions" onclick="event.stopPropagation()">
-                                <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'socials',$s->id]) }}" style="margin:0;">
-                                    @csrf
+                                <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'socials',$s->id]) }}" style="margin:0;">@csrf
                                     <button type="submit" class="icon-btn" title="{{ ($s->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($s->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
-                                        @if($s->is_visible??true)
-                                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                        @else
-                                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                                        @endif
+                                        @if($s->is_visible??true)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif
                                     </button>
                                 </form>
-                                <form method="POST" action="{{ route('socials.destroy',[$site,$s]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити">
-                                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
-                                    </button>
+                                <form method="POST" action="{{ route('socials.destroy',[$site,$s]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
+                                    <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
                                 </form>
-                                <button class="icon-btn" id="dt-expand-social-{{ $s->id }}" title="Редагувати" onclick="dtExpandItem('social-{{ $s->id }}')">
-                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg>
-                                </button>
+                                <button class="icon-btn" id="dt-expand-social-{{ $s->id }}" title="Редагувати" onclick="dtExpandItem('social-{{ $s->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
                             </div>
                         </div>
                         <div class="dt-panel" id="dt-edit-social-{{ $s->id }}" style="display:none;">
@@ -1054,31 +1197,20 @@
                                 @csrf @method('PUT')
                                 <input type="hidden" name="sort_order" value="{{ $s->sort_order }}">
                                 <div class="dt-row dt-row--2">
-                                    <div>
-                                        <label class="dt-label">Платформа *</label>
+                                    <div><label class="dt-label">Платформа *</label>
                                         <select name="platform" class="dt-input" required>
-                                            @foreach($socialPlatforms as $val => $lbl)
-                                                <option value="{{ $val }}" {{ $s->platform===$val?'selected':'' }}>{{ $lbl }}</option>
-                                            @endforeach
+                                            @foreach($messengerPlatforms as $val => $lbl)<option value="{{ $val }}" {{ $s->platform===$val?'selected':'' }}>{{ $lbl }}</option>@endforeach
                                         </select>
                                     </div>
-                                    <div>
-                                        <label class="dt-label">Нікнейм *</label>
-                                        <input type="text" name="handle" class="dt-input" value="{{ $s->handle }}" required>
-                                    </div>
+                                    <div><label class="dt-label">Нікнейм / номер</label><input type="text" name="handle" class="dt-input" value="{{ $s->handle }}"></div>
                                 </div>
-                                <div class="dt-row" style="margin-bottom:8px;">
-                                    <label class="dt-label">URL *</label>
-                                    <input type="url" name="url" class="dt-input" value="{{ $s->url }}" required>
-                                </div>
+                                <div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">Посилання</label><input type="url" name="url" class="dt-input" value="{{ $s->url }}"></div>
                                 @if($site->phones->count())
                                 <div class="dt-row" style="margin-bottom:8px;">
                                     <label class="dt-label">Прив'язати до номеру</label>
                                     <select name="phone_id" class="dt-input">
-                                        <option value="">— незалежно —</option>
-                                        @foreach($site->phones as $ph)
-                                            <option value="{{ $ph->id }}" {{ $s->phone_id == $ph->id ? 'selected' : '' }}>{{ ($ph->dial_code ? '+'.$ph->dial_code.' ' : '') . $ph->number }}{{ $ph->label ? ' · '.$ph->label : '' }}</option>
-                                        @endforeach
+                                        <option value="">— без прив'язки —</option>
+                                        @foreach($site->phones as $ph)<option value="{{ $ph->id }}" {{ $s->phone_id==$ph->id?'selected':'' }}>{{ ($ph->dial_code?'+'.$ph->dial_code.' ':'').$ph->number }}{{ $ph->label?' · '.$ph->label:'' }}</option>@endforeach
                                     </select>
                                 </div>
                                 @endif
@@ -1086,21 +1218,9 @@
                                     <span class="dt-geo-label">Видно:</span>
                                     @php $em = $s->geo_mode ?? 'all'; @endphp
                                     @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
-                                        <label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-so{{ $s->id }}-{{ $mv }}">
-                                            <input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;"
-                                                   onchange="dtGeoMode('so{{ $s->id }}','{{ $mv }}')">{{ $ml }}
-                                        </label>
+                                        <label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-so{{ $s->id }}-{{ $mv }}"><input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;" onchange="dtGeoMode('so{{ $s->id }}','{{ $mv }}')">{{ $ml }}</label>
                                     @endforeach
-                                    @if(count($usedIso))
-                                    <span id="dtchips-so{{ $s->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">
-                                        @foreach($usedIso as $iso)
-                                            <label class="dt-geo-chip {{ in_array($iso,(array)($s->geo_countries??[]))?'is-on':'' }}" id="dtchip-so{{ $s->id }}-{{ $iso }}">
-                                                <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($s->geo_countries??[]))?'checked':'' }} style="display:none;"
-                                                       onchange="dtGeoChip('so{{ $s->id }}','{{ $iso }}',this)">{{ $iso }}
-                                            </label>
-                                        @endforeach
-                                    </span>
-                                    @endif
+                                    @if(count($usedIso))<span id="dtchips-so{{ $s->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">@foreach($usedIso as $iso)<label class="dt-geo-chip {{ in_array($iso,(array)($s->geo_countries??[]))?'is-on':'' }}" id="dtchip-so{{ $s->id }}-{{ $iso }}"><input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($s->geo_countries??[]))?'checked':'' }} style="display:none;" onchange="dtGeoChip('so{{ $s->id }}','{{ $iso }}',this)">{{ $iso }}</label>@endforeach</span>@endif
                                 </div>
                                 <div class="dt-panel__actions">
                                     <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('social-{{ $s->id }}')">Скасувати</button>
@@ -1110,7 +1230,7 @@
                         </div>
                     </div>
                     @empty
-                        <div class="dt-empty">Соціальних мереж немає</div>
+                        <div class="dt-empty">Месенджерів немає</div>
                     @endforelse
                 </div>
             </div>
