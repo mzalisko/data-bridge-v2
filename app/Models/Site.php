@@ -21,6 +21,8 @@ class Site extends Model
         'site_countries',
         'active_geos',
         'geo_rules',
+        'push_url',
+        'push_key',
     ];
 
     protected function casts(): array

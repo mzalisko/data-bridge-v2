@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\UpdateAddressRequest;
 use App\Models\Site;
 use App\Models\SiteAddress;
 use App\Services\ActivityService;
+use App\Services\SyncPushService;
 use Illuminate\Http\RedirectResponse;
 
 class SiteAddressController extends Controller
@@ -19,6 +20,7 @@ class SiteAddressController extends Controller
         $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
         $address = $site->addresses()->create($data);
         ActivityService::log('address', 'create', $address, "Адресу {$address->city} додано", $site);
+        SyncPushService::push($site);
         return back()->with('success', 'Адресу додано');
     }
 
@@ -31,6 +33,7 @@ class SiteAddressController extends Controller
         $before = $address->toArray();
         $address->update($data);
         ActivityService::log('address', 'update', $address, "Адресу {$address->city} оновлено", $site, $before);
+        SyncPushService::push($site);
         return back()->with('success', 'Адресу оновлено');
     }
 
@@ -38,6 +41,7 @@ class SiteAddressController extends Controller
     {
         ActivityService::log('address', 'delete', $address, "Адресу {$address->city} видалено", $site);
         $address->delete();
+        SyncPushService::push($site);
         return back()->with('success', 'Адресу видалено');
     }
 }

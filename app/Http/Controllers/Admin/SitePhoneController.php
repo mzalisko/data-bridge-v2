@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\UpdatePhoneRequest;
 use App\Models\Site;
 use App\Models\SitePhone;
 use App\Services\ActivityService;
+use App\Services\SyncPushService;
 use Illuminate\Http\RedirectResponse;
 
 class SitePhoneController extends Controller
@@ -19,6 +20,7 @@ class SitePhoneController extends Controller
         $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
         $phone = $site->phones()->create($data);
         ActivityService::log('phone', 'create', $phone, "Телефон {$phone->number} додано", $site);
+        SyncPushService::push($site);
 
         return back()->with('success', 'Телефон додано');
     }
@@ -32,6 +34,7 @@ class SitePhoneController extends Controller
         $before = $phone->toArray();
         $phone->update($data);
         ActivityService::log('phone', 'update', $phone, "Телефон {$phone->number} оновлено", $site, $before);
+        SyncPushService::push($site);
 
         return back()->with('success', 'Телефон оновлено');
     }
@@ -40,6 +43,7 @@ class SitePhoneController extends Controller
     {
         ActivityService::log('phone', 'delete', $phone, "Телефон {$phone->number} видалено", $site);
         $phone->delete();
+        SyncPushService::push($site);
 
         return back()->with('success', 'Телефон видалено');
     }

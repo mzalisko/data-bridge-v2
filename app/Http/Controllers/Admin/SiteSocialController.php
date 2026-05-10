@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\UpdateSocialRequest;
 use App\Models\Site;
 use App\Models\SiteSocial;
 use App\Services\ActivityService;
+use App\Services\SyncPushService;
 use Illuminate\Http\RedirectResponse;
 
 class SiteSocialController extends Controller
@@ -18,6 +19,7 @@ class SiteSocialController extends Controller
         $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
         $social = $site->socials()->create($data);
         ActivityService::log('social', 'create', $social, "{$social->platform} {$social->handle} додано", $site);
+        SyncPushService::push($site);
         return back()->with('success', 'Соцмережу додано');
     }
 
@@ -29,6 +31,7 @@ class SiteSocialController extends Controller
         $before = $social->toArray();
         $social->update($data);
         ActivityService::log('social', 'update', $social, "{$social->platform} {$social->handle} оновлено", $site, $before);
+        SyncPushService::push($site);
         return back()->with('success', 'Соцмережу оновлено');
     }
 
@@ -36,6 +39,7 @@ class SiteSocialController extends Controller
     {
         ActivityService::log('social', 'delete', $social, "{$social->platform} {$social->handle} видалено", $site);
         $social->delete();
+        SyncPushService::push($site);
         return back()->with('success', 'Соцмережу видалено');
     }
 }

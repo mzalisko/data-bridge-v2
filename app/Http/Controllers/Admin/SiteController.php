@@ -10,6 +10,7 @@ use App\Models\Country;
 use App\Models\Site;
 use App\Models\SiteGroup;
 use App\Models\SyncLog;
+use App\Services\SyncPushService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -172,5 +173,30 @@ class SiteController extends Controller
 
         return redirect()->route('sites.index')
             ->with('success', 'Сайт видалено');
+    }
+
+    public function updatePushSettings(Request $request, Site $site): RedirectResponse
+    {
+        $data = $request->validate([
+            'push_url' => ['nullable', 'url', 'max:500'],
+            'push_key' => ['nullable', 'string', 'size:64'],
+        ]);
+
+        $site->update([
+            'push_url' => $data['push_url'] ?: null,
+            'push_key' => $data['push_key'] ?: null,
+        ]);
+
+        return redirect()->back()->with('success', 'Налаштування збережено');
+    }
+
+    public function testPush(Site $site): RedirectResponse
+    {
+        $ok = SyncPushService::push($site);
+
+        return redirect()->back()->with(
+            $ok ? 'success' : 'error',
+            $ok ? 'Тест-пуш надіслано успішно' : 'Помилка надсилання — перевірте URL та ключ'
+        );
     }
 }

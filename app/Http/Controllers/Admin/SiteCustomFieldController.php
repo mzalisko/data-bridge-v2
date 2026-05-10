@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\UpdateSiteCustomFieldRequest;
 use App\Models\Site;
 use App\Models\SiteCustomField;
 use App\Services\ActivityService;
+use App\Services\SyncPushService;
 use Illuminate\Http\RedirectResponse;
 
 class SiteCustomFieldController extends Controller
@@ -17,6 +18,7 @@ class SiteCustomFieldController extends Controller
         $data['field_type'] = $data['field_type'] ?? 'text';
         $field = $site->customFields()->create($data);
         ActivityService::log('field', 'create', $field, "Поле «{$field->field_key}» додано", $site);
+        SyncPushService::push($site);
         return back()->with('success', 'Поле додано');
     }
 
@@ -25,6 +27,7 @@ class SiteCustomFieldController extends Controller
         $before = $field->toArray();
         $field->update($request->validated());
         ActivityService::log('field', 'update', $field, "Поле «{$field->field_key}» оновлено", $site, $before);
+        SyncPushService::push($site);
         return back()->with('success', 'Поле оновлено');
     }
 
@@ -32,6 +35,7 @@ class SiteCustomFieldController extends Controller
     {
         ActivityService::log('field', 'delete', $field, "Поле «{$field->field_key}» видалено", $site);
         $field->delete();
+        SyncPushService::push($site);
         return back()->with('success', 'Поле видалено');
     }
 }
