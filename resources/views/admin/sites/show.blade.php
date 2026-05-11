@@ -134,6 +134,9 @@
             <p class="page-head__subtitle" style="font-family:var(--font-mono);">{{ $site->url }}</p>
         </div>
         <div class="page-head__actions">
+            @if($site->push_url && $site->push_key)
+            <form id="form-head-sync" method="POST" action="{{ route('sites.sync', $site) }}" style="display:none;">@csrf</form>
+            @endif
             @if($site->url)
                 <a href="{{ $site->url }}" target="_blank" class="btn btn--secondary btn--md">
                     <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
@@ -143,13 +146,12 @@
                     Відкрити
                 </a>
             @endif
-            <button class="btn btn--secondary btn--md">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 4v4h-4"/>
-                    <path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 20v-4h4"/>
-                </svg>
+            @if($site->push_url && $site->push_key)
+            <button type="submit" form="form-head-sync" class="btn btn--secondary btn--md">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                 Синхронізувати
             </button>
+            @endif
             <button class="btn btn--primary btn--md" onclick="openDrawer('drawer-site-edit')">Оновити дані</button>
         </div>
     </div>
@@ -1729,7 +1731,7 @@
         @if($tab === 'settings')
 
             {{-- ===== Plugin Push Settings ===== --}}
-            {{-- Hidden forms (no inputs) placed outside main form to avoid nesting --}}
+            {{-- Hidden forms — siblings, not nested, to prevent _method bleed --}}
             <form id="form-push-settings" method="POST" action="{{ route('sites.push-settings.update', $site) }}" style="display:none;">
                 @csrf @method('PUT')
             </form>
@@ -1737,7 +1739,7 @@
                 @csrf @method('DELETE')
             </form>
             @if($site->push_url && $site->push_key)
-            <form id="form-push-test" method="POST" action="{{ route('sites.push-settings.test', $site) }}" style="display:none;">
+            <form id="form-site-sync" method="POST" action="{{ route('sites.sync', $site) }}" style="display:none;">
                 @csrf
             </form>
             @endif
@@ -1775,11 +1777,44 @@
                     </div>
                 </div>
 
+                {{-- Allow plugin edit toggle --}}
+                <div style="padding:14px 0;border-bottom:1px solid var(--border-2);display:flex;align-items:center;justify-content:space-between;gap:16px;">
+                    <div>
+                        <div style="font-size:13px;font-weight:600;color:var(--text);">Редагування з плагіна</div>
+                        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Дозволити адміну WP редагувати дані локально або надсилати зміни назад</div>
+                    </div>
+                    <label style="position:relative;display:inline-flex;align-items:center;cursor:pointer;flex-shrink:0;">
+                        <input type="checkbox" name="allow_plugin_edit" value="1" form="form-push-settings"
+                               {{ $site->allow_plugin_edit ? 'checked' : '' }}
+                               style="position:absolute;opacity:0;width:0;height:0;"
+                               onchange="this.closest('form') || document.getElementById('form-push-settings')">
+                        <span class="toggle-track" style="width:38px;height:22px;background:{{ $site->allow_plugin_edit ? 'var(--accent)' : 'var(--border)' }};border-radius:11px;transition:.2s;display:block;position:relative;">
+                            <span style="position:absolute;top:3px;left:{{ $site->allow_plugin_edit ? '19px' : '3px' }};width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s;"></span>
+                        </span>
+                    </label>
+                </div>
+
+                @if($site->allow_plugin_edit && $site->plugin_edit_token)
+                {{-- Callback URL info --}}
+                <div style="padding:14px 0;border-bottom:1px solid var(--border-2);">
+                    <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:6px;">Callback URL <span style="font-weight:400;color:var(--text-3);">— надсилається до плагіна автоматично</span></label>
+                    <div style="display:flex;align-items:center;gap:8px;max-width:580px;">
+                        <div class="input input--mono" style="flex:1;">
+                            <input type="text" readonly value="{{ config('app.url') }}/api/plugin-callback/{{ $site->plugin_edit_token }}" style="width:100%;color:var(--text-3);">
+                        </div>
+                        <button type="button" class="btn btn--secondary btn--sm"
+                                onclick="navigator.clipboard.writeText('{{ config('app.url') }}/api/plugin-callback/{{ $site->plugin_edit_token }}')">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                    </div>
+                </div>
+                @endif
+
                 {{-- Status --}}
                 <div style="padding:14px 0;border-bottom:1px solid var(--border-2);display:flex;align-items:center;gap:12px;">
                     @if($site->push_url && $site->push_key)
                         <span class="pill pill--success"><span class="dot dot--success"></span>Налаштовано</span>
-                        <span style="font-size:12px;color:var(--text-3);">Push активний — CRM надсилатиме дані автоматично при кожній зміні</span>
+                        <span style="font-size:12px;color:var(--text-3);">Push активний — дані оновлюються автоматично при кожній зміні</span>
                     @else
                         <span class="pill pill--neutral">Не налаштовано</span>
                         <span style="font-size:12px;color:var(--text-3);">Вставте Webhook URL і Sync Key з WP плагіна</span>
@@ -1794,9 +1829,9 @@
                     </button>
                     <div style="display:flex;gap:8px;">
                         @if($site->push_url && $site->push_key)
-                        <button type="submit" form="form-push-test" class="btn btn--secondary btn--md">
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9l20-7z"/></svg>
-                            Надіслати тест
+                        <button type="submit" form="form-site-sync" class="btn btn--secondary btn--md">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                            Синхронізувати
                         </button>
                         @endif
                         <button type="submit" form="form-push-settings" class="btn btn--primary btn--md">Зберегти</button>

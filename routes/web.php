@@ -79,8 +79,8 @@ Route::middleware('auth')->group(function () {
     Route::post(  'sites/{site}/geo-rules',         [SiteGeoController::class, 'saveRules'])->name('sites.geo-rules.save');
     Route::post(  'sites/{site}/visibility/{type}/{id}', [SiteGeoController::class, 'toggleVisibility'])->name('sites.visibility.toggle');
     Route::post(  'sites/{site}/activity/{log}/restore', [SiteController::class, 'restoreActivity'])->name('sites.activity.restore');
-    Route::put(   'sites/{site}/push-settings',         [SiteController::class, 'updatePushSettings'])->name('sites.push-settings.update');
-    Route::post(  'sites/{site}/push-settings/test',    [SiteController::class, 'testPush'])->name('sites.push-settings.test');
+    Route::put(   'sites/{site}/push-settings',  [SiteController::class, 'updatePushSettings'])->name('sites.push-settings.update');
+    Route::post(  'sites/{site}/sync',           [SiteController::class, 'syncPush'])->name('sites.sync');
 
     // Bulk data operations (multi-site) — UI planned, controller scaffolded
     Route::post('bulk/phones',  [BulkDataController::class, 'addPhone'])->name('bulk.phones');

@@ -5,10 +5,15 @@ use App\Http\Controllers\Api\ApiPhoneController;
 use App\Http\Controllers\Api\ApiPriceController;
 use App\Http\Controllers\Api\ApiAddressController;
 use App\Http\Controllers\Api\ApiSocialController;
+use App\Http\Controllers\Api\PluginCallbackController;
 use Illuminate\Support\Facades\Route;
 
 // Public health check (no auth required)
 Route::get('/v1/health', [SyncController::class, 'health'])->name('api.health');
+
+// Plugin edit callback — authenticated by HMAC, no API key needed (opaque token in URL)
+Route::post('/plugin-callback/{token}', [PluginCallbackController::class, 'handle'])
+    ->name('plugin.callback');
 
 // Authenticated API endpoints
 Route::middleware(['api.key', 'throttle:60,1'])->prefix('v1')->group(function () {

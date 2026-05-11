@@ -178,25 +178,33 @@ class SiteController extends Controller
     public function updatePushSettings(Request $request, Site $site): RedirectResponse
     {
         $data = $request->validate([
-            'push_url' => ['nullable', 'url', 'max:500'],
-            'push_key' => ['nullable', 'string', 'size:64'],
+            'push_url'          => ['nullable', 'url', 'max:500'],
+            'push_key'          => ['nullable', 'string', 'size:64'],
+            'allow_plugin_edit' => ['nullable', 'boolean'],
         ]);
 
-        $site->update([
-            'push_url' => $data['push_url'] ?: null,
-            'push_key' => $data['push_key'] ?: null,
-        ]);
+        $update = [
+            'push_url'          => $data['push_url'] ?: null,
+            'push_key'          => $data['push_key'] ?: null,
+            'allow_plugin_edit' => (bool) ($data['allow_plugin_edit'] ?? false),
+        ];
+
+        if ($update['allow_plugin_edit'] && !$site->plugin_edit_token) {
+            $update['plugin_edit_token'] = bin2hex(random_bytes(32));
+        }
+
+        $site->update($update);
 
         return redirect()->back()->with('success', 'Налаштування збережено');
     }
 
-    public function testPush(Site $site): RedirectResponse
+    public function syncPush(Site $site): RedirectResponse
     {
         $ok = SyncPushService::push($site);
 
         return redirect()->back()->with(
             $ok ? 'success' : 'error',
-            $ok ? 'Тест-пуш надіслано успішно' : 'Помилка надсилання — перевірте URL та ключ'
+            $ok ? 'Дані синхронізовано успішно' : 'Помилка синхронізації — перевірте URL та ключ'
         );
     }
 }
