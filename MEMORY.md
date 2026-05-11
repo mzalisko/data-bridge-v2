@@ -6,13 +6,11 @@
 
 ## 📍 Поточний стан
 
-- **Версія:** 0.3.0 (Laravel + Sync API, merged to main)
-- **Активний спринт:** Sprint 04 — WP Plugin + CRM Blade redesign V2
-- **Активна гілка:** `feature/crm-redesign` — vibeB Blade redesign V2 (full 1:1 match React archive)
-- **Останній комміт:** `477495c` — feat(geo+phone): active_geos with names, phone form simplified, drawer scroll fix
-- **CRM logic гілка:** `feature/task-plugin-rework` (не злита)
-- **Plugin гілка:** `feature/plugin-redesign-3pages`
-- **Наступний крок:** мерж `feature/crm-redesign` → main + мерж `feature/task-plugin-rework` → main
+- **Версія:** 0.4.0 — злито в main, тег `v0.4.0-sprint04-push-arch`
+- **Активний спринт:** Sprint 04 — завершено основну частину
+- **Активна гілка:** `feature/per-item-geo-visibility` (злита в main, але не видалена)
+- **Plugin гілка:** `feature/push-plugin-v2` (активна, без remote)
+- **Наступний крок:** Plugin GitHub remote + фінальна перевірка WP плагіна
 
 ---
 
@@ -65,22 +63,19 @@
 
 ## 🔲 Залишилось (Sprint 04)
 
-1. **Мерж** `feature/task-plugin-rework` → main (CRM)
-2. **Мерж** plugin гілок → master (plugin repo)
-3. **Plugin git remote** — GitHub repo
-4. **wp-test/** — docker env з реальним WordPress (візуальна перевірка)
-5. **Conflict resolution** — логіка пріоритету CRM
+1. **Plugin git remote** — GitHub repo (поки локальний)
+2. **Перевірка WP плагіна** — `dbp_wordpress` Docker вже є, перевірити shortcodes
+3. **Conflict resolution** — логіка пріоритету CRM (гео-правила для плагіна)
 
 ---
 
 ## 🌿 Git стан
 
 - **CRM remote:** `git@github.com:mzalisko/data-bridge-v2.git`
-- **CRM активна гілка:** `feature/crm-redesign` (Blade redesign V2 + standalone React reference)
-- **Plugin repo:** `M:\Projects\CC\data-bridge-v2-plugin\` (git init, remote потрібно)
-- **Plugin активна гілка:** `feature/plugin-redesign-3pages`
-- **Теги повернення:** `v0.3.0-sprint03-complete`, `v0.2.0-sprint02-complete`, `v0.1-vanilla-php-foundation`
-- **Stash:** `feature/crm-design-refresh` — стешовані зміни Blade UI
+- **CRM main:** `v0.4.0-sprint04-push-arch` (злито feature/per-item-geo-visibility)
+- **Plugin repo:** `M:\Projects\CC\data-bridge-v2-plugin\` (git local, remote потрібно)
+- **Plugin активна гілка:** `feature/push-plugin-v2`
+- **Теги повернення:** `v0.4.0-sprint04-push-arch`, `v0.3.0-sprint03-complete`, `v0.2.0-sprint02-complete`
 
 ---
 
@@ -102,8 +97,10 @@
 | Design system V2 | Single `public/assets/css/app.css` (~530 рядків) — vibeB tokens 1:1 з `src/styles/crm-theme.css` |
 | Geo system V2 | `sites.active_geos` (JSON ISO array) + `sites.geo_rules` (JSON map visitor→data). Old `geo_mode/geo_countries` збережені для backward-compat з плагіном |
 | Eye-toggle | `is_visible` BOOL DEFAULT 1 на site_phones, site_addresses, site_socials. POST /visibility/{type}/{id} |
-| Plugin sync | CRM→Plugin: pull на page load (>60s) + optional webhook ping |
-| Plugin DB | DATABRIDGE_DB_VERSION='1.2.0'; dbDelta на plugins_loaded prio 5 |
+| Plugin sync | CRM→Plugin: one-way PUSH (SyncPushService) — автоматично після кожного CRUD та geo-зміни |
+| Plugin sync key | 64-hex; зберігається в WP option `dbp_sync_key`; CRM зберігає в `sites.push_key` |
+| Plugin push URL | `sites.push_url` = `https://site.com/wp-json/dbp/v1/sync`; в dev — `host.docker.internal:8090` |
+| Plugin DB | DBP_DB_VERSION='2.0.0'; dbDelta на plugins_loaded prio 5 |
 | Plugin geo | geo_mode/geo_countries у phones/prices/addresses/socials; fail-open |
 | Plugin tabs | Cookie server-side (zero-flash); JS записує cookie при кліку |
 | socials | Немає колонки label — тільки platform/handle/url/sort_order/geo |
