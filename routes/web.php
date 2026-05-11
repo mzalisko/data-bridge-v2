@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\SiteSocialController;
 use App\Http\Controllers\Admin\SiteGeoController;
 use App\Http\Controllers\Admin\SiteCustomFieldController;
 use App\Http\Controllers\Admin\BulkDataController;
+use App\Http\Controllers\Admin\SiteFailoverController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\BatchController;
 use App\Http\Controllers\Admin\DataBrowserController;
@@ -81,6 +82,11 @@ Route::middleware('auth')->group(function () {
     Route::post(  'sites/{site}/activity/{log}/restore', [SiteController::class, 'restoreActivity'])->name('sites.activity.restore');
     Route::put(   'sites/{site}/push-settings',  [SiteController::class, 'updatePushSettings'])->name('sites.push-settings.update');
     Route::post(  'sites/{site}/sync',           [SiteController::class, 'syncPush'])->name('sites.sync');
+
+    // Failover management
+    Route::post(  'sites/{site}/failover/standby',        [SiteFailoverController::class, 'toggleStandby'])->name('sites.failover.standby');
+    Route::post(  'sites/{site}/failover/trigger',        [SiteFailoverController::class, 'trigger'])->name('sites.failover.trigger');
+    Route::post(  'sites/{site}/failover/{log}/rollback', [SiteFailoverController::class, 'rollback'])->name('sites.failover.rollback');
 
     // Bulk data operations (multi-site) — UI planned, controller scaffolded
     Route::post('bulk/phones',  [BulkDataController::class, 'addPhone'])->name('bulk.phones');

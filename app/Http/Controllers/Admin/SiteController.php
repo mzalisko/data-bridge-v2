@@ -9,6 +9,7 @@ use App\Models\ActivityLog;
 use App\Models\Country;
 use App\Models\Site;
 use App\Models\SiteGroup;
+use App\Models\SiteFailoverLog;
 use App\Models\SyncLog;
 use App\Services\SyncPushService;
 use Illuminate\Http\JsonResponse;
@@ -85,9 +86,14 @@ class SiteController extends Controller
             ->limit(20)
             ->get();
 
+        $failoverLogs = SiteFailoverLog::where('site_id', $site->id)
+            ->orderByDesc('created_at')
+            ->limit(30)
+            ->get();
+
         return view('admin.sites.show', compact(
             'site', 'groups', 'tab', 'countries', 'presenceOthers',
-            'activityLogs', 'siteSyncs',
+            'activityLogs', 'siteSyncs', 'failoverLogs',
         ));
     }
 

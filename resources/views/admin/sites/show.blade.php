@@ -709,8 +709,12 @@
                                 <div class="dt-item-name" style="font-family:var(--font-mono);">
                                     {{ $p->number }}
                                 </div>
-                                @if($p->label || $p->is_primary)
-                                    <div class="dt-item-sub">{{ $p->label }}{{ $p->is_primary ? ($p->label ? ' · ' : '').'основний' : '' }}</div>
+                                @if($p->label || $p->is_primary || $p->is_standby || $p->is_blocked)
+                                    <div class="dt-item-sub">
+                                        {{ $p->label }}{{ $p->is_primary ? ($p->label ? ' · ' : '').'основний' : '' }}
+                                        @if($p->is_blocked) <span class="dt-badge dt-badge--blocked">✕ заблок.</span> @endif
+                                        @if($p->is_standby) <span class="dt-badge dt-badge--standby">⟳ резерв</span> @endif
+                                    </div>
                                 @endif
                             </div>
                             <div class="dt-vis">
@@ -748,6 +752,20 @@
                                         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
                                     </button>
                                 </form>
+                                <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">
+                                    @csrf
+                                    <input type="hidden" name="type" value="phone">
+                                    <input type="hidden" name="id" value="{{ $p->id }}">
+                                    <button type="submit" class="icon-btn" title="{{ $p->is_standby ? 'Зняти з резерву' : 'Позначити резервом' }}" style="color:{{ $p->is_standby ? 'var(--accent)' : 'var(--text-3)' }};">
+                                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                                    </button>
+                                </form>
+                                @if(!$p->is_standby && !$p->is_blocked)
+                                <button class="icon-btn" title="Тригер failover" style="color:var(--warning);"
+                                        onclick="dtOpenFailover('phone','{{ $p->id }}','{{ addslashes($p->number) }}')">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                </button>
+                                @endif
                                 <button class="icon-btn" id="dt-expand-phone-{{ $p->id }}" title="Редагувати" onclick="dtExpandItem('phone-{{ $p->id }}')">
                                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg>
                                 </button>
@@ -1041,7 +1059,11 @@
                             <span class="dt-item-icon" style="color:{{ $sic['c'] }}">{!! $sic['svg'] !!}</span>
                             <div class="dt-item-main">
                                 <div class="dt-item-name">{{ $s->handle }}</div>
-                                <div class="dt-item-sub">{{ ucfirst($s->platform) }}</div>
+                                <div class="dt-item-sub">
+                                    {{ ucfirst($s->platform) }}
+                                    @if($s->is_blocked) <span class="dt-badge dt-badge--blocked">✕ заблок.</span> @endif
+                                    @if($s->is_standby) <span class="dt-badge dt-badge--standby">⟳ резерв</span> @endif
+                                </div>
                             </div>
                             <div class="dt-vis">
                                 @if(count($usedIso)===0||($s->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
@@ -1055,6 +1077,20 @@
                                         @if($s->is_visible??true)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif
                                     </button>
                                 </form>
+                                <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">
+                                    @csrf
+                                    <input type="hidden" name="type" value="social">
+                                    <input type="hidden" name="id" value="{{ $s->id }}">
+                                    <button type="submit" class="icon-btn" title="{{ $s->is_standby ? 'Зняти з резерву' : 'Позначити резервом' }}" style="color:{{ $s->is_standby ? 'var(--accent)' : 'var(--text-3)' }};">
+                                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                                    </button>
+                                </form>
+                                @if(!$s->is_standby && !$s->is_blocked)
+                                <button class="icon-btn" title="Тригер failover" style="color:var(--warning);"
+                                        onclick="dtOpenFailover('social','{{ $s->id }}','{{ addslashes(ucfirst($s->platform).' '.$s->handle) }}')">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                </button>
+                                @endif
                                 <form method="POST" action="{{ route('socials.destroy',[$site,$s]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
                                     <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
                                 </form>
@@ -1629,6 +1665,62 @@
             </div>
 
             </div>{{-- /dt-grid --}}
+
+            {{-- ═══ FAILOVER LOG ════════════════════════════════════ --}}
+            @php
+                $activeFailovers  = $failoverLogs->where('rolled_back_at', null);
+                $resolvedFailovers = $failoverLogs->whereNotNull('rolled_back_at');
+            @endphp
+            @if($failoverLogs->isNotEmpty())
+            <div class="dt-card" id="data-failover" style="margin-top:12px;">
+                <div class="dt-card-head">
+                    <span class="dt-card-head__icon">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    </span>
+                    <span class="dt-card-head__title">Failover журнал</span>
+                    <span class="dt-card-head__count">{{ $activeFailovers->count() }} активних</span>
+                </div>
+                <div class="dt-items">
+                    @foreach($failoverLogs as $fl)
+                    <div class="dt-item" style="{{ $fl->rolled_back_at ? 'opacity:.55;' : '' }}">
+                        <div class="dt-item-row" style="cursor:default;">
+                            <span class="dt-item-icon" style="color:{{ $fl->rolled_back_at ? 'var(--text-3)' : 'var(--warning)' }};">
+                                @if($fl->rolled_back_at)
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                @else
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                @endif
+                            </span>
+                            <div class="dt-item-main">
+                                <div class="dt-item-name" style="font-size:12px;">
+                                    {{ $fl->type === 'phone' ? 'Телефон' : 'Соцмережа' }} #{{ $fl->primary_id }}
+                                    → резерв #{{ $fl->standby_id }}
+                                </div>
+                                <div class="dt-item-sub">
+                                    {{ $fl->trigger_reason }}
+                                    · {{ $fl->triggered_by === 'api' ? 'API' : 'вручну' }}
+                                    · {{ $fl->created_at->format('d.m H:i') }}
+                                    @if($fl->rolled_back_at) · відкат {{ $fl->rolled_back_at->format('d.m H:i') }} @endif
+                                </div>
+                            </div>
+                            @if(!$fl->rolled_back_at)
+                            <div class="dt-item-actions" onclick="event.stopPropagation()">
+                                <form method="POST" action="{{ route('sites.failover.rollback',[$site,$fl]) }}" style="margin:0;"
+                                      onsubmit="return confirm('Відновити первинний запис і повернути резерв у пул?')">
+                                    @csrf
+                                    <button type="submit" class="btn btn--secondary btn--sm" style="font-size:11px;padding:3px 10px;">
+                                        Відкат
+                                    </button>
+                                </form>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
         @endif
 
         {{-- ========= ACTIVITY ========= --}}
@@ -2359,5 +2451,49 @@ function actToggle(row) {
     ping();
     setInterval(ping, 60000);
 })();
+
+// ── Failover modal ──────────────────────────────────────────────────────────
+function dtOpenFailover(type, id, label) {
+    document.getElementById('fo-type').value    = type;
+    document.getElementById('fo-id').value      = id;
+    document.getElementById('fo-label').textContent = label;
+    document.getElementById('fo-reason').value  = '';
+    document.getElementById('fo-modal').style.display = 'flex';
+    document.getElementById('fo-reason').focus();
+}
+document.getElementById('fo-close')?.addEventListener('click', () => {
+    document.getElementById('fo-modal').style.display = 'none';
+});
+document.getElementById('fo-modal')?.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+});
 </script>
+
+{{-- Failover trigger modal --}}
+<div id="fo-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:var(--bg-card);border-radius:var(--radius-card);padding:28px;width:400px;max-width:90vw;box-shadow:var(--shadow-card);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <span style="font-weight:600;font-size:15px;">Активувати failover</span>
+            <button id="fo-close" class="icon-btn" style="font-size:18px;">×</button>
+        </div>
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:16px;">
+            Запис: <strong id="fo-label"></strong>
+        </div>
+        <form method="POST" action="{{ route('sites.failover.trigger',$site) }}">
+            @csrf
+            <input type="hidden" id="fo-type" name="type">
+            <input type="hidden" id="fo-id"   name="primary_id">
+            <div style="margin-bottom:16px;">
+                <label class="dt-label">Причина блокування *</label>
+                <input type="text" id="fo-reason" name="reason" class="dt-input"
+                       placeholder="WhatsApp banned, Number inactive…" required>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button type="submit" class="btn btn--primary btn--sm">Активувати</button>
+                <button type="button" id="fo-close-btn" class="btn btn--secondary btn--sm"
+                        onclick="document.getElementById('fo-modal').style.display='none'">Скасувати</button>
+            </div>
+        </form>
+    </div>
+</div>
 @endpush

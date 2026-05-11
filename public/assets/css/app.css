@@ -931,6 +931,16 @@ img, svg { display: block; max-width: 100%; }
 .dt-vis-badge--no  { background: var(--danger-bg);  color: var(--danger);  }
 .dt-vis-badge--all { background: var(--panel-2);    color: var(--text-3);  border-color: var(--border); }
 
+/* Failover state badges (inline in dt-item-sub) */
+.dt-badge {
+  display: inline-flex; align-items: center;
+  padding: 1px 6px; border-radius: 99px; font-size: 9px;
+  font-weight: 600; letter-spacing: .03em; margin-left: 5px;
+  vertical-align: middle;
+}
+.dt-badge--blocked { background: var(--danger-bg);  color: var(--danger); }
+.dt-badge--standby { background: rgba(99,102,241,.12); color: var(--accent); }
+
 /* Social → phone link badge */
 .dt-link-badge {
   display: inline-flex; align-items: center; gap: 3px;
