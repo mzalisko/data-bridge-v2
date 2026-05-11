@@ -8,9 +8,9 @@
 
 - **Версія:** 0.4.0 — злито в main, тег `v0.4.0-sprint04-push-arch`
 - **Активний спринт:** Sprint 04 — завершено основну частину
-- **Активна гілка:** `feature/per-item-geo-visibility` (злита в main, але не видалена)
+- **Активна гілка:** `feature/per-item-geo-visibility` (коміт `e388e3f` — failover)
 - **Plugin гілка:** `feature/push-plugin-v2` (активна, без remote)
-- **Наступний крок:** Plugin GitHub remote + фінальна перевірка WP плагіна
+- **Наступний крок:** мерж `feature/per-item-geo-visibility` → main + Plugin GitHub remote
 
 ---
 
@@ -61,11 +61,23 @@
 | CRM site groups show: повний rewrite (видалені .page-toolbar/.role-badge класи) | feature/crm-redesign | ✅ |
 | CRM i18n: повний переклад всіх Blade views на українську (всі сторінки + drawers + confirm dialogs) | feature/crm-redesign | ✅ |
 
+## ✅ Failover Pool (Sprint 04)
+
+| Задача | Гілка | Статус |
+|---|---|---|
+| `is_standby/is_blocked/blocked_reason` колонки + `site_failover_logs` таблиця | feature/per-item-geo-visibility | ✅ |
+| `FailoverService::trigger()` + `rollback()` (транзакції, snapshot, push WP) | feature/per-item-geo-visibility | ✅ |
+| API: `POST /api/v1/failover` + `/rollback` (зовнішній тригер) | feature/per-item-geo-visibility | ✅ |
+| Admin: standby toggle, ручний modal, відкат у Data tab | feature/per-item-geo-visibility | ✅ |
+| Failover журнал у Data tab | feature/per-item-geo-visibility | ✅ |
+| Obsidian документація `02-Модулі/failover_pool.md` | vault | ✅ |
+
 ## 🔲 Залишилось (Sprint 04)
 
-1. **Plugin git remote** — GitHub repo (поки локальний)
-2. **Перевірка WP плагіна** — `dbp_wordpress` Docker вже є, перевірити shortcodes
-3. **Conflict resolution** — логіка пріоритету CRM (гео-правила для плагіна)
+1. **Мерж** `feature/per-item-geo-visibility` → main
+2. **Plugin git remote** — GitHub repo (поки локальний)
+3. **Перевірка WP плагіна** — `dbp_wordpress` Docker вже є, перевірити shortcodes
+4. **Conflict resolution** — логіка пріоритету CRM (гео-правила для плагіна)
 
 ---
 
@@ -107,6 +119,8 @@
 | custom_fields | Немає label/is_visible — тільки field_key/field_value/field_type/sort_order |
 | site sticky | overflow:clip на .site-show + position:sticky на sidebar |
 | Group FK | nullOnDelete (не cascade) — sites.group_id nullable |
+| Failover pool | `is_standby/is_blocked/blocked_reason` на phones+socials; `site_failover_logs` зберігає snapshot; `FailoverService::trigger/rollback()`; API POST /api/v1/failover |
+| Plugin edit callback | CRM надсилає `edit_callback.url+key` у push payload; plugin POST-ить зміни назад; callback URL = `/api/plugin-callback/{64-hex-token}` |
 
 ---
 
