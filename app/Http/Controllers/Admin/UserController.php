@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
@@ -58,6 +59,9 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
+        $wasActive = $user->is_active;
+        $oldRole   = $user->role;
+
         $data = [
             'name'      => $request->name,
             'email'     => $request->email,
@@ -70,6 +74,11 @@ class UserController extends Controller
         }
 
         $user->update($data);
+
+        // Kill user sessions if deactivated or role changed
+        if (($wasActive && !$user->is_active) || $oldRole !== $user->role) {
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+        }
 
         return redirect()->route('users.index')
             ->with('success', 'Користувача оновлено');

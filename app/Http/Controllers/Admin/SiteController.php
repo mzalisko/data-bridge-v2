@@ -5,11 +5,16 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreSiteRequest;
 use App\Http\Requests\Admin\UpdateSiteRequest;
+use App\Models\ActivityLog;
 use App\Models\Country;
 use App\Models\Site;
 use App\Models\SiteGroup;
+use App\Models\SyncLog;
+use App\Services\SyncPushService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class SiteController extends Controller
@@ -62,12 +67,82 @@ class SiteController extends Controller
 
     public function show(Request $request, Site $site): View
     {
-        $tab = $request->get('tab', 'phones');
-        $site->load(['siteGroup', 'apiKey', 'phones', 'prices', 'addresses', 'socials']);
+        $tab = $request->query('tab', 'overview');
+        $site->load(['siteGroup', 'apiKey', 'phones', 'prices', 'addresses', 'socials', 'customFields']);
         $groups    = SiteGroup::orderBy('name')->get(['id', 'name', 'color']);
         $countries = Country::orderBy('sort_order')->orderBy('iso')->get(['iso', 'dial_code', 'name']);
 
-        return view('admin.sites.show', compact('site', 'groups', 'tab', 'countries'));
+        $presenceOthers = $this->getPresence($site->id);
+
+        $activityLogs = ActivityLog::where('site_id', $site->id)
+            ->with('user:id,name')
+            ->orderByDesc('created_at')
+            ->paginate(30, ['*'], 'act_page')
+            ->withQueryString();
+
+        $siteSyncs = SyncLog::where('site_id', $site->id)
+            ->orderByDesc('synced_at')
+            ->limit(20)
+            ->get();
+
+        return view('admin.sites.show', compact(
+            'site', 'groups', 'tab', 'countries', 'presenceOthers',
+            'activityLogs', 'siteSyncs',
+        ));
+    }
+
+    public function presence(Request $request, Site $site): JsonResponse
+    {
+        $key    = "site_presence_{$site->id}";
+        $userId = auth()->id();
+        $now    = time();
+
+        $list = Cache::get($key, []);
+        // drop stale (>90s) and self
+        $list = array_values(array_filter($list, fn($p) => $p['id'] !== $userId && ($now - $p['at']) < 90));
+        // register self
+        $list[] = ['id' => $userId, 'name' => auth()->user()->name, 'at' => $now];
+        Cache::put($key, $list, 120);
+
+        $others = array_values(array_filter($list, fn($p) => $p['id'] !== $userId));
+        return response()->json(['others' => $others]);
+    }
+
+    private function getPresence(int $siteId): array
+    {
+        $key  = "site_presence_{$siteId}";
+        $now  = time();
+        $list = Cache::get($key, []);
+        return array_values(array_filter($list, fn($p) => $p['id'] !== auth()->id() && ($now - $p['at']) < 90));
+    }
+
+    public function restoreActivity(Site $site, ActivityLog $log): RedirectResponse
+    {
+        if ($log->site_id !== $site->id || $log->action !== 'delete' || ! $log->snapshot) {
+            return back()->with('error', 'Відновлення неможливе');
+        }
+
+        $modelMap = [
+            'phone'   => \App\Models\SitePhone::class,
+            'price'   => \App\Models\SitePrice::class,
+            'address' => \App\Models\SiteAddress::class,
+            'social'  => \App\Models\SiteSocial::class,
+            'field'   => \App\Models\SiteCustomField::class,
+        ];
+
+        $modelClass = $modelMap[$log->entity_type] ?? null;
+        if (! $modelClass) {
+            return back()->with('error', 'Невідомий тип запису');
+        }
+
+        // snapshot is {before: {...}, after: {...}} for update/delete
+        $raw  = $log->snapshot;
+        $data = $raw['before'] ?? $raw; // fallback: old format was flat array
+        $data = collect($data)->except(['id', 'created_at', 'updated_at'])->all();
+
+        $modelClass::create($data);
+
+        return back()->with('success', 'Запис відновлено');
     }
 
     public function store(StoreSiteRequest $request): RedirectResponse
@@ -98,5 +173,30 @@ class SiteController extends Controller
 
         return redirect()->route('sites.index')
             ->with('success', 'Сайт видалено');
+    }
+
+    public function updatePushSettings(Request $request, Site $site): RedirectResponse
+    {
+        $data = $request->validate([
+            'push_url' => ['nullable', 'url', 'max:500'],
+            'push_key' => ['nullable', 'string', 'size:64'],
+        ]);
+
+        $site->update([
+            'push_url' => $data['push_url'] ?: null,
+            'push_key' => $data['push_key'] ?: null,
+        ]);
+
+        return redirect()->back()->with('success', 'Налаштування збережено');
+    }
+
+    public function testPush(Site $site): RedirectResponse
+    {
+        $ok = SyncPushService::push($site);
+
+        return redirect()->back()->with(
+            $ok ? 'success' : 'error',
+            $ok ? 'Тест-пуш надіслано успішно' : 'Помилка надсилання — перевірте URL та ключ'
+        );
     }
 }

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\UserPermission;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PermissionController extends Controller
@@ -96,6 +97,9 @@ class PermissionController extends Controller
         }
 
         UserPermission::insert($toInsert);
+
+        // Invalidate user sessions so new permissions take effect immediately
+        DB::table('sessions')->where('user_id', $user->id)->delete();
 
         return redirect()->route('users.index')
             ->with('success', "Права для «{$user->name}» збережено");

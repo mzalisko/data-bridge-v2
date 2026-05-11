@@ -11,13 +11,14 @@ class UpdatePhoneRequest extends FormRequest
     {
         return [
             'label'       => ['nullable', 'string', 'max:100'],
-            'country_iso' => ['required', 'string', 'size:2'],
-            'dial_code'   => ['required', 'string', 'max:8'],
+            'country_iso' => ['nullable', 'string', 'size:2'],
+            'dial_code'   => ['nullable', 'string', 'max:8'],
             'number'      => ['required', 'string', 'max:32'],
             'is_primary'    => ['nullable'],
             'sort_order'    => ['nullable', 'integer', 'min:0'],
-            'geo_mode'      => ['nullable', 'string', 'in:all,include,exclude'],
-            'geo_countries' => ['nullable', 'string', 'max:255'],
+            'geo_mode'        => ['nullable', 'string', 'in:all,include,exclude'],
+            'geo_countries'   => ['nullable', 'array'],
+            'geo_countries.*' => ['string', 'regex:/^[A-Z]{2}$/'],
         ];
     }
 }

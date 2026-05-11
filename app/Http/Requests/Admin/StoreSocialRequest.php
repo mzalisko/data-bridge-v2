@@ -12,9 +12,11 @@ class StoreSocialRequest extends FormRequest
             'platform'   => ['required', 'string', 'max:32'],
             'handle'     => ['required', 'string', 'max:255'],
             'url'           => ['required', 'url', 'max:512'],
+            'phone_id'      => ['nullable', 'integer', 'exists:site_phones,id'],
             'sort_order'    => ['nullable', 'integer', 'min:0'],
-            'geo_mode'      => ['nullable', 'string', 'in:all,include,exclude'],
-            'geo_countries' => ['nullable', 'string', 'max:255'],
+            'geo_mode'        => ['nullable', 'string', 'in:all,include,exclude'],
+            'geo_countries'   => ['nullable', 'array'],
+            'geo_countries.*' => ['string', 'regex:/^[A-Z]{2}$/'],
         ];
     }
 }

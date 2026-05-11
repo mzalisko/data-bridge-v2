@@ -19,12 +19,18 @@ class Site extends Model
         'logo',
         'is_active',
         'site_countries',
+        'active_geos',
+        'geo_rules',
+        'push_url',
+        'push_key',
     ];
 
     protected function casts(): array
     {
         return [
-            'is_active' => 'boolean',
+            'is_active'   => 'boolean',
+            'active_geos' => 'array',
+            'geo_rules'   => 'array',
         ];
     }
 

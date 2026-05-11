@@ -12,6 +12,9 @@ use App\Http\Controllers\Admin\SitePhoneController;
 use App\Http\Controllers\Admin\SitePriceController;
 use App\Http\Controllers\Admin\SiteAddressController;
 use App\Http\Controllers\Admin\SiteSocialController;
+use App\Http\Controllers\Admin\SiteGeoController;
+use App\Http\Controllers\Admin\SiteCustomFieldController;
+use App\Http\Controllers\Admin\BulkDataController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\BatchController;
 use App\Http\Controllers\Admin\DataBrowserController;
@@ -64,6 +67,28 @@ Route::middleware('auth')->group(function () {
     Route::put(   'sites/{site}/socials/{social}',    [SiteSocialController::class,  'update'] )->name('socials.update');
     Route::delete('sites/{site}/socials/{social}',    [SiteSocialController::class,  'destroy'])->name('socials.destroy');
 
+    Route::post(  'sites/{site}/presence',           [SiteController::class,            'presence'])->name('sites.presence');
+
+    Route::post(  'sites/{site}/fields',             [SiteCustomFieldController::class, 'store']  )->name('fields.store');
+    Route::put(   'sites/{site}/fields/{field}',     [SiteCustomFieldController::class, 'update'] )->name('fields.update');
+    Route::delete('sites/{site}/fields/{field}',     [SiteCustomFieldController::class, 'destroy'])->name('fields.destroy');
+
+    // Geo management (active geos + rules + visibility toggle)
+    Route::post(  'sites/{site}/geos',              [SiteGeoController::class, 'addGeo'])->name('sites.geos.add');
+    Route::delete('sites/{site}/geos/{iso}',        [SiteGeoController::class, 'removeGeo'])->name('sites.geos.remove');
+    Route::post(  'sites/{site}/geo-rules',         [SiteGeoController::class, 'saveRules'])->name('sites.geo-rules.save');
+    Route::post(  'sites/{site}/visibility/{type}/{id}', [SiteGeoController::class, 'toggleVisibility'])->name('sites.visibility.toggle');
+    Route::post(  'sites/{site}/activity/{log}/restore', [SiteController::class, 'restoreActivity'])->name('sites.activity.restore');
+    Route::put(   'sites/{site}/push-settings',         [SiteController::class, 'updatePushSettings'])->name('sites.push-settings.update');
+    Route::post(  'sites/{site}/push-settings/test',    [SiteController::class, 'testPush'])->name('sites.push-settings.test');
+
+    // Bulk data operations (multi-site) — UI planned, controller scaffolded
+    Route::post('bulk/phones',  [BulkDataController::class, 'addPhone'])->name('bulk.phones');
+    Route::post('bulk/prices',  [BulkDataController::class, 'addPrice'])->name('bulk.prices');
+    Route::post('bulk/socials', [BulkDataController::class, 'addSocial'])->name('bulk.socials');
+    Route::post('bulk/geos',    [BulkDataController::class, 'addGeo'])->name('bulk.geos');
+    Route::post('bulk/delete',  [BulkDataController::class, 'deleteMatching'])->name('bulk.delete');
+
     Route::resource('users', UserController::class)
         ->only(['index', 'store', 'update', 'destroy']);
 
@@ -71,8 +96,9 @@ Route::middleware('auth')->group(function () {
     Route::get('users/{user}/permissions/form', [PermissionController::class, 'fragment'])->name('users.permissions.fragment');
     Route::post('users/{user}/permissions', [PermissionController::class, 'update'])->name('users.permissions.update');
 
-    Route::get('/logs/system', [LogController::class, 'system'])->name('logs.system');
-    Route::get('/logs/sync', [LogController::class, 'sync'])->name('logs.sync');
+    Route::get('/logs/system',   [LogController::class, 'system'])->name('logs.system');
+    Route::get('/logs/sync',     [LogController::class, 'sync'])->name('logs.sync');
+    Route::get('/logs/activity', [LogController::class, 'activity'])->name('logs.activity');
 
     // Data Browser
     Route::get( 'data',             [DataBrowserController::class, 'index'])->name('data.index');

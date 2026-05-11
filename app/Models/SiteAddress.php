@@ -14,12 +14,14 @@ class SiteAddress extends Model
         'label',
         'country_iso',
         'city',
+        'region',
         'street',
         'building',
         'postal_code',
         'latitude',
         'longitude',
         'is_primary',
+        'is_visible',
         'sort_order',
         'geo_mode',
         'geo_countries',
@@ -28,9 +30,11 @@ class SiteAddress extends Model
     protected function casts(): array
     {
         return [
-            'latitude'   => 'decimal:7',
-            'longitude'  => 'decimal:7',
-            'is_primary' => 'boolean',
+            'latitude'      => 'decimal:7',
+            'longitude'     => 'decimal:7',
+            'is_primary'    => 'boolean',
+            'is_visible'    => 'boolean',
+            'geo_countries' => 'array',
         ];
     }
 

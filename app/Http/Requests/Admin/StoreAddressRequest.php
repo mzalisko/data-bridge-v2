@@ -10,8 +10,9 @@ class StoreAddressRequest extends FormRequest
     {
         return [
             'label'       => ['nullable', 'string', 'max:100'],
-            'country_iso' => ['required', 'string', 'size:2'],
+            'country_iso' => ['nullable', 'string', 'size:2'],
             'city'        => ['required', 'string', 'max:255'],
+            'region'      => ['nullable', 'string', 'max:150'],
             'street'      => ['nullable', 'string', 'max:255'],
             'building'    => ['nullable', 'string', 'max:50'],
             'postal_code' => ['nullable', 'string', 'max:20'],
@@ -19,8 +20,9 @@ class StoreAddressRequest extends FormRequest
             'longitude'   => ['nullable', 'numeric', 'between:-180,180'],
             'is_primary'    => ['nullable'],
             'sort_order'    => ['nullable', 'integer', 'min:0'],
-            'geo_mode'      => ['nullable', 'string', 'in:all,include,exclude'],
-            'geo_countries' => ['nullable', 'string', 'max:255'],
+            'geo_mode'        => ['nullable', 'string', 'in:all,include,exclude'],
+            'geo_countries'   => ['nullable', 'array'],
+            'geo_countries.*' => ['string', 'regex:/^[A-Z]{2}$/'],
         ];
     }
 }

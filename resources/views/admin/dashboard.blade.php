@@ -1,224 +1,149 @@
 @extends('layouts.app')
 
-@push('styles')
-<link rel="stylesheet" href="{{ asset('assets/css/pages/dashboard.css') }}?v={{ filemtime(public_path('assets/css/pages/dashboard.css')) }}">
-@endpush
-
-@section('title', 'Dashboard')
+@section('title', 'Огляд')
 
 @section('content')
+<div class="page-stack">
 
-<div class="db-layout">
-
-    {{-- ── CENTER: Sync Timeline ── --}}
-    <div class="db-main">
-
-        <div class="page-toolbar">
-            <div>
-                <h1 class="page-title">Dashboard</h1>
-            </div>
-
-            @if($problemSites->isNotEmpty())
-                <div class="db-status db-status--err">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    {{ $problemSites->count() }} {{ $problemSites->count() === 1 ? 'помилка' : 'помилок' }}
-                </div>
-            @endif
+    {{-- ========= PAGE HEAD ========= --}}
+    <div class="page-head">
+        <div>
+            <h1 class="page-head__title">Огляд</h1>
         </div>
+        <div class="page-head__actions">
+            <button class="btn btn--secondary btn--md">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 4v11"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/>
+                </svg>
+                Експорт
+            </button>
+            <a href="{{ route('sites.index') }}" class="btn btn--primary btn--md">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+                Додати сайт
+            </a>
+        </div>
+    </div>
 
-        {{-- Timeline --}}
-        <div class="db-card">
-            <div class="db-card__header">
-                <span class="db-card__title">Стрічка синхронізацій</span>
-                <span class="db-card__count">{{ $recentSyncs->total() }} подій</span>
+    {{-- ========= 4 STAT CARDS ========= --}}
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+        <div class="stat-card">
+            <div class="stat-card__label">Сайти</div>
+            <div class="stat-card__row">
+                <span class="stat-card__value">{{ $stats['sites'] ?? 0 }}</span>
             </div>
+            <div class="stat-card__delta" style="color:var(--success);">{{ $stats['active'] ?? 0 }} онлайн</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__label">Всього контактів</div>
+            <div class="stat-card__row">
+                <span class="stat-card__value">{{ number_format($stats['contacts'] ?? 0) }}</span>
+            </div>
+            <div class="stat-card__delta">по всіх сайтах</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__label">Конфлікти</div>
+            <div class="stat-card__row">
+                <span class="stat-card__value" @if(($stats['problems'] ?? 0) > 0) style="color:var(--warning);" @endif>{{ $stats['problems'] ?? 0 }}</span>
+            </div>
+            <div class="stat-card__delta">{{ ($stats['problems'] ?? 0) > 0 ? 'потребує перевірки' : 'все синхронізовано' }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__label">Групи сайтів</div>
+            <div class="stat-card__row">
+                <span class="stat-card__value">{{ $stats['groups'] ?? 0 }}</span>
+            </div>
+            <div class="stat-card__delta">організуйте роботу</div>
+        </div>
+    </div>
 
+    {{-- ========= 2-COL: ACTIVITY + SIDEBAR ========= --}}
+    <div style="display:grid;grid-template-columns:1.7fr 1fr;gap:20px;">
+
+        {{-- LEFT: Recent activity --}}
+        <div class="card card--flush">
+            <div class="section-head">
+                <h3 class="section-head__title">Остання активність</h3>
+                <a href="{{ route('logs.system') }}" class="section-head__link">Переглянути всі</a>
+            </div>
             @if($recentSyncs->isEmpty())
-                <div class="db-empty">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 2.1l4 4-4 4"/><path d="M3 12.2v-2a4 4 0 0 1 4-4h13.8"/><path d="M7 21.9l-4-4 4-4"/><path d="M21 11.8v2a4 4 0 0 1-4 4H3.2"/></svg>
-                    <p>Синхронізацій поки немає</p>
-                </div>
+                <div style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;border-top:1px solid var(--border-2);">Активності ще немає.</div>
             @else
-                <ul class="db-timeline">
-                    @foreach($recentSyncs as $sync)
-                    <li class="db-event db-event--{{ $sync->status }}">
-                        <span class="db-event__dot"></span>
-                        <div class="db-event__body">
-                            <div class="db-event__top">
-                                <a href="{{ route('sites.show', $sync->site_id) }}" class="db-event__site">{{ $sync->site?->name ?? 'Невідомий сайт' }}</a>
-                                <span class="db-event__time">{{ $sync->synced_at?->diffForHumans() ?? '' }}</span>
-                            </div>
-                            @if($sync->status === 'success')
-                                <span class="db-event__desc">Синхронізовано успішно · {{ $sync->duration_ms }}ms</span>
-                            @else
-                                <span class="db-event__desc db-event__desc--err">{{ $sync->error_msg ?? 'Помилка синхронізації' }}</span>
-                            @endif
+                @foreach($recentSyncs->take(6) as $sync)
+                    @php
+                        $kind = $sync->status === 'success' ? 'success' : ($sync->status === 'error' ? 'danger' : 'warning');
+                        $kindLabel = $sync->status === 'success' ? 'ок' : ($sync->status === 'error' ? 'помилка' : 'попередження');
+                    @endphp
+                    <div class="activity-row">
+                        <span class="activity-row__when">{{ $sync->synced_at?->diffForHumans() ?? '—' }}</span>
+                        <div class="activity-row__body">
+                            <span class="dot dot--{{ $kind }}"></span>
+                            <span class="activity-row__who-system">система</span>
+                            <span class="activity-row__action">
+                                {{ $sync->status === 'success' ? 'синхронізовано' : 'помилка синхронізації' }}
+                            </span>
+                            <a href="{{ route('sites.show', $sync->site_id) }}" class="activity-row__target">{{ $sync->site?->name ?? 'невідомо' }}</a>
                         </div>
-                    </li>
-                    @endforeach
-                </ul>
-                @if($recentSyncs->total() > 50)
-                <div class="db-card__footer">
-                    {{ $recentSyncs->links() }}
-                </div>
-                @endif
-            @endif
-        </div>
-
-        {{-- Recent system logs --}}
-        @if($recentLogs->isNotEmpty())
-        <div class="db-card" id="logs-card">
-            <div class="db-card__header">
-                <span class="db-card__title">Системні події</span>
-                <span class="db-card__count">{{ $recentLogs->total() }} подій</span>
-            </div>
-            <ul class="db-timeline" id="logs-timeline">
-                @foreach($recentLogs as $log)
-                <li class="db-event db-event--{{ $log->level ?? 'info' }}">
-                    <span class="db-event__dot"></span>
-                    <div class="db-event__body">
-                        <div class="db-event__top">
-                            <span class="db-event__site">{{ $log->event }}</span>
-                            <span class="db-event__time">{{ $log->created_at?->diffForHumans() ?? '' }}</span>
-                        </div>
-                        <span class="db-event__desc">{{ $log->user?->email ?? 'system' }}</span>
+                        <span class="activity-row__kind">{{ $kindLabel }}</span>
                     </div>
-                </li>
                 @endforeach
-            </ul>
-            @if($recentLogs->hasPages())
-            <div class="db-card__footer" id="logs-pagination">
-                {{ $recentLogs->links() }}
-            </div>
-            @endif
-        </div>
-        @endif
-
-    </div>{{-- /db-main --}}
-
-    {{-- ── SIDEBAR ── --}}
-    <aside class="db-side">
-
-        {{-- Problems --}}
-        <div class="db-card">
-            <div class="db-card__header">
-                <span class="db-card__title">
-                    @if($problemSites->isEmpty())
-                        <span style="color:var(--dot-ok)">✓</span> Проблем немає
-                    @else
-                        <span style="color:var(--dot-off)">⚠</span> Проблеми ({{ $problemSites->count() }})
-                    @endif
-                </span>
-            </div>
-            @if($problemSites->isEmpty())
-                <p class="db-side__empty">Усі сайти синхронізовані</p>
-            @else
-                <ul class="db-problem-list">
-                    @foreach($problemSites as $site)
-                    <li class="db-problem-item">
-                        <div class="db-problem-item__favicon" style="background:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }}20;color:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }}">
-                            {{ mb_strtoupper(mb_substr($site->name, 0, 1, 'UTF-8'), 'UTF-8') }}
-                        </div>
-                        <div class="db-problem-item__info">
-                            <span class="db-problem-item__name">{{ $site->name }}</span>
-                            <span class="db-problem-item__err">{{ $site->latestSyncLog?->error_msg ?? "Помилка з'єднання" }}</span>
-                        </div>
-                        <a href="{{ route('sites.show', $site) }}" class="btn-icon" title="Переглянути">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                        </a>
-                    </li>
-                    @endforeach
-                </ul>
             @endif
         </div>
 
-        {{-- Favorites --}}
-        @if($favoriteSites->isNotEmpty())
-        <div class="db-card">
-            <div class="db-card__header">
-                <span class="db-card__title">★ Улюблені сайти</span>
-                <a href="{{ route('sites.index') }}" class="db-card__link">Всі →</a>
-            </div>
-            <ul class="db-quick-list">
-                @foreach($favoriteSites as $site)
-                <li>
-                    <a href="{{ route('sites.show', $site) }}" class="db-quick-item">
-                        <div class="db-quick-item__favicon" style="background:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }}20;color:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }}">
-                            {{ mb_strtoupper(mb_substr($site->name, 0, 1, 'UTF-8'), 'UTF-8') }}
-                        </div>
-                        <span class="db-quick-item__name">{{ $site->name }}</span>
-                        <span class="db-quick-item__dot" style="background:{{ $site->latestSyncLog?->status === 'success' ? 'var(--dot-ok)' : ($site->latestSyncLog ? 'var(--dot-off)' : '#4a5568') }}"></span>
-                    </a>
-                    <button class="db-fav-btn is-fav" title="Прибрати з улюблених" onclick="toggleFavorite(event, this, {{ $site->id }})">★</button>
-                </li>
-                @endforeach
-            </ul>
-        </div>
-        @endif
+        {{-- RIGHT: Plan mix + Top sites --}}
+        <div style="display:flex;flex-direction:column;gap:20px;">
 
-        {{-- Recently Synchronized --}}
-        <div class="db-card">
-            <div class="db-card__header">
-                <span class="db-card__title">🕒 Нещодавно синхронізовані</span>
-            </div>
-            @if($quickSites->isEmpty())
-                <p class="db-side__empty">Немає недавніх подій</p>
-            @else
-                <ul class="db-quick-list">
-                    @foreach($quickSites as $site)
-                    @php $isFav = in_array($site->id, $favoriteIds); @endphp
-                    <li>
-                        <a href="{{ route('sites.show', $site) }}" class="db-quick-item">
-                            <div class="db-quick-item__favicon" style="background:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }}20;color:{{ sprintf('#%06x', crc32($site->name) & 0xFFFFFF) }}">
-                                {{ mb_strtoupper(mb_substr($site->name, 0, 1, 'UTF-8'), 'UTF-8') }}
+            {{-- Plan mix (groups breakdown) --}}
+            <div class="card card--flush">
+                <div class="section-head">
+                    <h3 class="section-head__title">Розподіл по групах</h3>
+                </div>
+                <div style="padding:4px 20px 20px;display:flex;flex-direction:column;gap:10px;">
+                    @php
+                        $groups = \App\Models\SiteGroup::withCount('sites')->orderByDesc('sites_count')->take(4)->get();
+                        $totalSites = max(1, $stats['sites'] ?? 1);
+                        $palette = ['var(--accent)', 'oklch(0.65 0.14 264)', 'oklch(0.7 0.05 264)', 'var(--warning)'];
+                    @endphp
+                    @forelse($groups as $i => $g)
+                        @php $pct = round(($g->sites_count / $totalSites) * 100); @endphp
+                        <div>
+                            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+                                <span style="color:var(--text-2);">{{ $g->name }}</span>
+                                <span style="color:var(--text-3);font-family:var(--font-mono);">{{ $g->sites_count }} · {{ $pct }}%</span>
                             </div>
-                            <span class="db-quick-item__name">{{ $site->name }}</span>
-                            <span class="db-quick-item__dot" style="background:{{ $site->latestSyncLog?->status === 'success' ? 'var(--dot-ok)' : ($site->latestSyncLog ? 'var(--dot-off)' : '#4a5568') }}"></span>
-                        </a>
-                        <button class="db-fav-btn {{ $isFav ? 'is-fav' : '' }}"
-                                title="{{ $isFav ? 'Прибрати з улюблених' : 'Додати до улюблених' }}"
-                                onclick="toggleFavorite(event, this, {{ $site->id }})">★</button>
-                    </li>
-                    @endforeach
-                </ul>
-            @endif
-        </div>
+                            <div style="height:6px;border-radius:99px;background:var(--panel-2);overflow:hidden;">
+                                <div style="width:{{ $pct }}%;height:100%;background:{{ $g->color ?? $palette[$i % 4] }};"></div>
+                            </div>
+                        </div>
+                    @empty
+                        <div style="font-size:12px;color:var(--text-3);">Груп ще немає.</div>
+                    @endforelse
+                </div>
+            </div>
 
-    </aside>{{-- /db-side --}}
+            {{-- Top sites --}}
+            <div class="card card--flush">
+                <div class="section-head">
+                    <h3 class="section-head__title">Топ сайти</h3>
+                    <a href="{{ route('sites.index') }}" class="section-head__link">Всі сайти</a>
+                </div>
+                @php $listSites = $favoriteSites->isNotEmpty() ? $favoriteSites : $quickSites; @endphp
+                @forelse($listSites->take(4) as $site)
+                    <a href="{{ route('sites.show', $site) }}" style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-top:1px solid var(--border-2);text-decoration:none;color:inherit;">
+                        <x-favicon :name="$site->name" :size="22"/>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $site->name }}</div>
+                            <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $site->url }}</div>
+                        </div>
+                        <span style="font-size:12px;color:var(--text-2);font-family:var(--font-mono);">{{ $site->phones_count ?? $site->phones?->count() ?? 0 }}</span>
+                    </a>
+                @empty
+                    <div style="padding:20px;font-size:12px;color:var(--text-3);border-top:1px solid var(--border-2);">Сайтів ще немає.</div>
+                @endforelse
+            </div>
+        </div>
+    </div>
 
 </div>
-
-@push('scripts')
-<script>
-// AJAX pagination for system logs card — no full reload
-(function () {
-    var logsCard = document.getElementById('logs-card');
-    if (!logsCard) return;
-
-    logsCard.addEventListener('click', function (e) {
-        var link = e.target.closest('a[href]');
-        if (!link) return;
-        var href = link.getAttribute('href');
-        if (!href || !href.includes('logs_page')) return;
-
-        e.preventDefault();
-        logsCard.style.opacity = '0.6';
-
-        fetch(href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-            .then(function (r) { return r.text(); })
-            .then(function (html) {
-                var doc = new DOMParser().parseFromString(html, 'text/html');
-                var newCard = doc.getElementById('logs-card');
-                if (newCard) {
-                    logsCard.innerHTML = newCard.innerHTML;
-                    history.pushState(null, '', href);
-                }
-                logsCard.style.opacity = '1';
-            })
-            .catch(function () { logsCard.style.opacity = '1'; });
-    });
-})();
-</script>
-@endpush
-
 @endsection
