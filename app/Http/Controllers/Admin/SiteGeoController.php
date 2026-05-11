@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Site;
+use App\Services\SyncPushService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -28,6 +29,7 @@ class SiteGeoController extends Controller
             $site->save();
         }
 
+        SyncPushService::push($site);
         return redirect(route('sites.show', $site) . '?tab=data')
             ->with('success', "Geo {$iso} added");
     }
@@ -55,6 +57,7 @@ class SiteGeoController extends Controller
         $site->geo_rules = $rules;
         $site->save();
 
+        SyncPushService::push($site);
         return back()->with('success', "Geo {$iso} removed");
     }
 
@@ -91,6 +94,7 @@ class SiteGeoController extends Controller
         $site->geo_rules = $clean;
         $site->save();
 
+        SyncPushService::push($site);
         return back()->with('success', 'Geo rules updated');
     }
 
@@ -111,6 +115,7 @@ class SiteGeoController extends Controller
         $row = $map[$type]::where('site_id', $site->id)->findOrFail($id);
         $row->is_visible = !($row->is_visible ?? true);
         $row->save();
+        SyncPushService::push($site);
 
         return back();
     }
