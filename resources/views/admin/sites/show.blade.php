@@ -84,7 +84,7 @@
     $filterByGeo = function ($collection) use ($country) {
         if ($country === 'all') return $collection;
         return $collection->filter(function ($item) use ($country) {
-            $iso = $item->country_iso ?? null;
+            $iso = $item->country_iso ?: null;
             return $iso === null || $iso === $country;
         })->values();
     };
