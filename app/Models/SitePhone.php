@@ -17,6 +17,7 @@ class SitePhone extends Model
         'number',
         'is_primary',
         'is_standby',
+        'standby_for_id',
         'is_blocked',
         'blocked_reason',
         'is_visible',

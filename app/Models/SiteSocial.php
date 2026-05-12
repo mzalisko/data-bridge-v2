@@ -17,6 +17,7 @@ class SiteSocial extends Model
         'handle',
         'url',
         'is_standby',
+        'standby_for_id',
         'is_blocked',
         'blocked_reason',
         'is_visible',

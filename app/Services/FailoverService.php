@@ -6,24 +6,18 @@ use App\Models\Site;
 use App\Models\SitePhone;
 use App\Models\SiteSocial;
 use App\Models\SiteFailoverLog;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 class FailoverService
 {
+    // Platforms that support failover (messengers only — not social networks)
+    public const MESSENGER_PLATFORMS = ['whatsapp', 'telegram', 'viber', 'signal', 'line', 'wechat'];
+
     /**
      * Trigger failover: mark primary as blocked, activate standby.
      *
-     * @param  Site   $site
-     * @param  string $type            'phone' | 'social'
-     * @param  int    $primaryId       ID of the blocked record
-     * @param  string $reason          Human-readable reason ("WhatsApp banned", etc.)
-     * @param  string $triggeredBy     'api' | 'manual'
-     * @param  string|null $identifier External signal identifier for traceability
-     * @return SiteFailoverLog
-     *
-     * @throws \RuntimeException  if no standby record exists for the site+type
-     * @throws \RuntimeException  if primary is already blocked
+     * @param  int|null $standbyId  Explicit standby to use; null = prefer paired, then first available
+     * @throws \RuntimeException
      */
     public static function trigger(
         Site $site,
@@ -32,8 +26,9 @@ class FailoverService
         string $reason,
         string $triggeredBy = 'api',
         ?string $identifier = null,
+        ?int $standbyId = null,
     ): SiteFailoverLog {
-        [$model, $relation] = self::resolve($type);
+        [$model] = self::resolve($type);
 
         $primary = $model::where('site_id', $site->id)->findOrFail($primaryId);
 
@@ -41,11 +36,34 @@ class FailoverService
             throw new \RuntimeException("Record #{$primaryId} is already blocked.");
         }
 
-        $standby = $model::where('site_id', $site->id)
-            ->where('is_standby', true)
-            ->where('is_blocked', false)
-            ->where('is_visible', true)
-            ->first();
+        // Resolve standby: explicit → paired (standby_for_id) → first general pool
+        $standby = null;
+        if ($standbyId) {
+            $standby = $model::where('site_id', $site->id)
+                ->where('is_standby', true)
+                ->where('is_blocked', false)
+                ->find($standbyId);
+        }
+
+        if (!$standby) {
+            // Try to find a standby paired specifically to this primary
+            $standby = $model::where('site_id', $site->id)
+                ->where('is_standby', true)
+                ->where('is_blocked', false)
+                ->where('is_visible', true)
+                ->where('standby_for_id', $primaryId)
+                ->first();
+        }
+
+        if (!$standby) {
+            // Fall back to general pool (unlinked standbys)
+            $standby = $model::where('site_id', $site->id)
+                ->where('is_standby', true)
+                ->where('is_blocked', false)
+                ->where('is_visible', true)
+                ->whereNull('standby_for_id')
+                ->first();
+        }
 
         if (!$standby) {
             throw new \RuntimeException("No available standby {$type} for site #{$site->id}.");
@@ -57,14 +75,12 @@ class FailoverService
                 'standby_before' => $standby->toArray(),
             ];
 
-            // Mark primary blocked + hidden
             $primary->update([
                 'is_blocked'     => true,
                 'is_visible'     => false,
                 'blocked_reason' => $reason,
             ]);
 
-            // Promote standby: move it out of standby pool into active position
             $standby->update([
                 'is_standby' => false,
                 'is_visible' => true,
@@ -89,11 +105,7 @@ class FailoverService
 
     /**
      * Rollback a failover: restore primary, demote standby back to pool.
-     *
-     * @param  SiteFailoverLog $log
-     * @return SiteFailoverLog
-     *
-     * @throws \RuntimeException  if already rolled back
+     * @throws \RuntimeException
      */
     public static function rollback(SiteFailoverLog $log): SiteFailoverLog
     {
@@ -109,14 +121,12 @@ class FailoverService
         return DB::transaction(function () use ($log, $primary, $standby) {
             $before = $log->snapshot;
 
-            // Restore primary to pre-failover state (unblock, restore visibility)
             $primary->update([
                 'is_blocked'     => false,
                 'is_visible'     => $before['primary_before']['is_visible'] ?? true,
                 'blocked_reason' => null,
             ]);
 
-            // Return standby to pool
             $standby->update([
                 'is_standby' => true,
                 'is_visible' => $before['standby_before']['is_visible'] ?? true,
@@ -128,6 +138,26 @@ class FailoverService
 
             return $log->fresh();
         });
+    }
+
+    /**
+     * Get available standbys for a given primary record (for UI select).
+     */
+    public static function getAvailableStandbys(Site $site, string $type, int $primaryId): \Illuminate\Support\Collection
+    {
+        [$model] = self::resolve($type);
+
+        return $model::where('site_id', $site->id)
+            ->where('is_standby', true)
+            ->where('is_blocked', false)
+            ->where('is_visible', true)
+            ->orderByRaw('standby_for_id = ? DESC', [$primaryId]) // paired first
+            ->get();
+    }
+
+    public static function isMessenger(string $platform): bool
+    {
+        return in_array(strtolower($platform), self::MESSENGER_PLATFORMS, true);
     }
 
     // -------------------------------------------------------------------------

@@ -717,8 +717,9 @@
                 <div class="dt-nav-list" data-type="phone">
                 @php
                     $ordPrimariesPh = $shownPhones->where('is_standby', false)->sortBy('sort_order');
-                    $byParentPh     = $shownPhones->where('is_standby', true)->filter(fn($s) => $s->standby_for_id)->groupBy('standby_for_id');
-                    $unlinkedPh     = $shownPhones->where('is_standby', true)->filter(fn($s) => !$s->standby_for_id)->sortBy('sort_order');
+                    $primaryIdsPh   = $ordPrimariesPh->pluck('id')->all();
+                    $byParentPh     = $shownPhones->where('is_standby', true)->filter(fn($s) => $s->standby_for_id && in_array($s->standby_for_id, $primaryIdsPh))->groupBy('standby_for_id');
+                    $unlinkedPh     = $shownPhones->where('is_standby', true)->filter(fn($s) => !$s->standby_for_id || !in_array($s->standby_for_id, $primaryIdsPh))->sortBy('sort_order');
                     $sbCountsPh     = $byParentPh->map(fn($g) => $g->count());
                     $flatPhones     = collect();
                     foreach ($ordPrimariesPh as $prPh) {
@@ -771,9 +772,20 @@
                             <form method="POST" action="{{ route('phones.destroy',[$site,$ph]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
                                 <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
                             </form>
-                            @if(!$phDepth && !$ph->is_blocked)
+                            @if(!$phDepth)
+                            <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
+                                <input type="hidden" name="type" value="phone"><input type="hidden" name="id" value="{{ $ph->id }}">
+                                <button type="submit" class="icon-btn" title="Зробити резервним" style="color:var(--text-3);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
+                            </form>
+                            @if(!$ph->is_blocked)
                             @php $phStandbys=$shownPhones->filter(fn($pp)=>$pp->is_standby&&!$pp->is_blocked)->map(fn($pp)=>['id'=>$pp->id,'label'=>($pp->dial_code?'+'.$pp->dial_code.' ':'').$pp->number.($pp->label?' · '.$pp->label:''),'paired'=>$pp->standby_for_id==$ph->id])->values()->toJson(); @endphp
                             <button class="icon-btn" title="Failover — підмінити резервним" style="color:var(--warning);" onclick="dtOpenFailover('phone','{{ $ph->id }}','{{ addslashes(($ph->dial_code?'+'.$ph->dial_code.' ':'').$ph->number) }}',{{ $phStandbys }})"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></button>
+                            @endif
+                            @else
+                            <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
+                                <input type="hidden" name="type" value="phone"><input type="hidden" name="id" value="{{ $ph->id }}">
+                                <button type="submit" class="icon-btn" title="Зняти з резерву" style="color:var(--accent);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
+                            </form>
                             @endif
                             <button class="icon-btn" id="dt-expand-phone-{{ $ph->id }}" title="Редагувати" onclick="dtExpandItem('phone-{{ $ph->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
                         </div>
@@ -892,8 +904,9 @@
                 <div class="dt-nav-list" data-type="social">
                 @php
                     $ordPrimariesMs = $shownMessengers->where('is_standby', false)->sortBy('sort_order');
-                    $byParentMs     = $shownMessengers->where('is_standby', true)->filter(fn($s) => $s->standby_for_id)->groupBy('standby_for_id');
-                    $unlinkedMs     = $shownMessengers->where('is_standby', true)->filter(fn($s) => !$s->standby_for_id)->sortBy('sort_order');
+                    $primaryIdsMs   = $ordPrimariesMs->pluck('id')->all();
+                    $byParentMs     = $shownMessengers->where('is_standby', true)->filter(fn($s) => $s->standby_for_id && in_array($s->standby_for_id, $primaryIdsMs))->groupBy('standby_for_id');
+                    $unlinkedMs     = $shownMessengers->where('is_standby', true)->filter(fn($s) => !$s->standby_for_id || !in_array($s->standby_for_id, $primaryIdsMs))->sortBy('sort_order');
                     $sbCountsMs     = $byParentMs->map(fn($g) => $g->count());
                     $flatMessengers = collect();
                     foreach ($ordPrimariesMs as $prMs) {
@@ -944,9 +957,20 @@
                             <form method="POST" action="{{ route('socials.destroy',[$site,$ms]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
                                 <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
                             </form>
-                            @if(!$msDepth && !$ms->is_blocked)
+                            @if(!$msDepth)
+                            <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
+                                <input type="hidden" name="type" value="social"><input type="hidden" name="id" value="{{ $ms->id }}">
+                                <button type="submit" class="icon-btn" title="Зробити резервним" style="color:var(--text-3);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
+                            </form>
+                            @if(!$ms->is_blocked)
                             @php $foStandbys=$shownMessengers->filter(fn($m)=>$m->is_standby&&!$m->is_blocked)->map(fn($m)=>['id'=>$m->id,'label'=>ucfirst($m->platform).' '.$m->handle,'paired'=>$m->standby_for_id==$ms->id])->values()->toJson(); @endphp
                             <button class="icon-btn" title="Failover — підмінити резервом" style="color:var(--warning);" onclick="dtOpenFailover('social','{{ $ms->id }}','{{ addslashes(ucfirst($ms->platform).' '.($ms->handle?:$ms->platform)) }}',{{ $foStandbys }})"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></button>
+                            @endif
+                            @else
+                            <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
+                                <input type="hidden" name="type" value="social"><input type="hidden" name="id" value="{{ $ms->id }}">
+                                <button type="submit" class="icon-btn" title="Зняти з резерву" style="color:var(--accent);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
+                            </form>
                             @endif
                             <button class="icon-btn" id="dt-expand-social-{{ $ms->id }}" title="Редагувати" onclick="dtExpandItem('social-{{ $ms->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
                         </div>
@@ -2551,26 +2575,15 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
     if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
 });
 
-// ── DnD: WP nav-menu style — flat list, X=depth, Y=insertion ──
+// ── DnD: Y-only reorder within the same list ──
 (function() {
-    var INDENT_PX   = 44;
     var CSRF        = '{{ csrf_token() }}';
-    var URL_TOGGLE  = '{{ route('sites.failover.standby', $site) }}';
-    var URL_LINK    = '{{ route('sites.failover.link', $site) }}';
     var URL_REORDER = {
         phone:  '{{ route('phones.reorder', $site) }}',
         social: '{{ route('socials.reorder', $site) }}',
     };
     var _drag = null;
 
-    function postForm(url, data) {
-        var body = new URLSearchParams(Object.assign({ _token: CSRF }, data));
-        return fetch(url, {
-            method: 'POST',
-            headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: body.toString(),
-        });
-    }
     function postJSON(url, data) {
         return fetch(url, {
             method: 'POST',
@@ -2581,10 +2594,12 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
     function clearPH(list) {
         list.querySelectorAll(':scope > .dnd-placeholder').forEach(function(p) { p.remove(); });
     }
-    function makePH() {
-        var ph = document.createElement('div'); ph.className = 'dnd-placeholder'; return ph;
+    function makePH(indented) {
+        var ph = document.createElement('div');
+        ph.className = 'dnd-placeholder';
+        if (indented) ph.style.marginLeft = '20px';
+        return ph;
     }
-    // Returns the .dt-item before which to insert based on mouse Y (null = append)
     function insertionPoint(list, clientY) {
         var items = Array.from(list.querySelectorAll(':scope > .dt-item:not(.dnd-dragging)'));
         for (var i = 0; i < items.length; i++) {
@@ -2592,16 +2607,6 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
             if (clientY < r.top + r.height / 2) return items[i];
         }
         return null;
-    }
-    // Returns data-id of the last .dt-item--root before `bef`
-    function findParentAbove(list, bef) {
-        var items = Array.from(list.querySelectorAll(':scope > .dt-item'));
-        var lastRootId = '';
-        for (var i = 0; i < items.length; i++) {
-            if (bef && items[i] === bef) break;
-            if (items[i].classList.contains('dt-item--root')) lastRootId = items[i].dataset.id;
-        }
-        return lastRootId;
     }
     function sendReorder(list, type) {
         var items = Array.from(list.querySelectorAll(':scope > .dt-item'))
@@ -2631,11 +2636,9 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
         list.addEventListener('dragover', function(e) {
             if (!_drag || !list.contains(_drag)) return;
             e.preventDefault();
-            var depth = (e.clientX - list.getBoundingClientRect().left) > INDENT_PX ? 1 : 0;
-            var bef   = insertionPoint(list, e.clientY);
+            var bef = insertionPoint(list, e.clientY);
             clearPH(list);
-            var ph = makePH();
-            ph.style.marginLeft = depth ? '36px' : '0';
+            var ph = makePH(_drag.classList.contains('dt-item--child'));
             if (bef) list.insertBefore(ph, bef); else list.appendChild(ph);
         });
 
@@ -2646,32 +2649,10 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
         list.addEventListener('drop', function(e) {
             e.preventDefault();
             if (!_drag || !list.contains(_drag)) return;
-            var depth       = (e.clientX - list.getBoundingClientRect().left) > INDENT_PX ? 1 : 0;
-            var bef         = insertionPoint(list, e.clientY);
-            var parentId    = depth === 1 ? findParentAbove(list, bef) : '';
-            var wasStandby  = _drag.dataset.isStandby === '1';
-            var willStandby = depth === 1;
-
+            var bef = insertionPoint(list, e.clientY);
             clearPH(list);
-
-            if (willStandby !== wasStandby) {
-                // Level change → toggle standby + reload
-                postForm(URL_TOGGLE, { type: type, id: _drag.dataset.id, standby_for_id: parentId })
-                    .then(function() { location.reload(); });
-                return;
-            }
-
-            // Move element in DOM
             if (bef) list.insertBefore(_drag, bef); else list.appendChild(_drag);
-
-            if (willStandby && _drag.dataset.parentId !== parentId) {
-                // Relink to different parent (no reload)
-                _drag.dataset.parentId = parentId;
-                postForm(URL_LINK, { type: type, id: _drag.dataset.id, standby_for_id: parentId });
-            } else {
-                // Pure reorder (no reload)
-                sendReorder(list, type);
-            }
+            sendReorder(list, type);
         });
     });
 })();
