@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
 
     // Site data CRUD
     Route::post(  'sites/{site}/phones',              [SitePhoneController::class,   'store']  )->name('phones.store');
+    Route::post(  'sites/{site}/phones/reorder',      [SitePhoneController::class,   'reorder'])->name('phones.reorder');
     Route::put(   'sites/{site}/phones/{phone}',      [SitePhoneController::class,   'update'] )->name('phones.update');
     Route::delete('sites/{site}/phones/{phone}',      [SitePhoneController::class,   'destroy'])->name('phones.destroy');
 
@@ -65,6 +66,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('sites/{site}/addresses/{address}', [SiteAddressController::class, 'destroy'])->name('addresses.destroy');
 
     Route::post(  'sites/{site}/socials',             [SiteSocialController::class,  'store']  )->name('socials.store');
+    Route::post(  'sites/{site}/socials/reorder',     [SiteSocialController::class,  'reorder'])->name('socials.reorder');
     Route::put(   'sites/{site}/socials/{social}',    [SiteSocialController::class,  'update'] )->name('socials.update');
     Route::delete('sites/{site}/socials/{social}',    [SiteSocialController::class,  'destroy'])->name('socials.destroy');
 
@@ -85,6 +87,7 @@ Route::middleware('auth')->group(function () {
 
     // Failover management
     Route::post(  'sites/{site}/failover/standby',        [SiteFailoverController::class, 'toggleStandby'])->name('sites.failover.standby');
+    Route::post(  'sites/{site}/failover/link',           [SiteFailoverController::class, 'linkStandby'])->name('sites.failover.link');
     Route::post(  'sites/{site}/failover/trigger',        [SiteFailoverController::class, 'trigger'])->name('sites.failover.trigger');
     Route::post(  'sites/{site}/failover/{log}/rollback', [SiteFailoverController::class, 'rollback'])->name('sites.failover.rollback');
 

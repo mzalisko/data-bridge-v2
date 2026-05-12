@@ -8,7 +8,9 @@ use App\Models\Site;
 use App\Models\SitePhone;
 use App\Services\ActivityService;
 use App\Services\SyncPushService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class SitePhoneController extends Controller
 {
@@ -46,5 +48,19 @@ class SitePhoneController extends Controller
         SyncPushService::push($site);
 
         return back()->with('success', 'Телефон видалено');
+    }
+
+    public function reorder(Request $request, Site $site): JsonResponse
+    {
+        $data = $request->validate([
+            'items'              => ['required', 'array'],
+            'items.*.id'         => ['required', 'integer'],
+            'items.*.sort_order' => ['required', 'integer'],
+        ]);
+        foreach ($data['items'] as $item) {
+            SitePhone::where('site_id', $site->id)->where('id', $item['id'])
+                ->update(['sort_order' => $item['sort_order']]);
+        }
+        return response()->json(['ok' => true]);
     }
 }

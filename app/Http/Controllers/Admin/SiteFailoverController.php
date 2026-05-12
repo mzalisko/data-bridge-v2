@@ -33,6 +33,10 @@ class SiteFailoverController extends Controller
             'standby_for_id' => $newStandby ? ($data['standby_for_id'] ?? null) : null,
         ]);
 
+        if ($request->wantsJson()) {
+            return response()->json(['ok' => true, 'is_standby' => $newStandby]);
+        }
+
         return back()->with('success', $newStandby ? 'Позначено як резервний.' : 'Знято з резерву.');
     }
 

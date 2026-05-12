@@ -725,8 +725,9 @@
                 @else
                 @foreach($primaryPhones as $p)
                 @php $pSubs = $sbByParentPh->get($p->id, collect()); @endphp
-                <div class="dt-nav-group dt-item">
+                <div class="dt-nav-group dt-item" draggable="true" data-standby-id="{{ $p->id }}" data-type="phone" data-is-standby="0">
                     <div class="dt-item-row dt-nav-primary" onclick="dtExpandItem('phone-{{ $p->id }}')">
+                        <span class="dt-nav-grip" title="Перетягни: вниз під номер = резерв, вгору = основний, між іншими = порядок"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
                         <span class="dt-item-icon">{!! $dtIcons['phones'] !!}</span>
                         <div class="dt-item-main">
                             <div class="dt-item-name" style="font-family:var(--font-mono);">{{ $p->number }}</div>
@@ -751,10 +752,6 @@
                             </form>
                             <form method="POST" action="{{ route('phones.destroy',[$site,$p]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
                                 <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
-                            </form>
-                            <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
-                                <input type="hidden" name="type" value="phone"><input type="hidden" name="id" value="{{ $p->id }}">
-                                <button type="submit" class="icon-btn" title="Позначити резервом" style="color:var(--text-3);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
                             </form>
                             @if(!$p->is_blocked)
                             @php $phStandbys=$shownPhones->filter(fn($ph)=>$ph->is_standby&&!$ph->is_blocked)->map(fn($ph)=>['id'=>$ph->id,'label'=>($ph->dial_code?'+'.$ph->dial_code.' ':'').$ph->number.($ph->label?' · '.$ph->label:''),'paired'=>$ph->standby_for_id==$p->id])->values()->toJson(); @endphp
@@ -788,7 +785,7 @@
                     </div>
                     <div class="dt-nav-children" data-parent-id="{{ $p->id }}" data-drop-type="phone">
                         @foreach($pSubs as $sb)
-                        <div class="dt-nav-child dt-item" draggable="true" data-standby-id="{{ $sb->id }}" data-type="phone">
+                        <div class="dt-nav-child dt-item" draggable="true" data-standby-id="{{ $sb->id }}" data-type="phone" data-is-standby="1">
                             <div class="dt-item-row" onclick="dtExpandItem('phone-{{ $sb->id }}')">
                                 <span class="dt-nav-grip" title="Перетягни для зміни прив'язки"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
                                 <span class="dt-nav-arrow">└</span>
@@ -853,9 +850,9 @@
                 <div class="dt-nav-pool" data-parent-id="" data-drop-type="phone">
                     <div class="dt-nav-pool-label">Незакріплені резерви — перетягни під основний</div>
                     @foreach($unlinkedSbPh as $sb)
-                    <div class="dt-nav-child dt-item" draggable="true" data-standby-id="{{ $sb->id }}" data-type="phone">
+                    <div class="dt-nav-child dt-item" draggable="true" data-standby-id="{{ $sb->id }}" data-type="phone" data-is-standby="1">
                         <div class="dt-item-row" onclick="dtExpandItem('phone-{{ $sb->id }}')">
-                            <span class="dt-nav-grip" title="Перетягни для прив'язки"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
+                            <span class="dt-nav-grip" title="Перетягни під основний або в список основних"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
                             <div class="dt-item-main">
                                 <div class="dt-item-name" style="font-family:var(--font-mono);">{{ $sb->number }}</div>
                                 <div class="dt-item-sub">{{ $sb->label }}@if($sb->label)&thinsp;·&thinsp;@endif<span class="dt-badge dt-badge--standby">⟳ резерв</span>@if($sb->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif</div>
@@ -996,8 +993,9 @@
                 @else
                 @foreach($primaryMessengers as $s)
                 @php $sSubs=$sbByParentMs->get($s->id,collect()); $sk=strtolower($s->platform??''); $sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>']; @endphp
-                <div class="dt-nav-group dt-item">
+                <div class="dt-nav-group dt-item" draggable="true" data-standby-id="{{ $s->id }}" data-type="social" data-is-standby="0">
                     <div class="dt-item-row dt-nav-primary" onclick="dtExpandItem('social-{{ $s->id }}')">
+                        <span class="dt-nav-grip" title="Перетягни: вниз під месенджер = резерв, вгору = основний, між іншими = порядок"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
                         <span class="dt-item-icon" style="color:{{ $sic['c'] }}">{!! $sic['svg'] !!}</span>
                         <div class="dt-item-main">
                             <div class="dt-item-name">{{ $s->handle ?: ucfirst($s->platform) }}</div>
@@ -1017,10 +1015,6 @@
                                 <button type="submit" class="icon-btn" title="{{ ($s->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($s->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
                                     @if($s->is_visible??true)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif
                                 </button>
-                            </form>
-                            <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
-                                <input type="hidden" name="type" value="social"><input type="hidden" name="id" value="{{ $s->id }}">
-                                <button type="submit" class="icon-btn" title="Позначити резервом" style="color:var(--text-3);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
                             </form>
                             @if(!$s->is_blocked)
                             @php $foStandbys=$shownMessengers->filter(fn($m)=>$m->is_standby&&!$m->is_blocked)->map(fn($m)=>['id'=>$m->id,'label'=>ucfirst($m->platform).' '.$m->handle,'paired'=>$m->standby_for_id==$s->id])->values()->toJson(); @endphp
@@ -1055,9 +1049,9 @@
                     <div class="dt-nav-children" data-parent-id="{{ $s->id }}" data-drop-type="social">
                         @foreach($sSubs as $sb)
                         @php $sbk=strtolower($sb->platform??''); $sbic=$socialIcon[$sbk]??['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>']; @endphp
-                        <div class="dt-nav-child dt-item" draggable="true" data-standby-id="{{ $sb->id }}" data-type="social">
+                        <div class="dt-nav-child dt-item" draggable="true" data-standby-id="{{ $sb->id }}" data-type="social" data-is-standby="1">
                             <div class="dt-item-row" onclick="dtExpandItem('social-{{ $sb->id }}')">
-                                <span class="dt-nav-grip" title="Перетягни для зміни прив'язки"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
+                                <span class="dt-nav-grip" title="Перетягни для зміни прив'язки або порядку"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
                                 <span class="dt-nav-arrow">└</span>
                                 <span class="dt-item-icon" style="color:{{ $sbic['c'] }}">{!! $sbic['svg'] !!}</span>
                                 <div class="dt-item-main">
@@ -1124,9 +1118,9 @@
                     <div class="dt-nav-pool-label">Незакріплені резерви — перетягни під основний</div>
                     @foreach($unlinkedSbMs as $sb)
                     @php $sbk=strtolower($sb->platform??''); $sbic=$socialIcon[$sbk]??['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>']; @endphp
-                    <div class="dt-nav-child dt-item" draggable="true" data-standby-id="{{ $sb->id }}" data-type="social">
+                    <div class="dt-nav-child dt-item" draggable="true" data-standby-id="{{ $sb->id }}" data-type="social" data-is-standby="1">
                         <div class="dt-item-row" onclick="dtExpandItem('social-{{ $sb->id }}')">
-                            <span class="dt-nav-grip" title="Перетягни для прив'язки"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
+                            <span class="dt-nav-grip" title="Перетягни під основний або в список основних"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
                             <span class="dt-item-icon" style="color:{{ $sbic['c'] }}">{!! $sbic['svg'] !!}</span>
                             <div class="dt-item-main">
                                 <div class="dt-item-name">{{ $sb->handle ?: ucfirst($sb->platform) }}</div>
@@ -2752,68 +2746,155 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
     if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
 });
 
-// ── Standby drag-and-drop (WP nav menu style, no-reload) ────────
+// ── DnD: reorder + level change (no-reload for reorder/relink) ──
 (function() {
     var _drag = null;
-    var _linkUrl = '{{ route('sites.failover.link', $site) }}';
-    var _csrf   = document.querySelector('meta[name=csrf-token]') ? document.querySelector('meta[name=csrf-token]').content : '{{ csrf_token() }}';
+    var _csrf      = '{{ csrf_token() }}';
+    var _linkUrl   = '{{ route('sites.failover.link', $site) }}';
+    var _toggleUrl = '{{ route('sites.failover.standby', $site) }}';
+    var _reorderUrls = {
+        phone:  '{{ route('phones.reorder', $site) }}',
+        social: '{{ route('socials.reorder', $site) }}',
+    };
 
-    function syncDropHint(zone) {
-        var hint = zone.querySelector(':scope > .dt-nav-drop-hint');
-        var hasChildren = zone.querySelector(':scope > .dt-nav-child');
-        if (hint) hint.style.display = hasChildren ? 'none' : '';
+    function postForm(url, data) {
+        var body = new URLSearchParams(Object.assign({ _token: _csrf }, data));
+        return fetch(url, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString(),
+        });
     }
-
-    document.querySelectorAll('.dt-nav-child[draggable]').forEach(function(el) {
+    function postJSON(url, data) {
+        return fetch(url, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': _csrf },
+            body: JSON.stringify(data),
+        });
+    }
+    function syncHint(zone) {
+        var hint = zone.querySelector(':scope > .dt-nav-drop-hint');
+        var has  = zone.querySelector(':scope > .dt-nav-child');
+        if (hint) hint.style.display = has ? 'none' : '';
+    }
+    function clearPH(container) {
+        container.querySelectorAll(':scope > .dnd-placeholder').forEach(function(p) { p.remove(); });
+    }
+    function makePH() {
+        var ph = document.createElement('div'); ph.className = 'dnd-placeholder'; return ph;
+    }
+    // Returns the child element BEFORE which to insert, based on mouse Y (null = append)
+    function insertBefore(container, y, sel) {
+        var els = Array.from(container.querySelectorAll(':scope > ' + sel))
+            .filter(function(e) { return e !== _drag && !e.classList.contains('dnd-placeholder'); });
+        var best = null, bestOff = -Infinity;
+        els.forEach(function(el) {
+            var mid = el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2;
+            var off = y - mid;
+            if (off < 0 && off > bestOff) { bestOff = off; best = el; }
+        });
+        return best;
+    }
+    function sendReorder(zone, type, sel) {
+        var items = Array.from(zone.querySelectorAll(':scope > ' + sel))
+            .filter(function(e) { return !e.classList.contains('dnd-placeholder'); })
+            .map(function(el, i) { return { id: parseInt(el.dataset.standbyId), sort_order: i }; });
+        postJSON(_reorderUrls[type], { items: items });
+    }
+    function initDrag(el) {
         el.addEventListener('dragstart', function(e) {
             _drag = el;
             e.dataTransfer.effectAllowed = 'move';
-            setTimeout(function() { if (_drag) _drag.style.opacity = '.35'; }, 0);
+            e.dataTransfer.setData('text/plain', el.dataset.standbyId);
+            setTimeout(function() { if (_drag) _drag.classList.add('dnd-dragging'); }, 0);
         });
         el.addEventListener('dragend', function() {
-            el.style.opacity = '';
+            if (_drag) _drag.classList.remove('dnd-dragging');
             _drag = null;
             document.querySelectorAll('.dnd-over').forEach(function(z) { z.classList.remove('dnd-over'); });
+            document.querySelectorAll('.dnd-placeholder').forEach(function(p) { p.remove(); });
+        });
+    }
+    document.querySelectorAll('.dt-nav-group[draggable], .dt-nav-child[draggable]').forEach(initDrag);
+
+    // ── Standby drop zones (.dt-nav-children, .dt-nav-pool) ─────────
+    document.querySelectorAll('.dt-nav-children, .dt-nav-pool').forEach(function(zone) {
+        zone.addEventListener('dragover', function(e) {
+            if (!_drag) return;
+            e.preventDefault(); e.stopPropagation();
+            e.dataTransfer.dropEffect = 'move';
+            zone.classList.add('dnd-over');
+            clearPH(zone);
+            var bef = insertBefore(zone, e.clientY, '.dt-nav-child');
+            var ph = makePH();
+            if (bef) zone.insertBefore(ph, bef); else zone.appendChild(ph);
+        });
+        zone.addEventListener('dragleave', function(e) {
+            if (!zone.contains(e.relatedTarget)) { zone.classList.remove('dnd-over'); clearPH(zone); }
+        });
+        zone.addEventListener('drop', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            zone.classList.remove('dnd-over'); clearPH(zone);
+            if (!_drag) return;
+            var el = _drag, isStandby = el.dataset.isStandby === '1';
+            var parentId = zone.dataset.parentId || '', type = el.dataset.type;
+            var fromZone = el.parentElement;
+            var bef = insertBefore(zone, e.clientY, '.dt-nav-child');
+
+            if (!isStandby) {
+                // Primary → standby zone: becomes standby (reload after API)
+                postForm(_toggleUrl, { type: type, id: el.dataset.standbyId, standby_for_id: parentId })
+                    .then(function() { location.reload(); });
+                return;
+            }
+            // Move element
+            if (bef) zone.insertBefore(el, bef); else zone.appendChild(el);
+            syncHint(zone);
+            if (fromZone && fromZone !== zone) syncHint(fromZone);
+
+            if (fromZone === zone) {
+                sendReorder(zone, type, '.dt-nav-child'); // reorder within same zone
+            } else {
+                postForm(_linkUrl, { type: type, id: el.dataset.standbyId, standby_for_id: parentId })
+                    .catch(function() { fromZone.appendChild(el); syncHint(zone); syncHint(fromZone); });
+            }
         });
     });
 
-    document.querySelectorAll('.dt-nav-children, .dt-nav-pool').forEach(function(zone) {
-        zone.addEventListener('dragover', function(e) {
+    // ── Primary drop zone (.dt-nav-list) ─────────────────────────────
+    document.querySelectorAll('.dt-nav-list').forEach(function(list) {
+        list.addEventListener('dragover', function(e) {
+            if (!_drag || e.target.closest('.dt-nav-children, .dt-nav-pool')) return;
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
-            zone.classList.add('dnd-over');
+            list.classList.add('dnd-over');
+            clearPH(list);
+            var bef = insertBefore(list, e.clientY, '.dt-nav-group');
+            var ph = makePH();
+            if (bef) list.insertBefore(ph, bef);
+            else { var pool = list.querySelector(':scope > .dt-nav-pool'); if (pool) list.insertBefore(ph, pool); else list.appendChild(ph); }
         });
-        zone.addEventListener('dragleave', function(e) {
-            if (!zone.contains(e.relatedTarget)) zone.classList.remove('dnd-over');
+        list.addEventListener('dragleave', function(e) {
+            if (!list.contains(e.relatedTarget)) { list.classList.remove('dnd-over'); clearPH(list); }
         });
-        zone.addEventListener('drop', function(e) {
+        list.addEventListener('drop', function(e) {
+            if (e.target.closest('.dt-nav-children, .dt-nav-pool')) return;
             e.preventDefault();
-            zone.classList.remove('dnd-over');
+            list.classList.remove('dnd-over'); clearPH(list);
             if (!_drag) return;
+            var el = _drag, isStandby = el.dataset.isStandby === '1', type = el.dataset.type;
 
-            var el        = _drag;
-            var parentId  = zone.dataset.parentId || '';
-            var standbyId = el.dataset.standbyId;
-            var type      = el.dataset.type;
-            var fromZone  = el.parentElement;
-
-            // Optimistic DOM move
-            zone.insertBefore(el, zone.querySelector('.dt-nav-drop-hint'));
-            syncDropHint(zone);
-            if (fromZone && fromZone !== zone) syncDropHint(fromZone);
-
-            // Persist via AJAX
-            var body = new URLSearchParams({ _token: _csrf, type: type, id: standbyId, standby_for_id: parentId });
-            fetch(_linkUrl, {
-                method: 'POST',
-                headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: body.toString(),
-            }).catch(function() {
-                // On network error, move back
-                fromZone.appendChild(el);
-                syncDropHint(zone);
-                if (fromZone !== zone) syncDropHint(fromZone);
-            });
+            if (isStandby) {
+                // Standby → primary level: becomes primary (reload after API)
+                postForm(_toggleUrl, { type: type, id: el.dataset.standbyId })
+                    .then(function() { location.reload(); });
+                return;
+            }
+            // Reorder primaries (no reload)
+            var bef = insertBefore(list, e.clientY, '.dt-nav-group');
+            if (bef) list.insertBefore(el, bef);
+            else { var pool = list.querySelector(':scope > .dt-nav-pool'); if (pool) list.insertBefore(el, pool); else list.appendChild(el); }
+            sendReorder(list, type, '.dt-nav-group');
         });
     });
 })();

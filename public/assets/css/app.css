@@ -859,10 +859,14 @@ img, svg { display: block; max-width: 100%; }
   transition: background .15s;
 }
 .dt-nav-children.dnd-over { background: var(--accent-2); }
+.dt-nav-list.dnd-over > .dt-nav-group { opacity: .7; }
+.dnd-dragging { opacity: .35; }
+.dnd-placeholder { height: 3px; background: var(--accent); border-radius: 2px; margin: 2px 0; pointer-events: none; }
 .dt-nav-child { border-bottom: 1px solid var(--border-2); }
 .dt-nav-child:last-child { border-bottom: none; }
 .dt-nav-child.is-editing { background: var(--panel-2); }
 .dt-nav-child[draggable] { cursor: default; }
+.dt-nav-group[draggable] { cursor: default; }
 .dt-nav-grip {
   cursor: grab; padding: 0 5px 0 8px; color: var(--muted);
   display: flex; align-items: center; flex-shrink: 0;

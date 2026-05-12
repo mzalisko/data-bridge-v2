@@ -8,7 +8,9 @@ use App\Models\Site;
 use App\Models\SiteSocial;
 use App\Services\ActivityService;
 use App\Services\SyncPushService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class SiteSocialController extends Controller
 {
@@ -41,5 +43,19 @@ class SiteSocialController extends Controller
         $social->delete();
         SyncPushService::push($site);
         return back()->with('success', 'Соцмережу видалено');
+    }
+
+    public function reorder(Request $request, Site $site): JsonResponse
+    {
+        $data = $request->validate([
+            'items'              => ['required', 'array'],
+            'items.*.id'         => ['required', 'integer'],
+            'items.*.sort_order' => ['required', 'integer'],
+        ]);
+        foreach ($data['items'] as $item) {
+            SiteSocial::where('site_id', $site->id)->where('id', $item['id'])
+                ->update(['sort_order' => $item['sort_order']]);
+        }
+        return response()->json(['ok' => true]);
     }
 }
