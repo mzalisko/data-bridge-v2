@@ -46,22 +46,24 @@ class FailoverService
         }
 
         if (!$standby) {
-            // Try to find a standby paired specifically to this primary
+            // Try to find a standby paired specifically to this primary, lowest sort_order first
             $standby = $model::where('site_id', $site->id)
                 ->where('is_standby', true)
                 ->where('is_blocked', false)
                 ->where('is_visible', true)
                 ->where('standby_for_id', $primaryId)
+                ->orderBy('sort_order')
                 ->first();
         }
 
         if (!$standby) {
-            // Fall back to general pool (unlinked standbys)
+            // Fall back to general pool (unlinked standbys), lowest sort_order first
             $standby = $model::where('site_id', $site->id)
                 ->where('is_standby', true)
                 ->where('is_blocked', false)
                 ->where('is_visible', true)
                 ->whereNull('standby_for_id')
+                ->orderBy('sort_order')
                 ->first();
         }
 
