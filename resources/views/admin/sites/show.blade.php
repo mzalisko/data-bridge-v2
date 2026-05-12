@@ -749,11 +749,7 @@
                     'socials'    => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
                     'messengers' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
                 ];
-                $messengerPlatforms = [
-                    'telegram' => 'Telegram', 'whatsapp' => 'WhatsApp', 'viber' => 'Viber',
-                    'signal'   => 'Signal',   'discord'  => 'Discord',  'skype' => 'Skype',
-                    'wechat'   => 'WeChat',   'line'     => 'Line',
-                ];
+                $messengerPlatforms = \App\Models\CustomPlatform::messengerOptions();
                 $socialNetPlatforms = [
                     'instagram' => 'Instagram', 'facebook' => 'Facebook',  'youtube'   => 'YouTube',
                     'tiktok'    => 'TikTok',    'twitter'  => 'Twitter / X','linkedin'  => 'LinkedIn',
@@ -980,17 +976,22 @@
 
                 <div class="dt-panel" id="dt-add-messengers" style="display:none;">
                     <div class="dt-panel__title">Новий месенджер</div>
-                    <form method="POST" action="{{ route('socials.store', $site) }}">
+                    <form method="POST" action="{{ route('socials.store', $site) }}" data-ms-form>
                         @csrf
                         <input type="hidden" name="sort_order" value="{{ $site->socials->count() }}">
                         <div class="dt-row dt-row--2">
                             <div>
                                 <label class="dt-label">Платформа *</label>
-                                <select name="platform" class="dt-input" required>
+                                <select name="platform" class="dt-input show-ms-platform-sel" required
+                                        onchange="onShowMsPlatformChange(this)">
                                     @foreach($messengerPlatforms as $val => $lbl)
                                         <option value="{{ $val }}">{{ $lbl }}</option>
                                     @endforeach
+                                    <option value="__new__">➕ Інший месенджер...</option>
                                 </select>
+                                <input type="text" name="platform_custom" class="dt-input show-ms-custom-inp"
+                                       placeholder="Назва месенджера" maxlength="50"
+                                       style="display:none;margin-top:6px;">
                             </div>
                             <div>
                                 <label class="dt-label">Нікнейм / номер</label>
@@ -1118,10 +1119,17 @@
                         </div>
                     </div>
                     <div class="dt-panel" id="dt-edit-social-{{ $ms->id }}" style="display:none;">
-                        <form method="POST" action="{{ route('socials.update',[$site,$ms]) }}">@csrf @method('PUT')
+                        <form method="POST" action="{{ route('socials.update',[$site,$ms]) }}" data-ms-form>@csrf @method('PUT')
                             <input type="hidden" name="sort_order" value="{{ $ms->sort_order }}">
                             <div class="dt-row dt-row--2">
-                                <div><label class="dt-label">Платформа *</label><select name="platform" class="dt-input" required>@foreach($messengerPlatforms as $val=>$lbl)<option value="{{ $val }}" {{ $ms->platform===$val?'selected':'' }}>{{ $lbl }}</option>@endforeach</select></div>
+                                <div><label class="dt-label">Платформа *</label>
+                                    <select name="platform" class="dt-input show-ms-platform-sel" required onchange="onShowMsPlatformChange(this)">
+                                        @foreach($messengerPlatforms as $val=>$lbl)<option value="{{ $val }}" {{ $ms->platform===$val?'selected':'' }}>{{ $lbl }}</option>@endforeach
+                                        @if(!array_key_exists($ms->platform, $messengerPlatforms))<option value="{{ $ms->platform }}" selected>{{ $ms->platform }}</option>@endif
+                                        <option value="__new__">➕ Інший месенджер...</option>
+                                    </select>
+                                    <input type="text" name="platform_custom" class="dt-input show-ms-custom-inp" placeholder="Назва месенджера" maxlength="50" style="display:none;margin-top:6px;">
+                                </div>
                                 <div><label class="dt-label">Нікнейм / номер</label><input type="text" name="handle" class="dt-input" value="{{ $ms->handle }}"></div>
                             </div>
                             <div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">Посилання</label><input type="url" name="url" class="dt-input" value="{{ $ms->url }}"></div>
@@ -3048,5 +3056,54 @@ function toggleFavorite() {
         list.addEventListener('pointercancel', cleanup);
     });
 }());
+
+// Custom messenger platform support
+var _showMsCustomPlatforms = {!! json_encode(\App\Models\CustomPlatform::messengerOptions()) !!};
+
+function onShowMsPlatformChange(sel) {
+    var wrap = sel.parentElement;
+    var inp  = wrap.querySelector('.show-ms-custom-inp');
+    var isNew = sel.value === '__new__';
+    if (inp) { inp.style.display = isNew ? '' : 'none'; inp.required = isNew; }
+}
+
+function _showMsCreatePlatform(form, callback) {
+    var sel = form.querySelector('.show-ms-platform-sel');
+    if (!sel || sel.value !== '__new__') { callback(); return; }
+    var inp  = form.querySelector('.show-ms-custom-inp');
+    var label = inp ? inp.value.trim() : '';
+    if (!label) { inp && inp.focus(); return; }
+    var csrf = document.querySelector('meta[name="csrf-token"]').content;
+    fetch('{{ route("custom-platforms.store") }}', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+        body: JSON.stringify({label: label, category: 'messenger'})
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+        document.querySelectorAll('.show-ms-platform-sel').forEach(function(s) {
+            if (!s.querySelector('option[value="'+data.slug+'"]')) {
+                var opt = document.createElement('option');
+                opt.value = data.slug; opt.textContent = data.label;
+                s.insertBefore(opt, s.querySelector('option[value="__new__"]'));
+            }
+        });
+        sel.value = data.slug;
+        inp.style.display = 'none'; inp.required = false;
+        callback();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('form[data-ms-form]').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            var sel = form.querySelector('.show-ms-platform-sel');
+            if (sel && sel.value === '__new__') {
+                e.preventDefault();
+                _showMsCreatePlatform(form, function(){ form.submit(); });
+            }
+        });
+    });
+});
 </script>
 @endpush

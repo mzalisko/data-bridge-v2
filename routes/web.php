@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\SiteFailoverController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\BatchController;
 use App\Http\Controllers\Admin\DataBrowserController;
+use App\Http\Controllers\Admin\CustomPlatformController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 
@@ -114,6 +115,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/logs/activity', [LogController::class, 'activity'])->name('logs.activity');
 
     // Data Browser
+    Route::post('custom-platforms',  [CustomPlatformController::class, 'store'])->name('custom-platforms.store');
     Route::get( 'data',             [DataBrowserController::class, 'index'])->name('data.index');
     Route::post('data/bulk-delete', [DataBrowserController::class, 'bulkDelete'])->name('data.bulk-delete');
     Route::post('data/bulk-edit',   [DataBrowserController::class, 'bulkEdit'])->name('data.bulk-edit');

@@ -236,11 +236,10 @@ tr.in-pool td { background: rgba(99,179,237,.05) !important; }
                        style="width:14px;height:14px;cursor:pointer;accent-color:var(--accent);">
             </td>
             <td style="padding:8px 12px;">
-                <a href="{{ route('sites.show', $row->site_id) }}" target="_blank"
-                   style="display:flex;align-items:center;gap:7px;text-decoration:none;color:inherit;white-space:nowrap;">
+                <span style="display:flex;align-items:center;gap:7px;white-space:nowrap;">
                     <span style="width:8px;height:8px;border-radius:50%;background:{{ $grpColor }};flex-shrink:0;display:inline-block;"></span>
                     <span style="font-size:12px;font-weight:600;color:var(--text-2);">{{ $row->site?->name ?? '—' }}</span>
-                </a>
+                </span>
             </td>
             @if($type==='phones')
                 <td style="padding:8px 12px;font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text);">
@@ -564,11 +563,16 @@ tr.in-pool td { background: rgba(99,179,237,.05) !important; }
         {{-- Messenger fields --}}
         <div id="bulk-fields-messengers" class="bulk-type-fields form-stack" style="display:none;">
             <div><label class="dt-label">Платформа *</label>
-                <select class="dt-input" name="platform" required>
-                    @foreach(['telegram'=>'Telegram','whatsapp'=>'WhatsApp','viber'=>'Viber','signal'=>'Signal','discord'=>'Discord','skype'=>'Skype','wechat'=>'WeChat','line'=>'Line'] as $v=>$l)
+                <select class="dt-input bulk-messenger-platform-sel" name="platform" required
+                        onchange="onBulkMessengerPlatformChange(this)">
+                    @foreach($customMessengers as $v => $l)
                     <option value="{{ $v }}">{{ $l }}</option>
                     @endforeach
+                    <option value="__new__">➕ Інший месенджер...</option>
                 </select>
+                <input type="text" class="dt-input bulk-messenger-custom-inp" name="platform_custom"
+                       placeholder="Назва месенджера" maxlength="50"
+                       style="display:none;margin-top:6px;">
             </div>
             <div><label class="dt-label">Handle / нікнейм</label><input type="text" class="dt-input" name="handle" placeholder="@username"></div>
             <div><label class="dt-label">URL *</label><input type="url" class="dt-input" name="url" placeholder="https://t.me/username" required></div>
@@ -914,7 +918,7 @@ function editOpValChange(el, idx) { _editOps[idx].value = el.value; }
 function getValWidget(field, idx) {
     var cls  = 'dt-input eop-val-el';
     var attr = 'data-idx="'+idx+'" oninput="editOpValChange(this,'+idx+')" onchange="editOpValChange(this,'+idx+')"';
-    var messengerPlatforms = ['telegram','whatsapp','viber','signal','discord','skype','wechat','line'];
+    var messengerPlatforms = {!! json_encode(array_keys($customMessengers)) !!};
     var socialPlatforms    = ['instagram','facebook','youtube','tiktok','twitter','linkedin','pinterest','threads','reddit','vk','twitch'];
     if (field === 'currency') {
         return '<select class="'+cls+'" '+attr+' style="font-size:12px;">'
@@ -1083,6 +1087,35 @@ function bulkTypeChange(type) {
 function bulkTypeHover(lbl, type) {
     lbl.style.borderColor = _bulkType === type ? 'var(--accent)' : 'var(--border)';
 }
+function onBulkMessengerPlatformChange(sel) {
+    var inp = sel.closest('div').querySelector('.bulk-messenger-custom-inp');
+    var isNew = sel.value === '__new__';
+    inp.style.display = isNew ? '' : 'none';
+    inp.required = isNew;
+}
+
+function _createCustomPlatformThenSubmit(label, callback) {
+    var csrf = document.querySelector('meta[name="csrf-token"]').content;
+    fetch('{{ route("custom-platforms.store") }}', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+        body: JSON.stringify({label: label, category: 'messenger'})
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+        // Add to all messenger selects on page
+        document.querySelectorAll('.bulk-messenger-platform-sel').forEach(function(sel) {
+            if (!sel.querySelector('option[value="'+data.slug+'"]')) {
+                var opt = document.createElement('option');
+                opt.value = data.slug; opt.textContent = data.label;
+                sel.insertBefore(opt, sel.querySelector('option[value="__new__"]'));
+            }
+        });
+        messengerPlatforms.push(data.slug);
+        callback(data.slug);
+    });
+}
+
 function bulkGeoMode(mode) {
     document.querySelectorAll('[id^="bulk-gpill-"]').forEach(function(lbl){ lbl.classList.remove('is-on'); });
     document.getElementById('bulk-gpill-' + mode)?.classList.add('is-on');
@@ -1095,6 +1128,20 @@ function bulkToggleAllSites() {
     document.getElementById('bulk-site-toggle-btn').textContent = anyUnchecked ? 'Скасувати всі' : 'Вибрати всі';
 }
 function bulkAddSubmit() {
+    // Handle custom messenger platform
+    var platformSel = document.querySelector('#bulk-fields-messengers .bulk-messenger-platform-sel');
+    if (platformSel && platformSel.value === '__new__') {
+        var customInp = document.querySelector('#bulk-fields-messengers .bulk-messenger-custom-inp');
+        var label = customInp ? customInp.value.trim() : '';
+        if (!label) { customInp && customInp.focus(); return; }
+        _createCustomPlatformThenSubmit(label, function(slug) {
+            platformSel.value = slug;
+            document.querySelector('#bulk-fields-messengers .bulk-messenger-custom-inp').style.display = 'none';
+            bulkAddSubmit();
+        });
+        return;
+    }
+
     var siteIds = Array.from(document.querySelectorAll('.bulk-site-cb:checked')).map(function(cb){ return cb.value; });
     if (!siteIds.length) { alert('Оберіть хоча б один сайт.'); return; }
     var typeForEndpoint = _bulkType === 'messengers' ? 'socials' : _bulkType;

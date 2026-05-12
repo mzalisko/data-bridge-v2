@@ -9,6 +9,7 @@ use App\Models\SitePrice;
 use App\Models\SiteAddress;
 use App\Models\SiteSocial;
 use App\Models\Country;
+use App\Models\CustomPlatform;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -16,9 +17,10 @@ use Illuminate\Http\Request;
 
 class DataBrowserController extends Controller
 {
-    private const MESSENGER_PLATFORMS = [
-        'telegram','whatsapp','viber','signal','discord','skype','wechat','line',
-    ];
+    private static function messengerPlatforms(): array
+    {
+        return CustomPlatform::messengerSlugs();
+    }
 
     public function index(Request $request): View
     {
@@ -41,7 +43,7 @@ class DataBrowserController extends Controller
                 break;
             case 'messengers':
                 $query = SiteSocial::with(['site.siteGroup'])
-                    ->whereIn('platform', self::MESSENGER_PLATFORMS)
+                    ->whereIn('platform', self::messengerPlatforms())
                     ->orderBy('site_id')->orderBy('sort_order');
                 if ($q) $query->where(fn($w) => $w
                     ->where('handle', 'like', "%{$q}%")
@@ -69,7 +71,7 @@ class DataBrowserController extends Controller
             default: // socials (non-messenger)
                 $type  = 'socials';
                 $query = SiteSocial::with(['site.siteGroup'])
-                    ->whereNotIn('platform', self::MESSENGER_PLATFORMS)
+                    ->whereNotIn('platform', self::messengerPlatforms())
                     ->orderBy('site_id')->orderBy('sort_order');
                 if ($q) $query->where(fn($w) => $w
                     ->where('handle', 'like', "%{$q}%")
@@ -83,13 +85,15 @@ class DataBrowserController extends Controller
 
         $counts = [
             'phones'     => SitePhone::count(),
-            'messengers' => SiteSocial::whereIn('platform', self::MESSENGER_PLATFORMS)->count(),
+            'messengers' => SiteSocial::whereIn('platform', self::messengerPlatforms())->count(),
             'prices'     => SitePrice::count(),
             'addresses'  => SiteAddress::count(),
-            'socials'    => SiteSocial::whereNotIn('platform', self::MESSENGER_PLATFORMS)->count(),
+            'socials'    => SiteSocial::whereNotIn('platform', self::messengerPlatforms())->count(),
         ];
 
-        return view('admin.data.index', compact('type', 'q', 'rows', 'sites', 'countries', 'counts'));
+        $customMessengers = CustomPlatform::messengerOptions();
+
+        return view('admin.data.index', compact('type', 'q', 'rows', 'sites', 'countries', 'counts', 'customMessengers'));
     }
 
     public function bulkDelete(Request $request): RedirectResponse
