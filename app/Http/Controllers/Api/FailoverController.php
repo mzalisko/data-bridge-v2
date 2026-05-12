@@ -59,10 +59,45 @@ class FailoverController extends Controller
     }
 
     /**
+     * POST /api/v1/failover/restore
+     *
+     * Restore original primary when external signal says it is active again.
+     * Finds the latest active failover log for that primary and rolls it back.
+     * The current active standby returns to the pool automatically.
+     *
+     * Body:
+     *   site_id    int     required
+     *   type       string  required  phone|social
+     *   primary_id int     required  ID of the original primary record
+     */
+    public function restore(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'site_id'    => ['required', 'integer', 'exists:sites,id'],
+            'type'       => ['required', Rule::in(['phone', 'social'])],
+            'primary_id' => ['required', 'integer'],
+        ]);
+
+        $site = Site::findOrFail($data['site_id']);
+
+        try {
+            $log = FailoverService::restore($site, $data['type'], $data['primary_id']);
+        } catch (\RuntimeException $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'ok'             => true,
+            'primary_id'     => $data['primary_id'],
+            'restored_at'    => $log->rolled_back_at->toISOString(),
+        ]);
+    }
+
+    /**
      * POST /api/v1/failover/{log}/rollback
      *
-     * Rollback a failover — restore primary, demote standby back to pool.
-     * Can be called by external API or triggered manually from CRM.
+     * Rollback a specific failover log by ID.
+     * Use /restore when you know the primary_id but not the log ID.
      */
     public function rollback(SiteFailoverLog $log): JsonResponse
     {
@@ -73,8 +108,8 @@ class FailoverController extends Controller
         }
 
         return response()->json([
-            'ok'              => true,
-            'rolled_back_at'  => $log->rolled_back_at->toISOString(),
+            'ok'             => true,
+            'rolled_back_at' => $log->rolled_back_at->toISOString(),
         ]);
     }
 }

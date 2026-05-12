@@ -48,5 +48,6 @@ Route::middleware(['api.key', 'throttle:60,1'])->prefix('v1')->group(function ()
 
     // Failover — triggered by external API (WhatsApp gateway, number provider, etc.)
     Route::post('/failover',                [FailoverController::class, 'trigger']);
+    Route::post('/failover/restore',        [FailoverController::class, 'restore']);
     Route::post('/failover/{log}/rollback', [FailoverController::class, 'rollback']);
 });

@@ -746,9 +746,9 @@
                         <div class="dt-item-main">
                             <div class="dt-item-name" style="font-family:var(--font-mono);">{{ $ph->number }}</div>
                             @if(!$phDepth)
-                                @if($ph->label || $ph->is_primary || $ph->is_blocked)
+                                @if($ph->label || $ph->is_blocked)
                                 <div class="dt-item-sub">
-                                    {{ $ph->label }}{{ $ph->is_primary ? ($ph->label ? ' · ' : '').'основний' : '' }}
+                                    {{ $ph->label }}
                                     @if($ph->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif
                                 </div>
                                 @endif
@@ -811,13 +811,6 @@
                                 @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv=>$ml)<label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-ph{{ $ph->id }}-{{ $mv }}"><input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;" onchange="dtGeoMode('ph{{ $ph->id }}','{{ $mv }}')">{{ $ml }}</label>@endforeach
                                 @if(count($usedIso))<span id="dtchips-ph{{ $ph->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">@foreach($usedIso as $iso)<label class="dt-geo-chip {{ in_array($iso,(array)($ph->geo_countries??[]))?'is-on':'' }}" id="dtchip-ph{{ $ph->id }}-{{ $iso }}"><input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($ph->geo_countries??[]))?'checked':'' }} style="display:none;" onchange="dtGeoChip('ph{{ $ph->id }}','{{ $iso }}',this)">{{ $iso }}</label>@endforeach</span>@endif
                             </div>
-                            @if(!$phDepth)
-                            <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
-                                <input type="hidden" name="is_primary" value="0">
-                                <input type="checkbox" name="is_primary" value="1" id="ph-prim-{{ $ph->id }}" {{ $ph->is_primary?'checked':'' }} style="accent-color:var(--accent);width:14px;height:14px;">
-                                <label for="ph-prim-{{ $ph->id }}" class="dt-label" style="margin:0;cursor:pointer;">Основний</label>
-                            </div>
-                            @endif
                             <div class="dt-panel__actions">
                                 <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('phone-{{ $ph->id }}')">Скасувати</button>
                                 <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>

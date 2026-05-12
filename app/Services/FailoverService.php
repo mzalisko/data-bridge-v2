@@ -143,6 +143,29 @@ class FailoverService
     }
 
     /**
+     * Restore the original primary when an external signal says it's active again.
+     * Finds the latest active failover log for that primary and rolls it back.
+     * If the primary is still blocked, unblocks it; active standby returns to pool.
+     *
+     * @throws \RuntimeException if no active failover found for this primary
+     */
+    public static function restore(Site $site, string $type, int $primaryId): SiteFailoverLog
+    {
+        $log = SiteFailoverLog::where('site_id', $site->id)
+            ->where('type', $type)
+            ->where('primary_id', $primaryId)
+            ->whereNull('rolled_back_at')
+            ->latest()
+            ->first();
+
+        if (!$log) {
+            throw new \RuntimeException("No active failover log found for {$type} #{$primaryId}.");
+        }
+
+        return self::rollback($log);
+    }
+
+    /**
      * Get available standbys for a given primary record (for UI select).
      */
     public static function getAvailableStandbys(Site $site, string $type, int $primaryId): \Illuminate\Support\Collection
