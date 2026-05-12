@@ -804,11 +804,93 @@ img, svg { display: block; max-width: 100%; }
 /* ============================================================
    DATA TAB — inline CRM sections
    ============================================================ */
+/* Data sub-tabs (Contacts / Details) */
+.dt-subtabs {
+  display: flex; gap: 6px;
+  padding: 16px 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+.dt-subtab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--radius-item) var(--radius-item) 0 0;
+  font-size: 12px; font-weight: 500; color: var(--text-3);
+  background: transparent; border: 1px solid transparent;
+  border-bottom: none; cursor: pointer;
+  transition: color .15s, background .15s;
+}
+.dt-subtab:hover { color: var(--text); background: var(--panel-2); }
+.dt-subtab.is-active {
+  color: var(--accent); background: var(--panel);
+  border-color: var(--border); border-bottom-color: var(--panel);
+  margin-bottom: -1px;
+}
+.dt-subtab__count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  background: var(--panel-2); border-radius: 99px;
+  font-size: 9px; font-weight: 700; font-family: var(--font-mono);
+  color: var(--text-3);
+}
 .dt-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+.dt-group {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  padding: 20px;
+}
+.dt-item--child {
+  margin-left: 20px;
+  border-left: 2px solid var(--border);
+}
+.dt-child-bar { display: none; }
+
+/* ── Nav-hierarchy (WP menu style, for phones/messengers) ── */
+.dt-nav-list { display: flex; flex-direction: column; }
+.dt-nav-group { border-bottom: 1px solid var(--border-2); }
+.dt-nav-group:last-child { border-bottom: none; }
+.dt-nav-primary { background: var(--panel); }
+.dt-nav-children {
+  border-left: 3px solid var(--accent-2);
+  margin-left: 32px;
+  transition: background .15s;
+}
+.dt-nav-children.dnd-over { background: var(--accent-2); }
+.dt-nav-child { border-bottom: 1px solid var(--border-2); }
+.dt-nav-child:last-child { border-bottom: none; }
+.dt-nav-child.is-editing { background: var(--panel-2); }
+.dt-nav-child[draggable] { cursor: default; }
+.dt-nav-grip {
+  cursor: grab; padding: 0 5px 0 8px; color: var(--muted);
+  display: flex; align-items: center; flex-shrink: 0;
+}
+.dt-nav-grip:active { cursor: grabbing; }
+.dt-nav-arrow {
+  flex-shrink: 0; font-size: 12px; color: var(--muted);
+  margin-right: 2px; line-height: 1; font-family: var(--font-mono);
+}
+.dt-nav-sb-badge {
+  flex-shrink: 0; font-size: 10px; color: var(--accent); font-weight: 600;
+  background: var(--accent-2); padding: 1px 6px; border-radius: 99px; margin-right: 4px;
+}
+.dt-nav-pool {
+  border-top: 1px dashed var(--border); padding-bottom: 2px; transition: background .15s;
+}
+.dt-nav-pool.dnd-over { background: var(--accent-2); }
+.dt-nav-pool-label {
+  font-size: 10px; color: var(--muted); padding: 6px 14px 2px;
+  font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+}
+.dt-nav-drop-hint {
+  font-size: 11px; color: var(--muted); padding: 6px 14px; font-style: italic;
+}
+.dt-link-panel {
+  padding: 8px 14px; border-bottom: 1px solid var(--border-2);
+  background: var(--panel-2);
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
 .dt-card {
   background: var(--panel);
