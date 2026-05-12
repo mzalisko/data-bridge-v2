@@ -399,45 +399,79 @@
                             @endif
                             @endif
                         </div>
-                        {{-- Right: matrix --}}
-                        <div style="background:var(--panel);padding:16px;">
-                            <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Видимість по країнах</div>
-                            <table style="width:100%;border-collapse:collapse;font-size:12px;">
-                                <thead>
-                                    <tr>
-                                        <th style="text-align:left;padding:6px 8px;color:var(--text-3);font-weight:500;border-bottom:1px solid var(--border-2);font-size:11px;">Категорія</th>
-                                        @foreach($allVisitorIsos as $matIso)
-                                            <th style="text-align:center;padding:6px 8px;font-family:var(--font-mono);font-size:11px;font-weight:700;border-bottom:1px solid var(--border-2);color:var(--text-3);">{{ $matIso }}</th>
-                                        @endforeach
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                @foreach([
-                                    ['Телефони',   $site->phones, 'data-phones'],
-                                    ['Ціни',       $site->prices, 'data-prices'],
-                                    ['Адреси',     $site->addresses, 'data-addresses'],
-                                    ['Соц.мережі', $site->socials->filter(fn($s) => !in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber'])), 'data-socials'],
-                                    ['Месенджери', $site->socials->filter(fn($s) =>  in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber'])), 'data-messengers'],
-                                ] as [$catLabel, $catItems, $catAnchor])
-                                    @if($catItems->count())
-                                    <tr style="border-bottom:1px solid var(--border-2);">
-                                        <td style="padding:7px 8px;font-size:12px;font-weight:500;color:var(--text-2);cursor:pointer;white-space:nowrap;"
-                                            onclick="location='{{ $url(['tab'=>'data']) }}#{{ $catAnchor }}'">{{ $catLabel }} <span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);">{{ $catItems->count() }}</span></td>
-                                        @foreach($allVisitorIsos as $matIso)
-                                            @php
-                                                $catTotal = $catItems->count();
-                                                $catVis   = $catItems->filter(fn($i) => ($i->is_visible ?? true) && $geoVis($i->geo_mode, $i->geo_countries, $matIso, $i->country_iso))->count();
-                                                $matColor = $catVis === $catTotal ? '#34d399' : ($catVis > 0 ? 'var(--warning)' : '#f87171');
-                                            @endphp
-                                            <td style="text-align:center;padding:7px 8px;">
-                                                <span style="font-size:11px;font-weight:700;color:{{ $matColor }};font-family:var(--font-mono);">{{ $catVis }}/{{ $catTotal }}</span>
-                                            </td>
-                                        @endforeach
-                                    </tr>
-                                    @endif
+                        {{-- Right: all fields compact grid --}}
+                        @php
+                            $allPhones  = $site->phones->sortBy('sort_order');
+                            $allPrices  = $site->prices->sortBy('sort_order');
+                            $allAddrs   = $site->addresses->sortBy('sort_order');
+                            $allSocNets = $site->socials->filter(fn($s) => !in_array(strtolower($s->platform ?? ''), $messengerKeys))->sortBy('sort_order');
+                            $allMsgrs   = $site->socials->filter(fn($s) =>  in_array(strtolower($s->platform ?? ''), $messengerKeys))->sortBy('sort_order');
+                        @endphp
+                        <div style="background:var(--panel);padding:16px;overflow-y:auto;max-height:420px;">
+                            <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+                                <span>Всі поля сайту</span>
+                                <span style="font-family:var(--font-mono);color:var(--text-2);">{{ $totalAll }}</span>
+                            </div>
+                            @if($allPhones->count())
+                            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:5px;">Телефони</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:12px;">
+                                @foreach($allPhones as $p)
+                                <div style="background:var(--panel-2);border-radius:6px;padding:6px 8px;{{ !($p->is_visible??true) ? 'opacity:.45;' : '' }}{{ $p->is_blocked ? 'border-left:2px solid var(--danger);' : ($p->is_standby||$p->standby_for_id ? 'border-left:2px solid #63b3ed;' : '') }}">
+                                    <div style="font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--text);{{ $p->is_blocked ? 'text-decoration:line-through;' : '' }}">{{ ($p->dial_code?'+'.$p->dial_code.' ':'').$p->number }}</div>
+                                    @if($p->label)<div style="font-size:10px;color:var(--text-3);margin-top:1px;">{{ $p->label }}</div>@endif
+                                </div>
                                 @endforeach
-                                </tbody>
-                            </table>
+                            </div>
+                            @endif
+                            @if($allPrices->count())
+                            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:5px;">Ціни</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:12px;">
+                                @foreach($allPrices as $p)
+                                <div style="background:var(--panel-2);border-radius:6px;padding:6px 8px;">
+                                    <div style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }} <span style="font-size:10px;color:var(--text-3);">{{ $p->currency }}</span></div>
+                                    @if($p->label)<div style="font-size:10px;color:var(--text-3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $p->label }}</div>@endif
+                                </div>
+                                @endforeach
+                            </div>
+                            @endif
+                            @if($allAddrs->count())
+                            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:5px;">Адреси</div>
+                            <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">
+                                @foreach($allAddrs as $a)
+                                <div style="background:var(--panel-2);border-radius:6px;padding:6px 8px;{{ !($a->is_visible??true) ? 'opacity:.45;' : '' }}">
+                                    <div style="font-size:12px;color:var(--text);">{{ trim(($a->city??'').' '.($a->street??'')) ?: '—' }}@if($a->country_iso) <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-3);">{{ $a->country_iso }}</span>@endif</div>
+                                    @if($a->label)<div style="font-size:10px;color:var(--text-3);margin-top:1px;">{{ $a->label }}</div>@endif
+                                </div>
+                                @endforeach
+                            </div>
+                            @endif
+                            @if($allMsgrs->count())
+                            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:5px;">Месенджери</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:12px;">
+                                @foreach($allMsgrs as $s)
+                                @php $sk = strtolower($s->platform??''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'']; @endphp
+                                <div style="background:var(--panel-2);border-radius:6px;padding:6px 8px;display:flex;align-items:center;gap:6px;{{ !($s->is_visible??true) ? 'opacity:.45;' : '' }}">
+                                    <span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span>
+                                    <span style="font-size:11px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $s->handle ?: $s->url }}</span>
+                                </div>
+                                @endforeach
+                            </div>
+                            @endif
+                            @if($allSocNets->count())
+                            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:5px;">Соцмережі</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                                @foreach($allSocNets as $s)
+                                @php $sk = strtolower($s->platform??''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'']; @endphp
+                                <div style="background:var(--panel-2);border-radius:6px;padding:6px 8px;display:flex;align-items:center;gap:6px;{{ !($s->is_visible??true) ? 'opacity:.45;' : '' }}">
+                                    <span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span>
+                                    <span style="font-size:11px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $s->handle ?: $s->url }}</span>
+                                </div>
+                                @endforeach
+                            </div>
+                            @endif
+                            @if($totalAll === 0)
+                            <div style="text-align:center;padding:24px;color:var(--text-3);font-size:12px;">Даних ще немає</div>
+                            @endif
                         </div>
                     </div>
                 </div>

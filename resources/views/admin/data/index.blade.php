@@ -805,6 +805,18 @@ function poolRender() {
     num.textContent = _pool.length;
     typBdg.textContent = _pool.length ? '{{ ucfirst($type) }}' : '';
 
+    // Always update row highlights + pool buttons (even when pool empties)
+    var inPool = poolIdSet();
+    document.querySelectorAll('tr[data-id]').forEach(function(tr){
+        var btn  = tr.querySelector('.pool-add-btn');
+        var isIn = inPool.has(tr.dataset.id);
+        tr.classList.toggle('in-pool', isIn);
+        if (btn) {
+            btn.querySelector('.pool-btn-icon-add').style.display = isIn ? 'none' : '';
+            btn.querySelector('.pool-btn-icon-rm').style.display  = isIn ? '' : 'none';
+        }
+    });
+
     // Show/hide bar
     if (_pool.length > 0) bar.classList.add('is-visible');
     else { bar.classList.remove('is-visible', 'is-expanded'); return; }
@@ -822,17 +834,6 @@ function poolRender() {
         chips.appendChild(chip);
     });
 
-    // Update row highlights + pool buttons
-    var inPool = poolIdSet();
-    document.querySelectorAll('tr[data-id]').forEach(function(tr){
-        var btn    = tr.querySelector('.pool-add-btn');
-        var isIn   = inPool.has(tr.dataset.id);
-        tr.classList.toggle('in-pool', isIn);
-        if (btn) {
-            btn.querySelector('.pool-btn-icon-add').style.display = isIn ? 'none' : '';
-            btn.querySelector('.pool-btn-icon-rm').style.display  = isIn ? '' : 'none';
-        }
-    });
 }
 
 function poolToggleExpand() {
