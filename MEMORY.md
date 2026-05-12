@@ -7,8 +7,8 @@
 ## 📍 Поточний стан
 
 - **Версія:** 0.4.0 — злито в main, тег `v0.4.0-sprint04-push-arch`
-- **Активний спринт:** Sprint 04 — завершено основну частину
-- **Активна гілка:** `feature/per-item-geo-visibility` (коміт `e388e3f` — failover)
+- **Активний спринт:** Sprint 04 — майже завершено
+- **Активна гілка:** `feature/per-item-geo-visibility` (коміт `5a81371` — global data browser + failover UX)
 - **Plugin гілка:** `feature/push-plugin-v2` (активна, без remote)
 - **Наступний крок:** мерж `feature/per-item-geo-visibility` → main + Plugin GitHub remote
 
@@ -70,6 +70,13 @@
 | API: `POST /api/v1/failover` + `/rollback` (зовнішній тригер) | feature/per-item-geo-visibility | ✅ |
 | Admin: standby toggle, ручний modal, відкат у Data tab | feature/per-item-geo-visibility | ✅ |
 | Failover журнал у Data tab | feature/per-item-geo-visibility | ✅ |
+| Failover UX: ієрархія за standby_for_id (не is_standby), пагінація 10/стор, очистка в Settings | feature/per-item-geo-visibility | ✅ |
+| Failover: прибрати кнопки standby toggle з Data tab (тільки swipe) | feature/per-item-geo-visibility | ✅ |
+| Глобальні дані: /data sidebar item, пошук, tabs, bulk edit/copy/delete, Add-to-sites drawer | feature/per-item-geo-visibility | ✅ |
+| BulkDataController: /bulk/phones|prices|socials|geos|delete AJAX endpoints | feature/per-item-geo-visibility | ✅ |
+| DataBrowserController: paginate(50) + counts в controller | feature/per-item-geo-visibility | ✅ |
+| Overview "Всі дані" tab (перед "Весь світ") — всі записи з status badges | feature/per-item-geo-visibility | ✅ |
+| Прибрати зелений "Конфліктів не виявлено"; відновити favorites star button | feature/per-item-geo-visibility | ✅ |
 | Obsidian документація `02-Модулі/failover_pool.md` | vault | ✅ |
 
 ## 🔲 Залишилось (Sprint 04)
@@ -78,6 +85,7 @@
 2. **Plugin git remote** — GitHub repo (поки локальний)
 3. **Перевірка WP плагіна** — `dbp_wordpress` Docker вже є, перевірити shortcodes
 4. **Conflict resolution** — логіка пріоритету CRM (гео-правила для плагіна)
+5. **/bulk/addresses** endpoint — поки відсутній, показує alert
 
 ---
 
@@ -119,7 +127,10 @@
 | custom_fields | Немає label/is_visible — тільки field_key/field_value/field_type/sort_order |
 | site sticky | overflow:clip на .site-show + position:sticky на sidebar |
 | Group FK | nullOnDelete (не cascade) — sites.group_id nullable |
-| Failover pool | `is_standby/is_blocked/blocked_reason` на phones+socials; `site_failover_logs` зберігає snapshot; `FailoverService::trigger/rollback()`; API POST /api/v1/failover |
+| Failover pool | `is_standby/is_blocked/blocked_reason` на phones+socials; `site_failover_logs` зберігає snapshot; `FailoverService::trigger/rollback()`; API POST /api/v1/failover. Ієрархія: standby_for_id (не is_standby) — promoted залишається child |
+| Failover UX | Swipe-only для standby toggle (без кнопок). Журнал: 10/стор, paginator "failover_page". Очистка: DELETE /sites/{site}/failover/history |
+| Глобальні дані | /data → DataBrowserController (paginate 50) + BulkDataController AJAX (/bulk/phones|prices|socials|geos|delete). Sidebar: "Глобальні дані" з cylinder icon |
+| Bulk add drawer | Type picker + type-specific fields + geo rules + multi-site picker. Addresses поки без AJAX endpoint |
 | Plugin edit callback | CRM надсилає `edit_callback.url+key` у push payload; plugin POST-ить зміни назад; callback URL = `/api/plugin-callback/{64-hex-token}` |
 
 ---
