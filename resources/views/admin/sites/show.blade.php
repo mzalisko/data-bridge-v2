@@ -741,7 +741,7 @@
                         <div class="dt-vis">
                             @if(count($usedIso)===0||($p->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
                             @elseif(($p->geo_mode??'all')==='include')@forelse((array)($p->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
-                            @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($p->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse@endif
+                            @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($p->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
                         </div>
                         <div class="dt-item-actions" onclick="event.stopPropagation()">
                             <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'phones',$p->id]) }}" style="margin:0;">@csrf
@@ -799,7 +799,7 @@
                                 <div class="dt-vis">
                                     @if(count($usedIso)===0||($sb->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
                                     @elseif(($sb->geo_mode??'all')==='include')@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
-                                    @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse@endif
+                                    @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
                                 </div>
                                 <div class="dt-item-actions" onclick="event.stopPropagation()">
                                     <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'phones',$sb->id]) }}" style="margin:0;">@csrf
@@ -863,7 +863,7 @@
                             <div class="dt-vis">
                                 @if(count($usedIso)===0||($sb->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
                                 @elseif(($sb->geo_mode??'all')==='include')@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
-                                @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse@endif
+                                @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
                             </div>
                             <div class="dt-item-actions" onclick="event.stopPropagation()">
                                 <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'phones',$sb->id]) }}" style="margin:0;">@csrf
@@ -1010,7 +1010,7 @@
                         <div class="dt-vis">
                             @if(count($usedIso)===0||($s->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
                             @elseif(($s->geo_mode??'all')==='include')@forelse((array)($s->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
-                            @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($s->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse@endif
+                            @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($s->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
                         </div>
                         <div class="dt-item-actions" onclick="event.stopPropagation()">
                             <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'socials',$s->id]) }}" style="margin:0;">@csrf
@@ -1067,7 +1067,7 @@
                                 <div class="dt-vis">
                                     @if(count($usedIso)===0||($sb->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
                                     @elseif(($sb->geo_mode??'all')==='include')@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
-                                    @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse@endif
+                                    @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
                                 </div>
                                 <div class="dt-item-actions" onclick="event.stopPropagation()">
                                     <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'socials',$sb->id]) }}" style="margin:0;">@csrf
@@ -1135,7 +1135,7 @@
                             <div class="dt-vis">
                                 @if(count($usedIso)===0||($sb->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
                                 @elseif(($sb->geo_mode??'all')==='include')@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
-                                @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse@endif
+                                @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
                             </div>
                             <div class="dt-item-actions" onclick="event.stopPropagation()">
                                 <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'socials',$sb->id]) }}" style="margin:0;">@csrf
