@@ -234,65 +234,47 @@
     <div id="gdb-delete-ids"></div>
 </form>
 
-{{-- ── Edit drawer ──────────────────────────────────────────── --}}
+{{-- ── Edit drawer — multi-op builder ─────────────────────────── --}}
 <div class="drawer-overlay" id="drawer-gdb-edit-overlay" onclick="closeDrawer('drawer-gdb-edit')"></div>
-<div class="drawer" id="drawer-gdb-edit">
+<div class="drawer" id="drawer-gdb-edit" style="width:500px;">
     <div class="drawer__header">
-        <span class="drawer__title" id="gdb-edit-title">Редагувати</span>
+        <span class="drawer__title">Конструктор змін</span>
         <button class="icon-btn" onclick="closeDrawer('drawer-gdb-edit')">✕</button>
     </div>
     <div class="drawer__body">
-        <form method="POST" action="{{ route('data.bulk-edit') }}" id="form-gdb-edit" class="form-stack">
-            @csrf
-            <input type="hidden" name="type" value="{{ $type }}">
-            <input type="hidden" name="q" value="{{ $q }}">
-            <div id="gdb-edit-ids"></div>
-            <label class="dt-label">Поле для зміни</label>
-            <select name="field" class="dt-input" id="gdb-edit-field" onchange="gdbEditFieldChange(this)">
-                @if($type==='phones')
-                    <option value="number">Номер</option>
-                    <option value="label">Мітка</option>
-                    <option value="country_iso">Країна ISO</option>
-                    <option value="dial_code">Код країни (+)</option>
-                @elseif($type==='prices')
-                    <option value="amount">Сума</option>
-                    <option value="currency">Валюта</option>
-                    <option value="label">Мітка</option>
-                    <option value="period">Период</option>
-                @elseif($type==='addresses')
-                    <option value="city">Місто</option>
-                    <option value="country_iso">Країна ISO</option>
-                    <option value="street">Вулиця</option>
-                    <option value="label">Мітка</option>
-                @else
-                    <option value="handle">Handle</option>
-                    <option value="url">URL</option>
-                    <option value="platform">Платформа</option>
-                @endif
-            </select>
-            <label class="dt-label" style="margin-top:12px;">Нове значення</label>
-            <select name="value" class="dt-input" id="gdb-edit-val-currency" style="display:none;">
-                <option value="UAH">UAH ₴</option>
-                <option value="USD">USD $</option>
-                <option value="EUR">EUR €</option>
-            </select>
-            <select name="value" class="dt-input" id="gdb-edit-val-platform" style="display:none;">
-                <option value="instagram">Instagram</option>
-                <option value="facebook">Facebook</option>
-                <option value="telegram">Telegram</option>
-                <option value="whatsapp">WhatsApp</option>
-                <option value="viber">Viber</option>
-                <option value="youtube">YouTube</option>
-                <option value="tiktok">TikTok</option>
-                <option value="twitter">Twitter / X</option>
-                <option value="linkedin">LinkedIn</option>
-            </select>
-            <input type="text" name="value" class="dt-input" id="gdb-edit-val-text" placeholder="Нове значення…">
-        </form>
+
+        {{-- Info bar --}}
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel-2);border-radius:var(--radius-item);border:1px solid var(--border-2);margin-bottom:16px;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="color:var(--accent);flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="gdb-edit-info" style="font-size:12px;font-weight:600;color:var(--text-2);">0 записів обрано</span>
+            <span style="font-size:11px;color:var(--text-3);margin-left:auto;">Тип: <strong>{{ $type }}</strong></span>
+        </div>
+
+        {{-- Operations list --}}
+        <div id="gdb-edit-ops-list" style="display:flex;flex-direction:column;gap:8px;min-height:48px;"></div>
+
+        {{-- Add operation button --}}
+        <button type="button" onclick="addEditOp()" id="gdb-add-op-btn"
+                style="margin-top:10px;width:100%;padding:9px;border:1.5px dashed var(--border);border-radius:var(--radius-item);background:none;color:var(--text-3);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:border-color .15s,color .15s;"
+                onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-3)'">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Додати поле
+        </button>
+
+        {{-- Result log --}}
+        <div id="gdb-edit-result-log" style="display:none;margin-top:16px;border-top:1px solid var(--border-2);padding-top:12px;">
+            <div style="font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.6px;">Результат виконання</div>
+            <div id="gdb-edit-result-rows" style="display:flex;flex-direction:column;gap:5px;"></div>
+        </div>
+
     </div>
     <div class="drawer__footer">
         <button class="btn btn--ghost btn--md" onclick="closeDrawer('drawer-gdb-edit')">Скасувати</button>
-        <button class="btn btn--primary btn--md" id="gdb-edit-submit" onclick="document.getElementById('form-gdb-edit').submit()">Застосувати</button>
+        <button class="btn btn--primary btn--md" id="gdb-edit-submit-btn" onclick="bulkEditSubmit()">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+            <span id="gdb-edit-submit-label">Застосувати</span>
+        </button>
     </div>
 </div>
 
@@ -532,26 +514,208 @@ function gdbFillIds(containerId, ids, name) {
     });
 }
 
-// ─────────────────────────── Edit drawer ─────────────────────────────────────
+// ─────────────────────── Edit Builder (multi-op) ─────────────────────────────
+var _editOps  = [];
+var _editType = '{{ $type }}';
+var _editFields = {
+    phones:    [{v:'number',l:'Номер'},{v:'label',l:'Мітка'},{v:'country_iso',l:'Країна ISO'},{v:'dial_code',l:'Код (+)'}],
+    prices:    [{v:'amount',l:'Сума'},{v:'currency',l:'Валюта'},{v:'label',l:'Мітка'},{v:'period',l:'Период'}],
+    addresses: [{v:'city',l:'Місто'},{v:'country_iso',l:'Країна ISO'},{v:'street',l:'Вулиця'},{v:'label',l:'Мітка'}],
+    socials:   [{v:'handle',l:'Handle'},{v:'url',l:'URL'},{v:'platform',l:'Платформа'}]
+};
+var _editCountries = @json($countries->map(fn($c) => ['iso' => $c->iso, 'name' => $c->name]));
+
 function gdbOpenEdit() {
     var ids = gdbGetSelectedIds();
     if (!ids.length) return;
-    gdbFillIds('gdb-edit-ids', ids);
-    document.getElementById('gdb-edit-title').textContent = 'Редагувати ' + ids.length + ' записів';
-    document.getElementById('gdb-edit-submit').textContent = 'Застосувати до ' + ids.length;
-    gdbEditFieldChange(document.getElementById('gdb-edit-field'));
+    document.getElementById('gdb-edit-info').textContent = ids.length + ' записів будуть змінені';
+    document.getElementById('gdb-edit-result-log').style.display = 'none';
+    document.getElementById('gdb-edit-result-rows').innerHTML = '';
+    if (_editOps.length === 0) addEditOp();
+    renderEditOps();
+    updateEditSubmitLabel();
     closeDrawer('drawer-gdb-copy');
     openDrawer('drawer-gdb-edit');
 }
 
-function gdbEditFieldChange(sel) {
-    var field = sel.value;
-    var isC = field === 'currency', isP = field === 'platform';
-    ['text','currency','platform'].forEach(function(t) {
-        var el = document.getElementById('gdb-edit-val-' + t);
-        el.style.display = (t==='text'&&!isC&&!isP) || (t==='currency'&&isC) || (t==='platform'&&isP) ? '' : 'none';
-        el.disabled = !((t==='text'&&!isC&&!isP) || (t==='currency'&&isC) || (t==='platform'&&isP));
+function addEditOp() {
+    var fields = _editFields[_editType] || [];
+    var used   = _editOps.map(function(op) { return op.field; });
+    var avail  = fields.filter(function(f) { return !used.includes(f.v); });
+    var field  = (avail[0] || fields[0] || {v:''}).v;
+    _editOps.push({field: field, value: ''});
+    renderEditOps();
+    updateEditSubmitLabel();
+}
+
+function removeEditOp(idx) {
+    _editOps.splice(idx, 1);
+    renderEditOps();
+    updateEditSubmitLabel();
+}
+
+function editOpFieldChange(sel, idx) {
+    _editOps[idx].field = sel.value;
+    _editOps[idx].value = '';
+    var row = document.querySelector('[data-eop="'+idx+'"]');
+    if (row) row.querySelector('.eop-val-wrap').innerHTML = getValWidget(_editOps[idx].field, idx);
+}
+
+function editOpValChange(el, idx) { _editOps[idx].value = el.value; }
+
+function getValWidget(field, idx) {
+    var cls  = 'dt-input eop-val-el';
+    var attr = 'data-idx="'+idx+'" oninput="editOpValChange(this,'+idx+')" onchange="editOpValChange(this,'+idx+')"';
+    if (field === 'currency') {
+        return '<select class="'+cls+'" '+attr+' style="font-size:12px;">'
+            +'<option value="UAH">UAH ₴</option><option value="USD">USD $</option><option value="EUR">EUR €</option>'
+            +'</select>';
+    }
+    if (field === 'platform') {
+        return '<select class="'+cls+'" '+attr+' style="font-size:12px;">'
+            +['instagram','facebook','telegram','whatsapp','viber','youtube','tiktok','twitter','linkedin']
+                .map(function(p){return '<option value="'+p+'">'+p.charAt(0).toUpperCase()+p.slice(1)+'</option>';}).join('')
+            +'</select>';
+    }
+    if (field === 'country_iso') {
+        var opts = '<option value="">— не вказано —</option>';
+        _editCountries.forEach(function(c){ opts += '<option value="'+c.iso+'">'+c.iso+' — '+c.name+'</option>'; });
+        return '<select class="'+cls+'" '+attr+' style="font-size:12px;">'+opts+'</select>';
+    }
+    if (field === 'amount') {
+        return '<input type="number" class="'+cls+'" '+attr+' step="0.01" min="0" placeholder="0.00" style="font-size:12px;">';
+    }
+    if (field === 'dial_code') {
+        return '<input type="text" class="'+cls+'" '+attr+' placeholder="380" maxlength="8" style="font-size:12px;font-family:var(--font-mono);">';
+    }
+    if (field === 'number') {
+        return '<input type="text" class="'+cls+'" '+attr+' placeholder="50 123 4567" style="font-size:12px;font-family:var(--font-mono);">';
+    }
+    if (field === 'url') {
+        return '<input type="url" class="'+cls+'" '+attr+' placeholder="https://..." style="font-size:12px;">';
+    }
+    return '<input type="text" class="'+cls+'" '+attr+' placeholder="Нове значення…" style="font-size:12px;">';
+}
+
+function renderEditOps() {
+    var fields = _editFields[_editType] || [];
+    var list   = document.getElementById('gdb-edit-ops-list');
+    list.innerHTML = '';
+
+    _editOps.forEach(function(op, idx) {
+        var opts = fields.map(function(f){
+            return '<option value="'+f.v+'"'+(op.field===f.v?' selected':'')+'>'+f.l+'</option>';
+        }).join('');
+
+        var div = document.createElement('div');
+        div.setAttribute('data-eop', idx);
+        div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--panel-2);border-radius:var(--radius-item);border:1px solid var(--border-2);';
+        div.innerHTML =
+            '<select class="dt-input eop-field" style="flex:0 0 130px;font-size:12px;" onchange="editOpFieldChange(this,'+idx+')">'
+            + opts + '</select>'
+            + '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="color:var(--text-3);flex-shrink:0;"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>'
+            + '<div class="eop-val-wrap" style="flex:1;">' + getValWidget(op.field, idx) + '</div>'
+            + '<button type="button" onclick="removeEditOp('+idx+')" title="Видалити поле"'
+            + ' style="width:26px;height:26px;border:none;background:none;cursor:pointer;color:var(--text-3);display:flex;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0;transition:background .12s,color .12s;"'
+            + ' onmouseover="this.style.background=\'rgba(245,101,101,.12)\';this.style.color=\'var(--danger)\'"'
+            + ' onmouseout="this.style.background=\'none\';this.style.color=\'var(--text-3)\'">'
+            + '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+            + '</button>';
+        list.appendChild(div);
     });
+
+    var addBtn = document.getElementById('gdb-add-op-btn');
+    if (addBtn) addBtn.style.display = (_editOps.length >= fields.length) ? 'none' : 'flex';
+}
+
+function updateEditSubmitLabel() {
+    var label = document.getElementById('gdb-edit-submit-label');
+    if (!label) return;
+    var n = _editOps.length, r = gdbGetSelectedIds().length;
+    if (n === 0) { label.textContent = 'Застосувати'; return; }
+    var nWord = n === 1 ? 'зміну' : (n < 5 ? 'зміни' : 'змін');
+    label.textContent = 'Застосувати ' + n + ' ' + nWord + (r ? ' → ' + r + ' зап.' : '');
+}
+
+async function bulkEditSubmit() {
+    var ids = gdbGetSelectedIds();
+    if (!ids.length) return;
+
+    // Sync values from DOM before submit
+    _editOps.forEach(function(op, idx) {
+        var el = document.querySelector('[data-eop="'+idx+'"] .eop-val-el');
+        if (el) op.value = el.value;
+    });
+
+    var ops = _editOps.filter(function(op) { return op.field; });
+    if (!ops.length) { alert('Додайте хоча б одну зміну.'); return; }
+
+    var btn = document.getElementById('gdb-edit-submit-btn');
+    btn.disabled = true;
+    document.getElementById('gdb-edit-submit-label').textContent = 'Застосовуємо…';
+
+    var resultLog  = document.getElementById('gdb-edit-result-log');
+    var resultRows = document.getElementById('gdb-edit-result-rows');
+    resultLog.style.display = '';
+    resultRows.innerHTML = '';
+
+    var csrf = document.querySelector('meta[name="csrf-token"]').content;
+    var url  = '{{ route("data.bulk-edit") }}';
+    var allOk = true;
+
+    for (var i = 0; i < ops.length; i++) {
+        var op  = ops[i];
+        var fDef = (_editFields[_editType] || []).find(function(f){ return f.v === op.field; });
+        var lbl  = fDef ? fDef.l : op.field;
+        var valDisplay = op.value || '(порожньо)';
+
+        // Pending row with spinner
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;font-size:12px;padding:7px 10px;border-radius:6px;background:var(--panel-2);color:var(--text-3);';
+        row.innerHTML = '<span style="width:12px;height:12px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0;display:inline-block;"></span>'
+            + '<span><strong>' + lbl + '</strong> → <code style="font-size:11px;">' + valDisplay + '</code></span>';
+        resultRows.appendChild(row);
+
+        try {
+            var body = new FormData();
+            body.append('_token', csrf);
+            body.append('type', _editType);
+            body.append('field', op.field);
+            body.append('value', op.value);
+            ids.forEach(function(id){ body.append('ids[]', id); });
+
+            var resp = await fetch(url, {method:'POST', headers:{'Accept':'application/json'}, body: body});
+            var data = await resp.json();
+
+            if (resp.ok && data.ok !== undefined) {
+                row.style.background = 'rgba(72,187,120,.08)';
+                row.style.color = '#48bb78';
+                row.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;"><path d="M20 6 9 17l-5-5"/></svg>'
+                    + '<span><strong>' + lbl + '</strong> → <code style="font-size:11px;">' + valDisplay + '</code></span>'
+                    + '<span style="margin-left:auto;font-size:10px;font-family:var(--font-mono);opacity:.7;">' + data.ok + ' зап.</span>';
+            } else {
+                throw new Error(data.error || 'Помилка');
+            }
+        } catch(e) {
+            allOk = false;
+            row.style.background = 'rgba(245,101,101,.08)';
+            row.style.color = 'var(--danger)';
+            row.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+                + '<span><strong>' + lbl + '</strong> — ' + (e.message || 'помилка') + '</span>';
+        }
+    }
+
+    btn.disabled = false;
+    updateEditSubmitLabel();
+
+    // Auto-reload after success to reflect changes in table
+    if (allOk) {
+        var notice = document.createElement('div');
+        notice.style.cssText = 'font-size:11px;color:var(--text-3);text-align:center;margin-top:6px;';
+        notice.textContent = 'Оновлення сторінки…';
+        resultRows.appendChild(notice);
+        setTimeout(function(){ window.location.reload(); }, 1200);
+    }
 }
 
 // ─────────────────────────── Copy drawer ─────────────────────────────────────
@@ -616,13 +780,14 @@ function bulkAddSubmit() {
     var siteIds = Array.from(document.querySelectorAll('.bulk-site-cb:checked')).map(function(cb) { return cb.value; });
     if (!siteIds.length) { alert('Оберіть хоча б один сайт.'); return; }
 
-    var endpointMap = { phones: '{{ route('bulk.phones') }}', prices: '{{ route('bulk.prices') }}', addresses: '{{ route('bulk.geos') }}', socials: '{{ route('bulk.socials') }}' };
-    var endpointAddressMap = { phones: '{{ route('bulk.phones') }}', prices: '{{ route('bulk.prices') }}', addresses: '/bulk/addresses', socials: '{{ route('bulk.socials') }}' };
-
-    // Build URL based on type
-    var urls = { phones: '{{ route('bulk.phones') }}', prices: '{{ route('bulk.prices') }}', socials: '{{ route('bulk.socials') }}' };
+    var urls = {
+        phones:    '{{ route('bulk.phones') }}',
+        prices:    '{{ route('bulk.prices') }}',
+        addresses: '{{ route('bulk.addresses') }}',
+        socials:   '{{ route('bulk.socials') }}'
+    };
     var url = urls[_bulkType];
-    if (!url) { alert('Тип адреса поки не підтримується через bulk API.'); return; }
+    if (!url) { alert('Тип не підтримується.'); return; }
 
     var fields = document.querySelectorAll('#bulk-fields-' + _bulkType + ' input, #bulk-fields-' + _bulkType + ' select, #bulk-fields-' + _bulkType + ' textarea');
     var body = new FormData();
@@ -667,8 +832,17 @@ function bulkAddSubmit() {
 }
 
 // Init
-bulkTypeChange('phones');
-gdbEditFieldChange(document.getElementById('gdb-edit-field'));
+bulkTypeChange('{{ $type }}');
+
+// Spinner keyframes (for edit op pending rows)
+(function(){
+    if (!document.getElementById('spin-kf')) {
+        var s = document.createElement('style');
+        s.id = 'spin-kf';
+        s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+        document.head.appendChild(s);
+    }
+})();
 </script>
 
 @endsection

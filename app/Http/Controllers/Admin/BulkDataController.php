@@ -145,6 +145,50 @@ class BulkDataController extends Controller
     }
 
     /**
+     * Add address to multiple sites.
+     * POST /bulk/addresses
+     * Body: site_ids[], city, country_iso?, street?, label?, geo_mode?, geo_countries[]
+     */
+    public function addAddress(Request $request): JsonResponse
+    {
+        $request->validate([
+            'site_ids'        => ['required', 'array', 'min:1'],
+            'site_ids.*'      => ['integer', 'exists:sites,id'],
+            'city'            => ['required', 'string', 'max:128'],
+            'country_iso'     => ['nullable', 'string', 'size:2'],
+            'street'          => ['nullable', 'string', 'max:255'],
+            'building'        => ['nullable', 'string', 'max:32'],
+            'postal_code'     => ['nullable', 'string', 'max:20'],
+            'label'           => ['nullable', 'string', 'max:128'],
+            'geo_mode'        => ['nullable', 'string', 'in:all,include,exclude'],
+            'geo_countries'   => ['nullable', 'array'],
+            'geo_countries.*' => ['string', 'regex:/^[A-Z]{2}$/'],
+        ]);
+
+        $payload = [
+            'city'          => $request->city,
+            'country_iso'   => $request->country_iso ? strtoupper($request->country_iso) : null,
+            'street'        => $request->street,
+            'building'      => $request->building,
+            'postal_code'   => $request->postal_code,
+            'label'         => $request->label,
+            'is_visible'    => true,
+            'sort_order'    => 0,
+            'geo_mode'      => $request->input('geo_mode', 'all'),
+            'geo_countries' => $request->input('geo_mode', 'all') !== 'all'
+                ? ($request->input('geo_countries', []))
+                : [],
+        ];
+
+        $results = $this->applyToSites(
+            $request->site_ids,
+            fn(Site $site) => $site->addresses()->create($payload)
+        );
+
+        return response()->json($results);
+    }
+
+    /**
      * Add geo to multiple sites.
      * POST /bulk/geos
      * Body: site_ids[], iso, name?

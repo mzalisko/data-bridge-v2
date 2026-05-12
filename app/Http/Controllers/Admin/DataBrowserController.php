@@ -10,6 +10,7 @@ use App\Models\SiteAddress;
 use App\Models\SiteSocial;
 use App\Models\Country;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -91,7 +92,7 @@ class DataBrowserController extends Controller
             ->with('success', "Видалено {$count} записів");
     }
 
-    public function bulkEdit(Request $request): RedirectResponse
+    public function bulkEdit(Request $request): RedirectResponse|JsonResponse
     {
         $data = $request->validate([
             'type'  => ['required', 'in:phones,prices,addresses,socials'],
@@ -108,10 +109,12 @@ class DataBrowserController extends Controller
         $allowed = $this->editableFields($type);
 
         if (! in_array($field, $allowed)) {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => 'Поле не дозволено'], 422);
+            }
             return back()->with('error', 'Поле не дозволено для редагування.');
         }
 
-        // Cast value for specific fields
         if ($field === 'country_iso') {
             $value = strtoupper($value);
         }
@@ -119,7 +122,11 @@ class DataBrowserController extends Controller
         $model = $this->modelForType($type);
         $count = $model::whereIn('id', $ids)->update([$field => $value]);
 
-        return redirect()->route('data.index', ['type' => $type, 'q' => $request->get('q')])
+        if ($request->wantsJson()) {
+            return response()->json(['ok' => $count, 'field' => $field]);
+        }
+
+        return redirect()->route('data.index', ['type' => $type, 'q' => $request->query('q')])
             ->with('success', "Оновлено {$count} записів → «{$field}»");
     }
 

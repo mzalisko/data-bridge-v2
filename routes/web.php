@@ -95,11 +95,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('sites/{site}/failover/history',        [SiteFailoverController::class, 'clearHistory'])->name('sites.failover.history.clear');
 
     // Bulk data operations (multi-site) — UI planned, controller scaffolded
-    Route::post('bulk/phones',  [BulkDataController::class, 'addPhone'])->name('bulk.phones');
-    Route::post('bulk/prices',  [BulkDataController::class, 'addPrice'])->name('bulk.prices');
-    Route::post('bulk/socials', [BulkDataController::class, 'addSocial'])->name('bulk.socials');
-    Route::post('bulk/geos',    [BulkDataController::class, 'addGeo'])->name('bulk.geos');
-    Route::post('bulk/delete',  [BulkDataController::class, 'deleteMatching'])->name('bulk.delete');
+    Route::post('bulk/phones',     [BulkDataController::class, 'addPhone'])->name('bulk.phones');
+    Route::post('bulk/prices',     [BulkDataController::class, 'addPrice'])->name('bulk.prices');
+    Route::post('bulk/addresses',  [BulkDataController::class, 'addAddress'])->name('bulk.addresses');
+    Route::post('bulk/socials',    [BulkDataController::class, 'addSocial'])->name('bulk.socials');
+    Route::post('bulk/geos',       [BulkDataController::class, 'addGeo'])->name('bulk.geos');
+    Route::post('bulk/delete',     [BulkDataController::class, 'deleteMatching'])->name('bulk.delete');
 
     Route::resource('users', UserController::class)
         ->only(['index', 'store', 'update', 'destroy']);
