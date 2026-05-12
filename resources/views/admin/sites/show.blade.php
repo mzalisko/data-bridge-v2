@@ -401,11 +401,12 @@
                         </div>
                         {{-- Right: all fields tabular --}}
                         @php
+                            $ovMsgrKeys = \App\Models\CustomPlatform::messengerSlugs();
                             $allPhones  = $site->phones->sortBy('sort_order');
                             $allPrices  = $site->prices->sortBy('sort_order');
                             $allAddrs   = $site->addresses->sortBy('sort_order');
-                            $allSocNets = $site->socials->filter(fn($s) => !in_array(strtolower($s->platform ?? ''), $messengerKeys))->sortBy('sort_order');
-                            $allMsgrs   = $site->socials->filter(fn($s) =>  in_array(strtolower($s->platform ?? ''), $messengerKeys))->sortBy('sort_order');
+                            $allSocNets = $site->socials->filter(fn($s) => !in_array(strtolower($s->platform ?? ''), $ovMsgrKeys))->sortBy('sort_order');
+                            $allMsgrs   = $site->socials->filter(fn($s) =>  in_array(strtolower($s->platform ?? ''), $ovMsgrKeys))->sortBy('sort_order');
                             $thStyle = 'padding:5px 8px;text-align:left;font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border-2);white-space:nowrap;';
                             $tdStyle = 'padding:5px 8px;font-size:12px;border-bottom:1px solid var(--border-2);';
                         @endphp
@@ -594,7 +595,7 @@
                 </div>
 
                 {{-- "Всі дані" panel: every record, no geo filter, full site snapshot --}}
-                <div id="vis-panel-_raw">
+                <div id="vis-panel-_raw" style="display:none;">
                     @php
                         $rawSocNets  = $site->socials->filter(fn($s) => !in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber']));
                         $rawMsgngers = $site->socials->filter(fn($s) =>  in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber']));
@@ -859,6 +860,19 @@
                         </div>
                     </div>
                 @endforeach
+                <script>
+                (function(){
+                    var key = 'visPanel_{{ $site->id }}';
+                    var iso = '';
+                    try { iso = sessionStorage.getItem(key) || ''; } catch(e){}
+                    if (!iso) iso = '_raw';
+                    var panel = document.getElementById('vis-panel-' + iso);
+                    if (!panel) iso = '_raw', panel = document.getElementById('vis-panel-_raw');
+                    if (panel) panel.style.display = '';
+                    var btn = document.getElementById('vis-tab-' + iso);
+                    if (btn) btn.className = btn.className.replace('btn--ghost','btn--primary');
+                })();
+                </script>
 
                 {{-- Conflicts — always visible so manager can verify setup --}}
                 <div style="border-top:1px solid var(--border-2);padding:12px 20px;">
@@ -946,7 +960,7 @@
             </div>
 
             <div class="dt-grid">
-            <div id="dt-group-contacts" class="dt-group">
+            <div id="dt-group-contacts" class="dt-group" style="display:none;">
             {{-- ═══ PHONES ═══════════════════════════════════════════ --}}
             <div class="dt-card" id="data-phones">
                 <div class="dt-card-head">
@@ -1974,6 +1988,21 @@
             </div>
 
             </div>{{-- /dt-group-details --}}
+            <script>
+            (function(){
+                var stored = '';
+                try { stored = sessionStorage.getItem('dtSubTab') || ''; } catch(e){}
+                var show = (stored === 'details') ? 'details' : 'contacts';
+                var showEl = document.getElementById('dt-group-' + show);
+                var hideEl = document.getElementById('dt-group-' + (show === 'details' ? 'contacts' : 'details'));
+                if (showEl) showEl.style.display = '';
+                if (hideEl) hideEl.style.display = 'none';
+                var showBtn = document.getElementById('dst-' + show);
+                var hideBtn = document.getElementById('dst-' + (show === 'details' ? 'contacts' : 'details'));
+                if (showBtn) showBtn.classList.add('is-active');
+                if (hideBtn) hideBtn.classList.remove('is-active');
+            })();
+            </script>
             </div>{{-- /dt-grid --}}
 
             {{-- ═══ FAILOVER LOG ════════════════════════════════════ --}}
@@ -2810,10 +2839,6 @@ function dtSubTab(group) {
 }
 
 (function() {
-    var stored = '';
-    try { stored = sessionStorage.getItem('dtSubTab') || ''; } catch(e){}
-    if (stored === 'details') dtSubTab('details');
-
     // Update badge counts
     var c = (document.getElementById('dt-group-contacts')?.querySelectorAll('.dt-item').length || 0);
     var d = (document.getElementById('dt-group-details')?.querySelectorAll('.dt-item').length || 0);
@@ -2906,6 +2931,7 @@ function showVisitorPanel(iso) {
     if (panel) panel.style.display = '';
     var tab = document.getElementById('vis-tab-' + iso);
     if (tab) tab.className = tab.className.replace('btn--ghost', 'btn--primary');
+    try { sessionStorage.setItem('visPanel_{{ $site->id }}', iso); } catch(e){}
 }
 
 // ── Activity diff toggle ───────────────────────────────────────────────────
