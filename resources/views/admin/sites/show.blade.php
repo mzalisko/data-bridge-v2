@@ -2448,12 +2448,6 @@
 
 {{-- Failover trigger modal --}}
 @if($tab === 'data')
-<form id="dnd-link-form" method="POST" action="{{ route('sites.failover.link', $site) }}" style="display:none;">
-    @csrf
-    <input type="hidden" name="type">
-    <input type="hidden" name="id">
-    <input type="hidden" name="standby_for_id">
-</form>
 <div id="fo-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;">
     <div style="background:var(--bg-card);border-radius:var(--radius-card);padding:28px;width:440px;max-width:90vw;box-shadow:var(--shadow-card);">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
@@ -2758,9 +2752,18 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
     if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
 });
 
-// ── Standby drag-and-drop (WP nav menu style) ──────────────────
+// ── Standby drag-and-drop (WP nav menu style, no-reload) ────────
 (function() {
     var _drag = null;
+    var _linkUrl = '{{ route('sites.failover.link', $site) }}';
+    var _csrf   = document.querySelector('meta[name=csrf-token]') ? document.querySelector('meta[name=csrf-token]').content : '{{ csrf_token() }}';
+
+    function syncDropHint(zone) {
+        var hint = zone.querySelector(':scope > .dt-nav-drop-hint');
+        var hasChildren = zone.querySelector(':scope > .dt-nav-child');
+        if (hint) hint.style.display = hasChildren ? 'none' : '';
+    }
+
     document.querySelectorAll('.dt-nav-child[draggable]').forEach(function(el) {
         el.addEventListener('dragstart', function(e) {
             _drag = el;
@@ -2773,6 +2776,7 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
             document.querySelectorAll('.dnd-over').forEach(function(z) { z.classList.remove('dnd-over'); });
         });
     });
+
     document.querySelectorAll('.dt-nav-children, .dt-nav-pool').forEach(function(zone) {
         zone.addEventListener('dragover', function(e) {
             e.preventDefault();
@@ -2786,11 +2790,30 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
             e.preventDefault();
             zone.classList.remove('dnd-over');
             if (!_drag) return;
-            var form = document.getElementById('dnd-link-form');
-            form.querySelector('[name=type]').value           = _drag.dataset.type;
-            form.querySelector('[name=id]').value             = _drag.dataset.standbyId;
-            form.querySelector('[name=standby_for_id]').value = zone.dataset.parentId || '';
-            form.submit();
+
+            var el        = _drag;
+            var parentId  = zone.dataset.parentId || '';
+            var standbyId = el.dataset.standbyId;
+            var type      = el.dataset.type;
+            var fromZone  = el.parentElement;
+
+            // Optimistic DOM move
+            zone.insertBefore(el, zone.querySelector('.dt-nav-drop-hint'));
+            syncDropHint(zone);
+            if (fromZone && fromZone !== zone) syncDropHint(fromZone);
+
+            // Persist via AJAX
+            var body = new URLSearchParams({ _token: _csrf, type: type, id: standbyId, standby_for_id: parentId });
+            fetch(_linkUrl, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString(),
+            }).catch(function() {
+                // On network error, move back
+                fromZone.appendChild(el);
+                syncDropHint(zone);
+                if (fromZone !== zone) syncDropHint(fromZone);
+            });
         });
     });
 })();
