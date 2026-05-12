@@ -716,198 +716,105 @@
 
                 <div class="dt-nav-list" data-type="phone">
                 @php
-                    $primaryPhones = $shownPhones->where('is_standby', false)->sortBy('sort_order');
-                    $sbByParentPh  = $shownPhones->where('is_standby', true)->filter(fn($s) => $s->standby_for_id)->groupBy('standby_for_id');
-                    $unlinkedSbPh  = $shownPhones->where('is_standby', true)->filter(fn($s) => !$s->standby_for_id)->values();
+                    $ordPrimariesPh = $shownPhones->where('is_standby', false)->sortBy('sort_order');
+                    $byParentPh     = $shownPhones->where('is_standby', true)->filter(fn($s) => $s->standby_for_id)->groupBy('standby_for_id');
+                    $unlinkedPh     = $shownPhones->where('is_standby', true)->filter(fn($s) => !$s->standby_for_id)->sortBy('sort_order');
+                    $sbCountsPh     = $byParentPh->map(fn($g) => $g->count());
+                    $flatPhones     = collect();
+                    foreach ($ordPrimariesPh as $prPh) {
+                        $flatPhones->push(['item' => $prPh, 'depth' => 0]);
+                        foreach (($byParentPh->get($prPh->id, collect()))->sortBy('sort_order') as $sbPh) {
+                            $flatPhones->push(['item' => $sbPh, 'depth' => 1]);
+                        }
+                    }
+                    foreach ($unlinkedPh as $sbPh) { $flatPhones->push(['item' => $sbPh, 'depth' => 1]); }
                 @endphp
-                @if($primaryPhones->isEmpty() && $shownPhones->where('is_standby',true)->isEmpty())
+                @if($flatPhones->isEmpty())
                     <div class="dt-empty">Телефонів немає</div>
                 @else
-                @foreach($primaryPhones as $p)
-                @php $pSubs = $sbByParentPh->get($p->id, collect()); @endphp
-                <div class="dt-nav-group dt-item" draggable="true" data-standby-id="{{ $p->id }}" data-type="phone" data-is-standby="0">
-                    <div class="dt-item-row dt-nav-primary" onclick="dtExpandItem('phone-{{ $p->id }}')">
-                        <span class="dt-nav-grip" title="Перетягни: вниз під номер = резерв, вгору = основний, між іншими = порядок"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
+                @foreach($flatPhones as $entry)
+                @php $ph = $entry['item']; $phDepth = $entry['depth']; $sbCount = $sbCountsPh->get($ph->id, 0); @endphp
+                <div class="dt-item {{ $phDepth ? 'dt-item--child' : 'dt-item--root' }}"
+                     draggable="true"
+                     data-id="{{ $ph->id }}"
+                     data-is-standby="{{ $ph->is_standby ? 1 : 0 }}"
+                     data-parent-id="{{ $ph->standby_for_id ?? '' }}"
+                     data-type="phone">
+                    <div class="dt-item-row {{ !$phDepth ? 'dt-nav-primary' : '' }}" onclick="dtExpandItem('phone-{{ $ph->id }}')">
+                        <span class="dt-nav-grip" title="Потягни вправо = резерв, вліво = основний"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
                         <span class="dt-item-icon">{!! $dtIcons['phones'] !!}</span>
                         <div class="dt-item-main">
-                            <div class="dt-item-name" style="font-family:var(--font-mono);">{{ $p->number }}</div>
-                            @if($p->label || $p->is_primary || $p->is_blocked)
-                            <div class="dt-item-sub">
-                                {{ $p->label }}{{ $p->is_primary ? ($p->label ? ' · ' : '').'основний' : '' }}
-                                @if($p->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif
-                            </div>
+                            <div class="dt-item-name" style="font-family:var(--font-mono);">{{ $ph->number }}</div>
+                            @if(!$phDepth)
+                                @if($ph->label || $ph->is_primary || $ph->is_blocked)
+                                <div class="dt-item-sub">
+                                    {{ $ph->label }}{{ $ph->is_primary ? ($ph->label ? ' · ' : '').'основний' : '' }}
+                                    @if($ph->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif
+                                </div>
+                                @endif
+                            @else
+                                <div class="dt-item-sub">{{ $ph->label }}@if($ph->label)&thinsp;·&thinsp;@endif<span class="dt-badge dt-badge--standby">⟳ резерв</span>@if($ph->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif</div>
                             @endif
                         </div>
-                        @if($pSubs->isNotEmpty())<span class="dt-nav-sb-badge">{{ $pSubs->count() }}&thinsp;⟳</span>@endif
+                        @if(!$phDepth && $sbCount > 0)<span class="dt-nav-sb-badge">{{ $sbCount }}&thinsp;⟳</span>@endif
                         <div class="dt-vis">
-                            @if(count($usedIso)===0||($p->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
-                            @elseif(($p->geo_mode??'all')==='include')@forelse((array)($p->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
-                            @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($p->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
+                            @if(count($usedIso)===0||($ph->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                            @elseif(($ph->geo_mode??'all')==='include')@forelse((array)($ph->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
+                            @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($ph->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
                         </div>
                         <div class="dt-item-actions" onclick="event.stopPropagation()">
-                            <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'phones',$p->id]) }}" style="margin:0;">@csrf
-                                <button type="submit" class="icon-btn" title="{{ ($p->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($p->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
-                                    @if($p->is_visible??true)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif
+                            <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'phones',$ph->id]) }}" style="margin:0;">@csrf
+                                <button type="submit" class="icon-btn" title="{{ ($ph->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($ph->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
+                                    @if($ph->is_visible??true)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif
                                 </button>
                             </form>
-                            <form method="POST" action="{{ route('phones.destroy',[$site,$p]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
+                            <form method="POST" action="{{ route('phones.destroy',[$site,$ph]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
                                 <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
                             </form>
-                            @if(!$p->is_blocked)
-                            @php $phStandbys=$shownPhones->filter(fn($ph)=>$ph->is_standby&&!$ph->is_blocked)->map(fn($ph)=>['id'=>$ph->id,'label'=>($ph->dial_code?'+'.$ph->dial_code.' ':'').$ph->number.($ph->label?' · '.$ph->label:''),'paired'=>$ph->standby_for_id==$p->id])->values()->toJson(); @endphp
-                            <button class="icon-btn" title="Failover — підмінити резервним" style="color:var(--warning);" onclick="dtOpenFailover('phone','{{ $p->id }}','{{ addslashes(($p->dial_code?'+'.$p->dial_code.' ':'').$p->number) }}',{{ $phStandbys }})"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></button>
+                            @if(!$phDepth && !$ph->is_blocked)
+                            @php $phStandbys=$shownPhones->filter(fn($pp)=>$pp->is_standby&&!$pp->is_blocked)->map(fn($pp)=>['id'=>$pp->id,'label'=>($pp->dial_code?'+'.$pp->dial_code.' ':'').$pp->number.($pp->label?' · '.$pp->label:''),'paired'=>$pp->standby_for_id==$ph->id])->values()->toJson(); @endphp
+                            <button class="icon-btn" title="Failover — підмінити резервним" style="color:var(--warning);" onclick="dtOpenFailover('phone','{{ $ph->id }}','{{ addslashes(($ph->dial_code?'+'.$ph->dial_code.' ':'').$ph->number) }}',{{ $phStandbys }})"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></button>
                             @endif
-                            <button class="icon-btn" id="dt-expand-phone-{{ $p->id }}" title="Редагувати" onclick="dtExpandItem('phone-{{ $p->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
+                            <button class="icon-btn" id="dt-expand-phone-{{ $ph->id }}" title="Редагувати" onclick="dtExpandItem('phone-{{ $ph->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
                         </div>
                     </div>
-                    <div class="dt-panel" id="dt-edit-phone-{{ $p->id }}" style="display:none;">
-                        <form method="POST" action="{{ route('phones.update',[$site,$p]) }}">@csrf @method('PUT')
-                            <input type="hidden" name="sort_order" value="{{ $p->sort_order }}">
+                    <div class="dt-panel" id="dt-edit-phone-{{ $ph->id }}" style="display:none;">
+                        @if($phDepth)
+                        <div class="dt-link-panel">
+                            <form method="POST" action="{{ route('sites.failover.link',$site) }}" style="display:contents;">@csrf
+                                <input type="hidden" name="type" value="phone"><input type="hidden" name="id" value="{{ $ph->id }}">
+                                <label class="dt-label" style="margin:0;flex-shrink:0;">Резерв для:</label>
+                                <select name="standby_for_id" class="dt-input" style="flex:1;min-width:140px;"><option value="">— Загальний пул —</option>@foreach($ordPrimariesPh as $pp)<option value="{{ $pp->id }}" {{ $ph->standby_for_id==$pp->id?'selected':'' }}>{{ ($pp->dial_code?'+'.$pp->dial_code.' ':'').$pp->number }}{{ $pp->label?' · '.$pp->label:'' }}</option>@endforeach</select>
+                                <button type="submit" class="btn btn--primary btn--sm">Прив'язати</button>
+                            </form>
+                        </div>
+                        @endif
+                        <form method="POST" action="{{ route('phones.update',[$site,$ph]) }}">@csrf @method('PUT')
+                            <input type="hidden" name="sort_order" value="{{ $ph->sort_order }}">
                             <div class="dt-row dt-row--2">
-                                <div><label class="dt-label">Номер *</label><input type="text" name="number" class="dt-input" value="{{ $p->number }}" required></div>
-                                <div><label class="dt-label">Мітка</label><input type="text" name="label" class="dt-input" value="{{ $p->label }}" placeholder="Головний…"></div>
+                                <div><label class="dt-label">Номер *</label><input type="text" name="number" class="dt-input" value="{{ $ph->number }}" required></div>
+                                <div><label class="dt-label">Мітка</label><input type="text" name="label" class="dt-input" value="{{ $ph->label }}" placeholder="Головний…"></div>
                             </div>
                             <div class="dt-geo-row"><span class="dt-geo-label">Видно:</span>
-                                @php $em=$p->geo_mode??'all'; @endphp
-                                @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv=>$ml)<label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-ph{{ $p->id }}-{{ $mv }}"><input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;" onchange="dtGeoMode('ph{{ $p->id }}','{{ $mv }}')">{{ $ml }}</label>@endforeach
-                                @if(count($usedIso))<span id="dtchips-ph{{ $p->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">@foreach($usedIso as $iso)<label class="dt-geo-chip {{ in_array($iso,(array)($p->geo_countries??[]))?'is-on':'' }}" id="dtchip-ph{{ $p->id }}-{{ $iso }}"><input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($p->geo_countries??[]))?'checked':'' }} style="display:none;" onchange="dtGeoChip('ph{{ $p->id }}','{{ $iso }}',this)">{{ $iso }}</label>@endforeach</span>@endif
+                                @php $em=$ph->geo_mode??'all'; @endphp
+                                @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv=>$ml)<label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-ph{{ $ph->id }}-{{ $mv }}"><input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;" onchange="dtGeoMode('ph{{ $ph->id }}','{{ $mv }}')">{{ $ml }}</label>@endforeach
+                                @if(count($usedIso))<span id="dtchips-ph{{ $ph->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">@foreach($usedIso as $iso)<label class="dt-geo-chip {{ in_array($iso,(array)($ph->geo_countries??[]))?'is-on':'' }}" id="dtchip-ph{{ $ph->id }}-{{ $iso }}"><input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($ph->geo_countries??[]))?'checked':'' }} style="display:none;" onchange="dtGeoChip('ph{{ $ph->id }}','{{ $iso }}',this)">{{ $iso }}</label>@endforeach</span>@endif
                             </div>
+                            @if(!$phDepth)
                             <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
                                 <input type="hidden" name="is_primary" value="0">
-                                <input type="checkbox" name="is_primary" value="1" id="ph-prim-{{ $p->id }}" {{ $p->is_primary?'checked':'' }} style="accent-color:var(--accent);width:14px;height:14px;">
-                                <label for="ph-prim-{{ $p->id }}" class="dt-label" style="margin:0;cursor:pointer;">Основний</label>
+                                <input type="checkbox" name="is_primary" value="1" id="ph-prim-{{ $ph->id }}" {{ $ph->is_primary?'checked':'' }} style="accent-color:var(--accent);width:14px;height:14px;">
+                                <label for="ph-prim-{{ $ph->id }}" class="dt-label" style="margin:0;cursor:pointer;">Основний</label>
                             </div>
+                            @endif
                             <div class="dt-panel__actions">
-                                <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('phone-{{ $p->id }}')">Скасувати</button>
+                                <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('phone-{{ $ph->id }}')">Скасувати</button>
                                 <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
                             </div>
                         </form>
                     </div>
-                    <div class="dt-nav-children" data-parent-id="{{ $p->id }}" data-drop-type="phone">
-                        @foreach($pSubs as $sb)
-                        <div class="dt-nav-child dt-item" draggable="true" data-standby-id="{{ $sb->id }}" data-type="phone" data-is-standby="1">
-                            <div class="dt-item-row" onclick="dtExpandItem('phone-{{ $sb->id }}')">
-                                <span class="dt-nav-grip" title="Перетягни для зміни прив'язки"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
-                                <span class="dt-nav-arrow">└</span>
-                                <div class="dt-item-main">
-                                    <div class="dt-item-name" style="font-family:var(--font-mono);">{{ $sb->number }}</div>
-                                    <div class="dt-item-sub">{{ $sb->label }}@if($sb->label)&thinsp;·&thinsp;@endif<span class="dt-badge dt-badge--standby">⟳ резерв</span>@if($sb->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif</div>
-                                </div>
-                                <div class="dt-vis">
-                                    @if(count($usedIso)===0||($sb->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
-                                    @elseif(($sb->geo_mode??'all')==='include')@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
-                                    @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
-                                </div>
-                                <div class="dt-item-actions" onclick="event.stopPropagation()">
-                                    <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'phones',$sb->id]) }}" style="margin:0;">@csrf
-                                        <button type="submit" class="icon-btn" title="{{ ($sb->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($sb->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
-                                            @if($sb->is_visible??true)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif
-                                        </button>
-                                    </form>
-                                    <form method="POST" action="{{ route('phones.destroy',[$site,$sb]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
-                                        <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
-                                    </form>
-                                    <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
-                                        <input type="hidden" name="type" value="phone"><input type="hidden" name="id" value="{{ $sb->id }}">
-                                        <button type="submit" class="icon-btn" title="Зняти з резерву" style="color:var(--accent);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
-                                    </form>
-                                    <button class="icon-btn" id="dt-expand-phone-{{ $sb->id }}" title="Редагувати" onclick="dtExpandItem('phone-{{ $sb->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
-                                </div>
-                            </div>
-                            <div class="dt-panel" id="dt-edit-phone-{{ $sb->id }}" style="display:none;">
-                                <div class="dt-link-panel">
-                                    <form method="POST" action="{{ route('sites.failover.link',$site) }}" style="display:contents;">@csrf
-                                        <input type="hidden" name="type" value="phone"><input type="hidden" name="id" value="{{ $sb->id }}">
-                                        <label class="dt-label" style="margin:0;flex-shrink:0;">Резерв для:</label>
-                                        <select name="standby_for_id" class="dt-input" style="flex:1;min-width:140px;"><option value="">— Загальний пул —</option>@foreach($primaryPhones as $pp)<option value="{{ $pp->id }}" {{ $sb->standby_for_id==$pp->id?'selected':'' }}>{{ ($pp->dial_code?'+'.$pp->dial_code.' ':'').$pp->number }}{{ $pp->label?' · '.$pp->label:'' }}</option>@endforeach</select>
-                                        <button type="submit" class="btn btn--primary btn--sm">Прив'язати</button>
-                                    </form>
-                                </div>
-                                <form method="POST" action="{{ route('phones.update',[$site,$sb]) }}">@csrf @method('PUT')
-                                    <input type="hidden" name="sort_order" value="{{ $sb->sort_order }}">
-                                    <div class="dt-row dt-row--2">
-                                        <div><label class="dt-label">Номер *</label><input type="text" name="number" class="dt-input" value="{{ $sb->number }}" required></div>
-                                        <div><label class="dt-label">Мітка</label><input type="text" name="label" class="dt-input" value="{{ $sb->label }}" placeholder="Головний…"></div>
-                                    </div>
-                                    <div class="dt-geo-row"><span class="dt-geo-label">Видно:</span>
-                                        @php $em=$sb->geo_mode??'all'; @endphp
-                                        @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv=>$ml)<label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-ph{{ $sb->id }}-{{ $mv }}"><input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;" onchange="dtGeoMode('ph{{ $sb->id }}','{{ $mv }}')">{{ $ml }}</label>@endforeach
-                                        @if(count($usedIso))<span id="dtchips-ph{{ $sb->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">@foreach($usedIso as $iso)<label class="dt-geo-chip {{ in_array($iso,(array)($sb->geo_countries??[]))?'is-on':'' }}" id="dtchip-ph{{ $sb->id }}-{{ $iso }}"><input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($sb->geo_countries??[]))?'checked':'' }} style="display:none;" onchange="dtGeoChip('ph{{ $sb->id }}','{{ $iso }}',this)">{{ $iso }}</label>@endforeach</span>@endif
-                                    </div>
-                                    <div class="dt-panel__actions">
-                                        <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('phone-{{ $sb->id }}')">Скасувати</button>
-                                        <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        @endforeach
-                        @if($pSubs->isEmpty())<div class="dt-nav-drop-hint">↓ перетягни резерв сюди</div>@endif
-                    </div>
                 </div>
                 @endforeach
-                @if($unlinkedSbPh->isNotEmpty())
-                <div class="dt-nav-pool" data-parent-id="" data-drop-type="phone">
-                    <div class="dt-nav-pool-label">Незакріплені резерви — перетягни під основний</div>
-                    @foreach($unlinkedSbPh as $sb)
-                    <div class="dt-nav-child dt-item" draggable="true" data-standby-id="{{ $sb->id }}" data-type="phone" data-is-standby="1">
-                        <div class="dt-item-row" onclick="dtExpandItem('phone-{{ $sb->id }}')">
-                            <span class="dt-nav-grip" title="Перетягни під основний або в список основних"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
-                            <div class="dt-item-main">
-                                <div class="dt-item-name" style="font-family:var(--font-mono);">{{ $sb->number }}</div>
-                                <div class="dt-item-sub">{{ $sb->label }}@if($sb->label)&thinsp;·&thinsp;@endif<span class="dt-badge dt-badge--standby">⟳ резерв</span>@if($sb->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif</div>
-                            </div>
-                            <div class="dt-vis">
-                                @if(count($usedIso)===0||($sb->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
-                                @elseif(($sb->geo_mode??'all')==='include')@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
-                                @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
-                            </div>
-                            <div class="dt-item-actions" onclick="event.stopPropagation()">
-                                <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'phones',$sb->id]) }}" style="margin:0;">@csrf
-                                    <button type="submit" class="icon-btn" title="{{ ($sb->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($sb->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
-                                        @if($sb->is_visible??true)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif
-                                    </button>
-                                </form>
-                                <form method="POST" action="{{ route('phones.destroy',[$site,$sb]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
-                                    <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
-                                </form>
-                                <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
-                                    <input type="hidden" name="type" value="phone"><input type="hidden" name="id" value="{{ $sb->id }}">
-                                    <button type="submit" class="icon-btn" title="Зняти з резерву" style="color:var(--accent);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
-                                </form>
-                                <button class="icon-btn" id="dt-expand-phone-{{ $sb->id }}" title="Редагувати" onclick="dtExpandItem('phone-{{ $sb->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
-                            </div>
-                        </div>
-                        <div class="dt-panel" id="dt-edit-phone-{{ $sb->id }}" style="display:none;">
-                            <div class="dt-link-panel">
-                                <form method="POST" action="{{ route('sites.failover.link',$site) }}" style="display:contents;">@csrf
-                                    <input type="hidden" name="type" value="phone"><input type="hidden" name="id" value="{{ $sb->id }}">
-                                    <label class="dt-label" style="margin:0;flex-shrink:0;">Резерв для:</label>
-                                    <select name="standby_for_id" class="dt-input" style="flex:1;min-width:140px;"><option value="">— Загальний пул —</option>@foreach($primaryPhones as $pp)<option value="{{ $pp->id }}" {{ $sb->standby_for_id==$pp->id?'selected':'' }}>{{ ($pp->dial_code?'+'.$pp->dial_code.' ':'').$pp->number }}{{ $pp->label?' · '.$pp->label:'' }}</option>@endforeach</select>
-                                    <button type="submit" class="btn btn--primary btn--sm">Прив'язати</button>
-                                </form>
-                            </div>
-                            <form method="POST" action="{{ route('phones.update',[$site,$sb]) }}">@csrf @method('PUT')
-                                <input type="hidden" name="sort_order" value="{{ $sb->sort_order }}">
-                                <div class="dt-row dt-row--2">
-                                    <div><label class="dt-label">Номер *</label><input type="text" name="number" class="dt-input" value="{{ $sb->number }}" required></div>
-                                    <div><label class="dt-label">Мітка</label><input type="text" name="label" class="dt-input" value="{{ $sb->label }}" placeholder="Головний…"></div>
-                                </div>
-                                <div class="dt-geo-row"><span class="dt-geo-label">Видно:</span>
-                                    @php $em=$sb->geo_mode??'all'; @endphp
-                                    @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv=>$ml)<label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-ph{{ $sb->id }}-{{ $mv }}"><input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;" onchange="dtGeoMode('ph{{ $sb->id }}','{{ $mv }}')">{{ $ml }}</label>@endforeach
-                                    @if(count($usedIso))<span id="dtchips-ph{{ $sb->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">@foreach($usedIso as $iso)<label class="dt-geo-chip {{ in_array($iso,(array)($sb->geo_countries??[]))?'is-on':'' }}" id="dtchip-ph{{ $sb->id }}-{{ $iso }}"><input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($sb->geo_countries??[]))?'checked':'' }} style="display:none;" onchange="dtGeoChip('ph{{ $sb->id }}','{{ $iso }}',this)">{{ $iso }}</label>@endforeach</span>@endif
-                                </div>
-                                <div class="dt-panel__actions">
-                                    <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('phone-{{ $sb->id }}')">Скасувати</button>
-                                    <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-                @endif
                 @endif
                 </div>
             </div>
@@ -984,200 +891,98 @@
 
                 <div class="dt-nav-list" data-type="social">
                 @php
-                    $primaryMessengers = $shownMessengers->where('is_standby', false)->sortBy('sort_order');
-                    $sbByParentMs      = $shownMessengers->where('is_standby', true)->filter(fn($s) => $s->standby_for_id)->groupBy('standby_for_id');
-                    $unlinkedSbMs      = $shownMessengers->where('is_standby', true)->filter(fn($s) => !$s->standby_for_id)->values();
+                    $ordPrimariesMs = $shownMessengers->where('is_standby', false)->sortBy('sort_order');
+                    $byParentMs     = $shownMessengers->where('is_standby', true)->filter(fn($s) => $s->standby_for_id)->groupBy('standby_for_id');
+                    $unlinkedMs     = $shownMessengers->where('is_standby', true)->filter(fn($s) => !$s->standby_for_id)->sortBy('sort_order');
+                    $sbCountsMs     = $byParentMs->map(fn($g) => $g->count());
+                    $flatMessengers = collect();
+                    foreach ($ordPrimariesMs as $prMs) {
+                        $flatMessengers->push(['item' => $prMs, 'depth' => 0]);
+                        foreach (($byParentMs->get($prMs->id, collect()))->sortBy('sort_order') as $sbMs) {
+                            $flatMessengers->push(['item' => $sbMs, 'depth' => 1]);
+                        }
+                    }
+                    foreach ($unlinkedMs as $sbMs) { $flatMessengers->push(['item' => $sbMs, 'depth' => 1]); }
                 @endphp
-                @if($primaryMessengers->isEmpty() && $shownMessengers->where('is_standby',true)->isEmpty())
+                @if($flatMessengers->isEmpty())
                     <div class="dt-empty">Месенджерів немає</div>
                 @else
-                @foreach($primaryMessengers as $s)
-                @php $sSubs=$sbByParentMs->get($s->id,collect()); $sk=strtolower($s->platform??''); $sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>']; @endphp
-                <div class="dt-nav-group dt-item" draggable="true" data-standby-id="{{ $s->id }}" data-type="social" data-is-standby="0">
-                    <div class="dt-item-row dt-nav-primary" onclick="dtExpandItem('social-{{ $s->id }}')">
-                        <span class="dt-nav-grip" title="Перетягни: вниз під месенджер = резерв, вгору = основний, між іншими = порядок"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
-                        <span class="dt-item-icon" style="color:{{ $sic['c'] }}">{!! $sic['svg'] !!}</span>
+                @foreach($flatMessengers as $entry)
+                @php $ms = $entry['item']; $msDepth = $entry['depth']; $msbCount = $sbCountsMs->get($ms->id, 0); $msk=strtolower($ms->platform??''); $msic=$socialIcon[$msk]??['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>']; @endphp
+                <div class="dt-item {{ $msDepth ? 'dt-item--child' : 'dt-item--root' }}"
+                     draggable="true"
+                     data-id="{{ $ms->id }}"
+                     data-is-standby="{{ $ms->is_standby ? 1 : 0 }}"
+                     data-parent-id="{{ $ms->standby_for_id ?? '' }}"
+                     data-type="social">
+                    <div class="dt-item-row {{ !$msDepth ? 'dt-nav-primary' : '' }}" onclick="dtExpandItem('social-{{ $ms->id }}')">
+                        <span class="dt-nav-grip" title="Потягни вправо = резерв, вліво = основний"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
+                        <span class="dt-item-icon" style="color:{{ $msic['c'] }}">{!! $msic['svg'] !!}</span>
                         <div class="dt-item-main">
-                            <div class="dt-item-name">{{ $s->handle ?: ucfirst($s->platform) }}</div>
-                            <div class="dt-item-sub">{{ ucfirst($s->platform) }}
-                                @if($s->phone_id && ($linkedPh=$site->phones->find($s->phone_id)))<span class="dt-link-badge"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 10a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.59a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.72 16z"/></svg>{{ $linkedPh->number }}</span>@endif
-                                @if($s->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif
-                            </div>
+                            <div class="dt-item-name">{{ $ms->handle ?: ucfirst($ms->platform) }}</div>
+                            @if(!$msDepth)
+                                <div class="dt-item-sub">{{ ucfirst($ms->platform) }}
+                                    @if($ms->phone_id && ($linkedPh=$site->phones->find($ms->phone_id)))<span class="dt-link-badge"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 10a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.59a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.72 16z"/></svg>{{ $linkedPh->number }}</span>@endif
+                                    @if($ms->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif
+                                </div>
+                            @else
+                                <div class="dt-item-sub">{{ ucfirst($ms->platform) }}&thinsp;·&thinsp;<span class="dt-badge dt-badge--standby">⟳ резерв</span>@if($ms->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif</div>
+                            @endif
                         </div>
-                        @if($sSubs->isNotEmpty())<span class="dt-nav-sb-badge">{{ $sSubs->count() }}&thinsp;⟳</span>@endif
+                        @if(!$msDepth && $msbCount > 0)<span class="dt-nav-sb-badge">{{ $msbCount }}&thinsp;⟳</span>@endif
                         <div class="dt-vis">
-                            @if(count($usedIso)===0||($s->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
-                            @elseif(($s->geo_mode??'all')==='include')@forelse((array)($s->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
-                            @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($s->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
+                            @if(count($usedIso)===0||($ms->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                            @elseif(($ms->geo_mode??'all')==='include')@forelse((array)($ms->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
+                            @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($ms->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
                         </div>
                         <div class="dt-item-actions" onclick="event.stopPropagation()">
-                            <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'socials',$s->id]) }}" style="margin:0;">@csrf
-                                <button type="submit" class="icon-btn" title="{{ ($s->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($s->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
-                                    @if($s->is_visible??true)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif
+                            <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'socials',$ms->id]) }}" style="margin:0;">@csrf
+                                <button type="submit" class="icon-btn" title="{{ ($ms->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($ms->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
+                                    @if($ms->is_visible??true)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif
                                 </button>
                             </form>
-                            @if(!$s->is_blocked)
-                            @php $foStandbys=$shownMessengers->filter(fn($m)=>$m->is_standby&&!$m->is_blocked)->map(fn($m)=>['id'=>$m->id,'label'=>ucfirst($m->platform).' '.$m->handle,'paired'=>$m->standby_for_id==$s->id])->values()->toJson(); @endphp
-                            <button class="icon-btn" title="Failover — підмінити резервом" style="color:var(--warning);" onclick="dtOpenFailover('social','{{ $s->id }}','{{ addslashes(ucfirst($s->platform).' '.($s->handle?:$s->platform)) }}',{{ $foStandbys }})"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></button>
-                            @endif
-                            <form method="POST" action="{{ route('socials.destroy',[$site,$s]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
+                            <form method="POST" action="{{ route('socials.destroy',[$site,$ms]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
                                 <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
                             </form>
-                            <button class="icon-btn" id="dt-expand-social-{{ $s->id }}" title="Редагувати" onclick="dtExpandItem('social-{{ $s->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
+                            @if(!$msDepth && !$ms->is_blocked)
+                            @php $foStandbys=$shownMessengers->filter(fn($m)=>$m->is_standby&&!$m->is_blocked)->map(fn($m)=>['id'=>$m->id,'label'=>ucfirst($m->platform).' '.$m->handle,'paired'=>$m->standby_for_id==$ms->id])->values()->toJson(); @endphp
+                            <button class="icon-btn" title="Failover — підмінити резервом" style="color:var(--warning);" onclick="dtOpenFailover('social','{{ $ms->id }}','{{ addslashes(ucfirst($ms->platform).' '.($ms->handle?:$ms->platform)) }}',{{ $foStandbys }})"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></button>
+                            @endif
+                            <button class="icon-btn" id="dt-expand-social-{{ $ms->id }}" title="Редагувати" onclick="dtExpandItem('social-{{ $ms->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
                         </div>
                     </div>
-                    <div class="dt-panel" id="dt-edit-social-{{ $s->id }}" style="display:none;">
-                        <form method="POST" action="{{ route('socials.update',[$site,$s]) }}">@csrf @method('PUT')
-                            <input type="hidden" name="sort_order" value="{{ $s->sort_order }}">
+                    <div class="dt-panel" id="dt-edit-social-{{ $ms->id }}" style="display:none;">
+                        @if($msDepth)
+                        <div class="dt-link-panel">
+                            <form method="POST" action="{{ route('sites.failover.link',$site) }}" style="display:contents;">@csrf
+                                <input type="hidden" name="type" value="social"><input type="hidden" name="id" value="{{ $ms->id }}">
+                                <label class="dt-label" style="margin:0;flex-shrink:0;">Резерв для:</label>
+                                <select name="standby_for_id" class="dt-input" style="flex:1;min-width:140px;"><option value="">— Загальний пул —</option>@foreach($ordPrimariesMs as $pm)<option value="{{ $pm->id }}" {{ $ms->standby_for_id==$pm->id?'selected':'' }}>{{ ucfirst($pm->platform) }}{{ $pm->handle?' '.$pm->handle:'' }}</option>@endforeach</select>
+                                <button type="submit" class="btn btn--primary btn--sm">Прив'язати</button>
+                            </form>
+                        </div>
+                        @endif
+                        <form method="POST" action="{{ route('socials.update',[$site,$ms]) }}">@csrf @method('PUT')
+                            <input type="hidden" name="sort_order" value="{{ $ms->sort_order }}">
                             <div class="dt-row dt-row--2">
-                                <div><label class="dt-label">Платформа *</label><select name="platform" class="dt-input" required>@foreach($messengerPlatforms as $val=>$lbl)<option value="{{ $val }}" {{ $s->platform===$val?'selected':'' }}>{{ $lbl }}</option>@endforeach</select></div>
-                                <div><label class="dt-label">Нікнейм / номер</label><input type="text" name="handle" class="dt-input" value="{{ $s->handle }}"></div>
+                                <div><label class="dt-label">Платформа *</label><select name="platform" class="dt-input" required>@foreach($messengerPlatforms as $val=>$lbl)<option value="{{ $val }}" {{ $ms->platform===$val?'selected':'' }}>{{ $lbl }}</option>@endforeach</select></div>
+                                <div><label class="dt-label">Нікнейм / номер</label><input type="text" name="handle" class="dt-input" value="{{ $ms->handle }}"></div>
                             </div>
-                            <div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">Посилання</label><input type="url" name="url" class="dt-input" value="{{ $s->url }}"></div>
-                            @if($site->phones->count())<div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">Прив'язати до номеру</label><select name="phone_id" class="dt-input"><option value="">— без прив'язки —</option>@foreach($site->phones as $ph)<option value="{{ $ph->id }}" {{ $s->phone_id==$ph->id?'selected':'' }}>{{ ($ph->dial_code?'+'.$ph->dial_code.' ':'').$ph->number }}{{ $ph->label?' · '.$ph->label:'' }}</option>@endforeach</select></div>@endif
+                            <div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">Посилання</label><input type="url" name="url" class="dt-input" value="{{ $ms->url }}"></div>
+                            @if($site->phones->count())<div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">Прив'язати до номеру</label><select name="phone_id" class="dt-input"><option value="">— без прив'язки —</option>@foreach($site->phones as $ph)<option value="{{ $ph->id }}" {{ $ms->phone_id==$ph->id?'selected':'' }}>{{ ($ph->dial_code?'+'.$ph->dial_code.' ':'').$ph->number }}{{ $ph->label?' · '.$ph->label:'' }}</option>@endforeach</select></div>@endif
                             <div class="dt-geo-row"><span class="dt-geo-label">Видно:</span>
-                                @php $em=$s->geo_mode??'all'; @endphp
-                                @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv=>$ml)<label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-so{{ $s->id }}-{{ $mv }}"><input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;" onchange="dtGeoMode('so{{ $s->id }}','{{ $mv }}')">{{ $ml }}</label>@endforeach
-                                @if(count($usedIso))<span id="dtchips-so{{ $s->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">@foreach($usedIso as $iso)<label class="dt-geo-chip {{ in_array($iso,(array)($s->geo_countries??[]))?'is-on':'' }}" id="dtchip-so{{ $s->id }}-{{ $iso }}"><input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($s->geo_countries??[]))?'checked':'' }} style="display:none;" onchange="dtGeoChip('so{{ $s->id }}','{{ $iso }}',this)">{{ $iso }}</label>@endforeach</span>@endif
+                                @php $em=$ms->geo_mode??'all'; @endphp
+                                @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv=>$ml)<label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-so{{ $ms->id }}-{{ $mv }}"><input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;" onchange="dtGeoMode('so{{ $ms->id }}','{{ $mv }}')">{{ $ml }}</label>@endforeach
+                                @if(count($usedIso))<span id="dtchips-so{{ $ms->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">@foreach($usedIso as $iso)<label class="dt-geo-chip {{ in_array($iso,(array)($ms->geo_countries??[]))?'is-on':'' }}" id="dtchip-so{{ $ms->id }}-{{ $iso }}"><input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($ms->geo_countries??[]))?'checked':'' }} style="display:none;" onchange="dtGeoChip('so{{ $ms->id }}','{{ $iso }}',this)">{{ $iso }}</label>@endforeach</span>@endif
                             </div>
                             <div class="dt-panel__actions">
-                                <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('social-{{ $s->id }}')">Скасувати</button>
+                                <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('social-{{ $ms->id }}')">Скасувати</button>
                                 <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
                             </div>
                         </form>
                     </div>
-                    <div class="dt-nav-children" data-parent-id="{{ $s->id }}" data-drop-type="social">
-                        @foreach($sSubs as $sb)
-                        @php $sbk=strtolower($sb->platform??''); $sbic=$socialIcon[$sbk]??['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>']; @endphp
-                        <div class="dt-nav-child dt-item" draggable="true" data-standby-id="{{ $sb->id }}" data-type="social" data-is-standby="1">
-                            <div class="dt-item-row" onclick="dtExpandItem('social-{{ $sb->id }}')">
-                                <span class="dt-nav-grip" title="Перетягни для зміни прив'язки або порядку"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
-                                <span class="dt-nav-arrow">└</span>
-                                <span class="dt-item-icon" style="color:{{ $sbic['c'] }}">{!! $sbic['svg'] !!}</span>
-                                <div class="dt-item-main">
-                                    <div class="dt-item-name">{{ $sb->handle ?: ucfirst($sb->platform) }}</div>
-                                    <div class="dt-item-sub">{{ ucfirst($sb->platform) }}&thinsp;·&thinsp;<span class="dt-badge dt-badge--standby">⟳ резерв</span>@if($sb->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif</div>
-                                </div>
-                                <div class="dt-vis">
-                                    @if(count($usedIso)===0||($sb->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
-                                    @elseif(($sb->geo_mode??'all')==='include')@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
-                                    @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
-                                </div>
-                                <div class="dt-item-actions" onclick="event.stopPropagation()">
-                                    <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'socials',$sb->id]) }}" style="margin:0;">@csrf
-                                        <button type="submit" class="icon-btn" title="{{ ($sb->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($sb->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
-                                            @if($sb->is_visible??true)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif
-                                        </button>
-                                    </form>
-                                    <form method="POST" action="{{ route('socials.destroy',[$site,$sb]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
-                                        <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
-                                    </form>
-                                    <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
-                                        <input type="hidden" name="type" value="social"><input type="hidden" name="id" value="{{ $sb->id }}">
-                                        <button type="submit" class="icon-btn" title="Зняти з резерву" style="color:var(--accent);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
-                                    </form>
-                                    <button class="icon-btn" id="dt-expand-social-{{ $sb->id }}" title="Редагувати" onclick="dtExpandItem('social-{{ $sb->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
-                                </div>
-                            </div>
-                            <div class="dt-panel" id="dt-edit-social-{{ $sb->id }}" style="display:none;">
-                                <div class="dt-link-panel">
-                                    <form method="POST" action="{{ route('sites.failover.link',$site) }}" style="display:contents;">@csrf
-                                        <input type="hidden" name="type" value="social"><input type="hidden" name="id" value="{{ $sb->id }}">
-                                        <label class="dt-label" style="margin:0;flex-shrink:0;">Резерв для:</label>
-                                        <select name="standby_for_id" class="dt-input" style="flex:1;min-width:140px;"><option value="">— Загальний пул —</option>@foreach($primaryMessengers as $pm)<option value="{{ $pm->id }}" {{ $sb->standby_for_id==$pm->id?'selected':'' }}>{{ ucfirst($pm->platform) }}{{ $pm->handle?' '.$pm->handle:'' }}</option>@endforeach</select>
-                                        <button type="submit" class="btn btn--primary btn--sm">Прив'язати</button>
-                                    </form>
-                                </div>
-                                <form method="POST" action="{{ route('socials.update',[$site,$sb]) }}">@csrf @method('PUT')
-                                    <input type="hidden" name="sort_order" value="{{ $sb->sort_order }}">
-                                    <div class="dt-row dt-row--2">
-                                        <div><label class="dt-label">Платформа *</label><select name="platform" class="dt-input" required>@foreach($messengerPlatforms as $val=>$lbl)<option value="{{ $val }}" {{ $sb->platform===$val?'selected':'' }}>{{ $lbl }}</option>@endforeach</select></div>
-                                        <div><label class="dt-label">Нікнейм / номер</label><input type="text" name="handle" class="dt-input" value="{{ $sb->handle }}"></div>
-                                    </div>
-                                    <div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">Посилання</label><input type="url" name="url" class="dt-input" value="{{ $sb->url }}"></div>
-                                    @if($site->phones->count())<div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">Прив'язати до номеру</label><select name="phone_id" class="dt-input"><option value="">— без прив'язки —</option>@foreach($site->phones as $ph)<option value="{{ $ph->id }}" {{ $sb->phone_id==$ph->id?'selected':'' }}>{{ ($ph->dial_code?'+'.$ph->dial_code.' ':'').$ph->number }}{{ $ph->label?' · '.$ph->label:'' }}</option>@endforeach</select></div>@endif
-                                    <div class="dt-geo-row"><span class="dt-geo-label">Видно:</span>
-                                        @php $em=$sb->geo_mode??'all'; @endphp
-                                        @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv=>$ml)<label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-so{{ $sb->id }}-{{ $mv }}"><input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;" onchange="dtGeoMode('so{{ $sb->id }}','{{ $mv }}')">{{ $ml }}</label>@endforeach
-                                        @if(count($usedIso))<span id="dtchips-so{{ $sb->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">@foreach($usedIso as $iso)<label class="dt-geo-chip {{ in_array($iso,(array)($sb->geo_countries??[]))?'is-on':'' }}" id="dtchip-so{{ $sb->id }}-{{ $iso }}"><input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($sb->geo_countries??[]))?'checked':'' }} style="display:none;" onchange="dtGeoChip('so{{ $sb->id }}','{{ $iso }}',this)">{{ $iso }}</label>@endforeach</span>@endif
-                                    </div>
-                                    <div class="dt-panel__actions">
-                                        <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('social-{{ $sb->id }}')">Скасувати</button>
-                                        <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        @endforeach
-                        @if($sSubs->isEmpty())<div class="dt-nav-drop-hint">↓ перетягни резерв сюди</div>@endif
-                    </div>
                 </div>
                 @endforeach
-                @if($unlinkedSbMs->isNotEmpty())
-                <div class="dt-nav-pool" data-parent-id="" data-drop-type="social">
-                    <div class="dt-nav-pool-label">Незакріплені резерви — перетягни під основний</div>
-                    @foreach($unlinkedSbMs as $sb)
-                    @php $sbk=strtolower($sb->platform??''); $sbic=$socialIcon[$sbk]??['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>']; @endphp
-                    <div class="dt-nav-child dt-item" draggable="true" data-standby-id="{{ $sb->id }}" data-type="social" data-is-standby="1">
-                        <div class="dt-item-row" onclick="dtExpandItem('social-{{ $sb->id }}')">
-                            <span class="dt-nav-grip" title="Перетягни під основний або в список основних"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
-                            <span class="dt-item-icon" style="color:{{ $sbic['c'] }}">{!! $sbic['svg'] !!}</span>
-                            <div class="dt-item-main">
-                                <div class="dt-item-name">{{ $sb->handle ?: ucfirst($sb->platform) }}</div>
-                                <div class="dt-item-sub">{{ ucfirst($sb->platform) }}&thinsp;·&thinsp;<span class="dt-badge dt-badge--standby">⟳ резерв</span>@if($sb->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif</div>
-                            </div>
-                            <div class="dt-vis">
-                                @if(count($usedIso)===0||($sb->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
-                                @elseif(($sb->geo_mode??'all')==='include')@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
-                                @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($sb->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
-                            </div>
-                            <div class="dt-item-actions" onclick="event.stopPropagation()">
-                                <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'socials',$sb->id]) }}" style="margin:0;">@csrf
-                                    <button type="submit" class="icon-btn" title="{{ ($sb->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($sb->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
-                                        @if($sb->is_visible??true)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif
-                                    </button>
-                                </form>
-                                <form method="POST" action="{{ route('socials.destroy',[$site,$sb]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
-                                    <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
-                                </form>
-                                <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
-                                    <input type="hidden" name="type" value="social"><input type="hidden" name="id" value="{{ $sb->id }}">
-                                    <button type="submit" class="icon-btn" title="Зняти з резерву" style="color:var(--accent);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
-                                </form>
-                                <button class="icon-btn" id="dt-expand-social-{{ $sb->id }}" title="Редагувати" onclick="dtExpandItem('social-{{ $sb->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
-                            </div>
-                        </div>
-                        <div class="dt-panel" id="dt-edit-social-{{ $sb->id }}" style="display:none;">
-                            <div class="dt-link-panel">
-                                <form method="POST" action="{{ route('sites.failover.link',$site) }}" style="display:contents;">@csrf
-                                    <input type="hidden" name="type" value="social"><input type="hidden" name="id" value="{{ $sb->id }}">
-                                    <label class="dt-label" style="margin:0;flex-shrink:0;">Резерв для:</label>
-                                    <select name="standby_for_id" class="dt-input" style="flex:1;min-width:140px;"><option value="">— Загальний пул —</option>@foreach($primaryMessengers as $pm)<option value="{{ $pm->id }}" {{ $sb->standby_for_id==$pm->id?'selected':'' }}>{{ ucfirst($pm->platform) }}{{ $pm->handle?' '.$pm->handle:'' }}</option>@endforeach</select>
-                                    <button type="submit" class="btn btn--primary btn--sm">Прив'язати</button>
-                                </form>
-                            </div>
-                            <form method="POST" action="{{ route('socials.update',[$site,$sb]) }}">@csrf @method('PUT')
-                                <input type="hidden" name="sort_order" value="{{ $sb->sort_order }}">
-                                <div class="dt-row dt-row--2">
-                                    <div><label class="dt-label">Платформа *</label><select name="platform" class="dt-input" required>@foreach($messengerPlatforms as $val=>$lbl)<option value="{{ $val }}" {{ $sb->platform===$val?'selected':'' }}>{{ $lbl }}</option>@endforeach</select></div>
-                                    <div><label class="dt-label">Нікнейм / номер</label><input type="text" name="handle" class="dt-input" value="{{ $sb->handle }}"></div>
-                                </div>
-                                <div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">Посилання</label><input type="url" name="url" class="dt-input" value="{{ $sb->url }}"></div>
-                                <div class="dt-geo-row"><span class="dt-geo-label">Видно:</span>
-                                    @php $em=$sb->geo_mode??'all'; @endphp
-                                    @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv=>$ml)<label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-so{{ $sb->id }}-{{ $mv }}"><input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;" onchange="dtGeoMode('so{{ $sb->id }}','{{ $mv }}')">{{ $ml }}</label>@endforeach
-                                    @if(count($usedIso))<span id="dtchips-so{{ $sb->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">@foreach($usedIso as $iso)<label class="dt-geo-chip {{ in_array($iso,(array)($sb->geo_countries??[]))?'is-on':'' }}" id="dtchip-so{{ $sb->id }}-{{ $iso }}"><input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($sb->geo_countries??[]))?'checked':'' }} style="display:none;" onchange="dtGeoChip('so{{ $sb->id }}','{{ $iso }}',this)">{{ $iso }}</label>@endforeach</span>@endif
-                                </div>
-                                <div class="dt-panel__actions">
-                                    <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('social-{{ $sb->id }}')">Скасувати</button>
-                                    <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-                @endif
                 @endif
                 </div>
             </div>
@@ -2746,19 +2551,20 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
     if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
 });
 
-// ── DnD: reorder + level change (no-reload for reorder/relink) ──
+// ── DnD: WP nav-menu style — flat list, X=depth, Y=insertion ──
 (function() {
-    var _drag = null;
-    var _csrf      = '{{ csrf_token() }}';
-    var _linkUrl   = '{{ route('sites.failover.link', $site) }}';
-    var _toggleUrl = '{{ route('sites.failover.standby', $site) }}';
-    var _reorderUrls = {
+    var INDENT_PX   = 44;
+    var CSRF        = '{{ csrf_token() }}';
+    var URL_TOGGLE  = '{{ route('sites.failover.standby', $site) }}';
+    var URL_LINK    = '{{ route('sites.failover.link', $site) }}';
+    var URL_REORDER = {
         phone:  '{{ route('phones.reorder', $site) }}',
         social: '{{ route('socials.reorder', $site) }}',
     };
+    var _drag = null;
 
     function postForm(url, data) {
-        var body = new URLSearchParams(Object.assign({ _token: _csrf }, data));
+        var body = new URLSearchParams(Object.assign({ _token: CSRF }, data));
         return fetch(url, {
             method: 'POST',
             headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -2768,133 +2574,104 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
     function postJSON(url, data) {
         return fetch(url, {
             method: 'POST',
-            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': _csrf },
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
             body: JSON.stringify(data),
         });
     }
-    function syncHint(zone) {
-        var hint = zone.querySelector(':scope > .dt-nav-drop-hint');
-        var has  = zone.querySelector(':scope > .dt-nav-child');
-        if (hint) hint.style.display = has ? 'none' : '';
-    }
-    function clearPH(container) {
-        container.querySelectorAll(':scope > .dnd-placeholder').forEach(function(p) { p.remove(); });
+    function clearPH(list) {
+        list.querySelectorAll(':scope > .dnd-placeholder').forEach(function(p) { p.remove(); });
     }
     function makePH() {
         var ph = document.createElement('div'); ph.className = 'dnd-placeholder'; return ph;
     }
-    // Returns the child element BEFORE which to insert, based on mouse Y (null = append)
-    function insertBefore(container, y, sel) {
-        var els = Array.from(container.querySelectorAll(':scope > ' + sel))
-            .filter(function(e) { return e !== _drag && !e.classList.contains('dnd-placeholder'); });
-        var best = null, bestOff = -Infinity;
-        els.forEach(function(el) {
-            var mid = el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2;
-            var off = y - mid;
-            if (off < 0 && off > bestOff) { bestOff = off; best = el; }
-        });
-        return best;
+    // Returns the .dt-item before which to insert based on mouse Y (null = append)
+    function insertionPoint(list, clientY) {
+        var items = Array.from(list.querySelectorAll(':scope > .dt-item:not(.dnd-dragging)'));
+        for (var i = 0; i < items.length; i++) {
+            var r = items[i].getBoundingClientRect();
+            if (clientY < r.top + r.height / 2) return items[i];
+        }
+        return null;
     }
-    function sendReorder(zone, type, sel) {
-        var items = Array.from(zone.querySelectorAll(':scope > ' + sel))
+    // Returns data-id of the last .dt-item--root before `bef`
+    function findParentAbove(list, bef) {
+        var items = Array.from(list.querySelectorAll(':scope > .dt-item'));
+        var lastRootId = '';
+        for (var i = 0; i < items.length; i++) {
+            if (bef && items[i] === bef) break;
+            if (items[i].classList.contains('dt-item--root')) lastRootId = items[i].dataset.id;
+        }
+        return lastRootId;
+    }
+    function sendReorder(list, type) {
+        var items = Array.from(list.querySelectorAll(':scope > .dt-item'))
             .filter(function(e) { return !e.classList.contains('dnd-placeholder'); })
-            .map(function(el, i) { return { id: parseInt(el.dataset.standbyId), sort_order: i }; });
-        postJSON(_reorderUrls[type], { items: items });
+            .map(function(el, i) { return { id: parseInt(el.dataset.id), sort_order: i }; });
+        postJSON(URL_REORDER[type], { items: items });
     }
-    function initDrag(el) {
-        el.addEventListener('dragstart', function(e) {
-            _drag = el;
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', el.dataset.standbyId);
-            setTimeout(function() { if (_drag) _drag.classList.add('dnd-dragging'); }, 0);
-        });
-        el.addEventListener('dragend', function() {
-            if (_drag) _drag.classList.remove('dnd-dragging');
-            _drag = null;
-            document.querySelectorAll('.dnd-over').forEach(function(z) { z.classList.remove('dnd-over'); });
-            document.querySelectorAll('.dnd-placeholder').forEach(function(p) { p.remove(); });
-        });
-    }
-    document.querySelectorAll('.dt-nav-group[draggable], .dt-nav-child[draggable]').forEach(initDrag);
 
-    // ── Standby drop zones (.dt-nav-children, .dt-nav-pool) ─────────
-    document.querySelectorAll('.dt-nav-children, .dt-nav-pool').forEach(function(zone) {
-        zone.addEventListener('dragover', function(e) {
-            if (!_drag) return;
-            e.preventDefault(); e.stopPropagation();
-            e.dataTransfer.dropEffect = 'move';
-            zone.classList.add('dnd-over');
-            clearPH(zone);
-            var bef = insertBefore(zone, e.clientY, '.dt-nav-child');
-            var ph = makePH();
-            if (bef) zone.insertBefore(ph, bef); else zone.appendChild(ph);
-        });
-        zone.addEventListener('dragleave', function(e) {
-            if (!zone.contains(e.relatedTarget)) { zone.classList.remove('dnd-over'); clearPH(zone); }
-        });
-        zone.addEventListener('drop', function(e) {
-            e.preventDefault(); e.stopPropagation();
-            zone.classList.remove('dnd-over'); clearPH(zone);
-            if (!_drag) return;
-            var el = _drag, isStandby = el.dataset.isStandby === '1';
-            var parentId = zone.dataset.parentId || '', type = el.dataset.type;
-            var fromZone = el.parentElement;
-            var bef = insertBefore(zone, e.clientY, '.dt-nav-child');
-
-            if (!isStandby) {
-                // Primary → standby zone: becomes standby (reload after API)
-                postForm(_toggleUrl, { type: type, id: el.dataset.standbyId, standby_for_id: parentId })
-                    .then(function() { location.reload(); });
-                return;
-            }
-            // Move element
-            if (bef) zone.insertBefore(el, bef); else zone.appendChild(el);
-            syncHint(zone);
-            if (fromZone && fromZone !== zone) syncHint(fromZone);
-
-            if (fromZone === zone) {
-                sendReorder(zone, type, '.dt-nav-child'); // reorder within same zone
-            } else {
-                postForm(_linkUrl, { type: type, id: el.dataset.standbyId, standby_for_id: parentId })
-                    .catch(function() { fromZone.appendChild(el); syncHint(zone); syncHint(fromZone); });
-            }
-        });
-    });
-
-    // ── Primary drop zone (.dt-nav-list) ─────────────────────────────
     document.querySelectorAll('.dt-nav-list').forEach(function(list) {
-        list.addEventListener('dragover', function(e) {
-            if (!_drag || e.target.closest('.dt-nav-children, .dt-nav-pool')) return;
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            list.classList.add('dnd-over');
-            clearPH(list);
-            var bef = insertBefore(list, e.clientY, '.dt-nav-group');
-            var ph = makePH();
-            if (bef) list.insertBefore(ph, bef);
-            else { var pool = list.querySelector(':scope > .dt-nav-pool'); if (pool) list.insertBefore(ph, pool); else list.appendChild(ph); }
-        });
-        list.addEventListener('dragleave', function(e) {
-            if (!list.contains(e.relatedTarget)) { list.classList.remove('dnd-over'); clearPH(list); }
-        });
-        list.addEventListener('drop', function(e) {
-            if (e.target.closest('.dt-nav-children, .dt-nav-pool')) return;
-            e.preventDefault();
-            list.classList.remove('dnd-over'); clearPH(list);
-            if (!_drag) return;
-            var el = _drag, isStandby = el.dataset.isStandby === '1', type = el.dataset.type;
+        var type = list.dataset.type;
 
-            if (isStandby) {
-                // Standby → primary level: becomes primary (reload after API)
-                postForm(_toggleUrl, { type: type, id: el.dataset.standbyId })
+        list.addEventListener('dragstart', function(e) {
+            var item = e.target.closest('.dt-item[draggable]');
+            if (!item || !list.contains(item)) return;
+            _drag = item;
+            item.classList.add('dnd-dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', item.dataset.id);
+        });
+
+        list.addEventListener('dragend', function() {
+            if (_drag) _drag.classList.remove('dnd-dragging');
+            clearPH(list);
+            _drag = null;
+        });
+
+        list.addEventListener('dragover', function(e) {
+            if (!_drag || !list.contains(_drag)) return;
+            e.preventDefault();
+            var depth = (e.clientX - list.getBoundingClientRect().left) > INDENT_PX ? 1 : 0;
+            var bef   = insertionPoint(list, e.clientY);
+            clearPH(list);
+            var ph = makePH();
+            ph.style.marginLeft = depth ? '36px' : '0';
+            if (bef) list.insertBefore(ph, bef); else list.appendChild(ph);
+        });
+
+        list.addEventListener('dragleave', function(e) {
+            if (!list.contains(e.relatedTarget)) clearPH(list);
+        });
+
+        list.addEventListener('drop', function(e) {
+            e.preventDefault();
+            if (!_drag || !list.contains(_drag)) return;
+            var depth       = (e.clientX - list.getBoundingClientRect().left) > INDENT_PX ? 1 : 0;
+            var bef         = insertionPoint(list, e.clientY);
+            var parentId    = depth === 1 ? findParentAbove(list, bef) : '';
+            var wasStandby  = _drag.dataset.isStandby === '1';
+            var willStandby = depth === 1;
+
+            clearPH(list);
+
+            if (willStandby !== wasStandby) {
+                // Level change → toggle standby + reload
+                postForm(URL_TOGGLE, { type: type, id: _drag.dataset.id, standby_for_id: parentId })
                     .then(function() { location.reload(); });
                 return;
             }
-            // Reorder primaries (no reload)
-            var bef = insertBefore(list, e.clientY, '.dt-nav-group');
-            if (bef) list.insertBefore(el, bef);
-            else { var pool = list.querySelector(':scope > .dt-nav-pool'); if (pool) list.insertBefore(el, pool); else list.appendChild(el); }
-            sendReorder(list, type, '.dt-nav-group');
+
+            // Move element in DOM
+            if (bef) list.insertBefore(_drag, bef); else list.appendChild(_drag);
+
+            if (willStandby && _drag.dataset.parentId !== parentId) {
+                // Relink to different parent (no reload)
+                _drag.dataset.parentId = parentId;
+                postForm(URL_LINK, { type: type, id: _drag.dataset.id, standby_for_id: parentId });
+            } else {
+                // Pure reorder (no reload)
+                sendReorder(list, type);
+            }
         });
     });
 })();

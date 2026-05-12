@@ -859,9 +859,15 @@ img, svg { display: block; max-width: 100%; }
   transition: background .15s;
 }
 .dt-nav-children.dnd-over { background: var(--accent-2); }
-.dt-nav-list.dnd-over > .dt-nav-group { opacity: .7; }
 .dnd-dragging { opacity: .35; }
 .dnd-placeholder { height: 3px; background: var(--accent); border-radius: 2px; margin: 2px 0; pointer-events: none; }
+.dt-item--child {
+  margin-left: 20px;
+  border-left: 3px solid var(--accent-2, var(--border));
+  padding-left: 4px;
+}
+.dt-item--root + .dt-item--root,
+.dt-item--child + .dt-item--child { border-top: 1px solid var(--border-2); }
 .dt-nav-child { border-bottom: 1px solid var(--border-2); }
 .dt-nav-child:last-child { border-bottom: none; }
 .dt-nav-child.is-editing { background: var(--panel-2); }
