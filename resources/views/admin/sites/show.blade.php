@@ -399,78 +399,195 @@
                             @endif
                             @endif
                         </div>
-                        {{-- Right: all fields compact grid --}}
+                        {{-- Right: all fields tabular --}}
                         @php
                             $allPhones  = $site->phones->sortBy('sort_order');
                             $allPrices  = $site->prices->sortBy('sort_order');
                             $allAddrs   = $site->addresses->sortBy('sort_order');
                             $allSocNets = $site->socials->filter(fn($s) => !in_array(strtolower($s->platform ?? ''), $messengerKeys))->sortBy('sort_order');
                             $allMsgrs   = $site->socials->filter(fn($s) =>  in_array(strtolower($s->platform ?? ''), $messengerKeys))->sortBy('sort_order');
+                            $thStyle = 'padding:5px 8px;text-align:left;font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border-2);white-space:nowrap;';
+                            $tdStyle = 'padding:5px 8px;font-size:12px;border-bottom:1px solid var(--border-2);';
                         @endphp
-                        <div style="background:var(--panel);padding:16px;overflow-y:auto;max-height:420px;">
-                            <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+                        <div style="background:var(--panel);overflow-y:auto;max-height:420px;">
+                            <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;padding:12px 14px 8px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--panel);z-index:1;border-bottom:1px solid var(--border-2);">
                                 <span>Всі поля сайту</span>
                                 <span style="font-family:var(--font-mono);color:var(--text-2);">{{ $totalAll }}</span>
                             </div>
-                            @if($allPhones->count())
-                            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:5px;">Телефони</div>
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:12px;">
-                                @foreach($allPhones as $p)
-                                <div style="background:var(--panel-2);border-radius:6px;padding:6px 8px;{{ !($p->is_visible??true) ? 'opacity:.45;' : '' }}{{ $p->is_blocked ? 'border-left:2px solid var(--danger);' : ($p->is_standby||$p->standby_for_id ? 'border-left:2px solid #63b3ed;' : '') }}">
-                                    <div style="font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--text);{{ $p->is_blocked ? 'text-decoration:line-through;' : '' }}">{{ ($p->dial_code?'+'.$p->dial_code.' ':'').$p->number }}</div>
-                                    @if($p->label)<div style="font-size:10px;color:var(--text-3);margin-top:1px;">{{ $p->label }}</div>@endif
-                                </div>
-                                @endforeach
-                            </div>
-                            @endif
-                            @if($allPrices->count())
-                            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:5px;">Ціни</div>
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:12px;">
-                                @foreach($allPrices as $p)
-                                <div style="background:var(--panel-2);border-radius:6px;padding:6px 8px;">
-                                    <div style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }} <span style="font-size:10px;color:var(--text-3);">{{ $p->currency }}</span></div>
-                                    @if($p->label)<div style="font-size:10px;color:var(--text-3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $p->label }}</div>@endif
-                                </div>
-                                @endforeach
-                            </div>
-                            @endif
-                            @if($allAddrs->count())
-                            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:5px;">Адреси</div>
-                            <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">
-                                @foreach($allAddrs as $a)
-                                <div style="background:var(--panel-2);border-radius:6px;padding:6px 8px;{{ !($a->is_visible??true) ? 'opacity:.45;' : '' }}">
-                                    <div style="font-size:12px;color:var(--text);">{{ trim(($a->city??'').' '.($a->street??'')) ?: '—' }}@if($a->country_iso) <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-3);">{{ $a->country_iso }}</span>@endif</div>
-                                    @if($a->label)<div style="font-size:10px;color:var(--text-3);margin-top:1px;">{{ $a->label }}</div>@endif
-                                </div>
-                                @endforeach
-                            </div>
-                            @endif
-                            @if($allMsgrs->count())
-                            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:5px;">Месенджери</div>
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:12px;">
-                                @foreach($allMsgrs as $s)
-                                @php $sk = strtolower($s->platform??''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'']; @endphp
-                                <div style="background:var(--panel-2);border-radius:6px;padding:6px 8px;display:flex;align-items:center;gap:6px;{{ !($s->is_visible??true) ? 'opacity:.45;' : '' }}">
-                                    <span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span>
-                                    <span style="font-size:11px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $s->handle ?: $s->url }}</span>
-                                </div>
-                                @endforeach
-                            </div>
-                            @endif
-                            @if($allSocNets->count())
-                            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:5px;">Соцмережі</div>
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-                                @foreach($allSocNets as $s)
-                                @php $sk = strtolower($s->platform??''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'']; @endphp
-                                <div style="background:var(--panel-2);border-radius:6px;padding:6px 8px;display:flex;align-items:center;gap:6px;{{ !($s->is_visible??true) ? 'opacity:.45;' : '' }}">
-                                    <span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span>
-                                    <span style="font-size:11px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $s->handle ?: $s->url }}</span>
-                                </div>
-                                @endforeach
-                            </div>
-                            @endif
+
                             @if($totalAll === 0)
-                            <div style="text-align:center;padding:24px;color:var(--text-3);font-size:12px;">Даних ще немає</div>
+                            <div style="text-align:center;padding:28px;color:var(--text-3);font-size:12px;">Даних ще немає</div>
+                            @endif
+
+                            {{-- Phones --}}
+                            @if($allPhones->count())
+                            <div style="padding:8px 14px 4px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Телефони</div>
+                            <table style="width:100%;border-collapse:collapse;">
+                                <thead><tr>
+                                    <th style="{{ $thStyle }}">Статус</th>
+                                    <th style="{{ $thStyle }}">Номер</th>
+                                    <th style="{{ $thStyle }}">Мітка</th>
+                                    <th style="{{ $thStyle }}">Гео</th>
+                                    <th style="{{ $thStyle }}">Видно</th>
+                                </tr></thead>
+                                <tbody>
+                                @foreach($allPhones as $p)
+                                @php
+                                    $pGeo = $p->geo_mode ?? 'all';
+                                    $pGeoTxt = $pGeo === 'all' ? '' : (['include'=>'Тільки','exclude'=>'Крім'][$pGeo]??$pGeo);
+                                    if ($pGeoTxt && $p->geo_countries) $pGeoTxt .= ' '.implode(',', (array)$p->geo_countries);
+                                @endphp
+                                <tr style="{{ !($p->is_visible??true) ? 'opacity:.45;' : '' }}">
+                                    <td style="{{ $tdStyle }}">
+                                        @if($p->is_blocked)
+                                            <span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(245,101,101,.12);color:var(--danger);font-weight:600;">Блок</span>
+                                        @elseif($p->standby_for_id)
+                                            <span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(99,179,237,.12);color:#63b3ed;font-weight:600;">Резерв</span>
+                                        @else
+                                            <span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(72,187,120,.1);color:#48bb78;font-weight:600;">Осн.</span>
+                                        @endif
+                                    </td>
+                                    <td style="{{ $tdStyle }}font-family:var(--font-mono);font-weight:600;color:var(--text);{{ $p->is_blocked?'text-decoration:line-through;':'' }}">{{ ($p->dial_code?'+'.$p->dial_code.' ':'').$p->number }}</td>
+                                    <td style="{{ $tdStyle }}color:var(--text-3);">{{ $p->label ?: '—' }}</td>
+                                    <td style="{{ $tdStyle }}color:var(--text-3);font-size:11px;">{{ $pGeoTxt ?: 'Всім' }}</td>
+                                    <td style="{{ $tdStyle }}text-align:center;">
+                                        @if($p->is_visible??true)
+                                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+                                        @else
+                                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                            @endif
+
+                            {{-- Prices --}}
+                            @if($allPrices->count())
+                            <div style="padding:10px 14px 4px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Ціни</div>
+                            <table style="width:100%;border-collapse:collapse;">
+                                <thead><tr>
+                                    <th style="{{ $thStyle }}">Сума</th>
+                                    <th style="{{ $thStyle }}">Валюта</th>
+                                    <th style="{{ $thStyle }}">Мітка</th>
+                                    <th style="{{ $thStyle }}">Період</th>
+                                    <th style="{{ $thStyle }}">Гео</th>
+                                </tr></thead>
+                                <tbody>
+                                @foreach($allPrices as $p)
+                                @php $pgTxt = ($p->geo_mode??'all')==='all' ? 'Всім' : (['include'=>'Тільки','exclude'=>'Крім'][$p->geo_mode]??''); @endphp
+                                <tr>
+                                    <td style="{{ $tdStyle }}font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }}</td>
+                                    <td style="{{ $tdStyle }}font-family:var(--font-mono);color:var(--text-3);">{{ $p->currency }}</td>
+                                    <td style="{{ $tdStyle }}color:var(--text-2);">{{ $p->label ?: '—' }}</td>
+                                    <td style="{{ $tdStyle }}color:var(--text-3);">{{ $p->period ?: '—' }}</td>
+                                    <td style="{{ $tdStyle }}color:var(--text-3);font-size:11px;">{{ $pgTxt }}</td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                            @endif
+
+                            {{-- Addresses --}}
+                            @if($allAddrs->count())
+                            <div style="padding:10px 14px 4px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Адреси</div>
+                            <table style="width:100%;border-collapse:collapse;">
+                                <thead><tr>
+                                    <th style="{{ $thStyle }}">Місто</th>
+                                    <th style="{{ $thStyle }}">ISO</th>
+                                    <th style="{{ $thStyle }}">Вулиця</th>
+                                    <th style="{{ $thStyle }}">Мітка</th>
+                                    <th style="{{ $thStyle }}">Видно</th>
+                                </tr></thead>
+                                <tbody>
+                                @foreach($allAddrs as $a)
+                                <tr style="{{ !($a->is_visible??true) ? 'opacity:.45;' : '' }}">
+                                    <td style="{{ $tdStyle }}font-weight:600;color:var(--text);">{{ $a->city ?: '—' }}</td>
+                                    <td style="{{ $tdStyle }}font-family:var(--font-mono);color:var(--text-3);">{{ $a->country_iso ?: '—' }}</td>
+                                    <td style="{{ $tdStyle }}color:var(--text-3);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $a->street ?: '—' }}</td>
+                                    <td style="{{ $tdStyle }}color:var(--text-3);">{{ $a->label ?: '—' }}</td>
+                                    <td style="{{ $tdStyle }}text-align:center;">
+                                        @if($a->is_visible??true)
+                                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+                                        @else
+                                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                            @endif
+
+                            {{-- Messengers --}}
+                            @if($allMsgrs->count())
+                            <div style="padding:10px 14px 4px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Месенджери</div>
+                            <table style="width:100%;border-collapse:collapse;">
+                                <thead><tr>
+                                    <th style="{{ $thStyle }}">Платф.</th>
+                                    <th style="{{ $thStyle }}">Handle</th>
+                                    <th style="{{ $thStyle }}">Гео</th>
+                                    <th style="{{ $thStyle }}">Видно</th>
+                                </tr></thead>
+                                <tbody>
+                                @foreach($allMsgrs as $s)
+                                @php $sk = strtolower($s->platform??''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'']; $sgTxt = ($s->geo_mode??'all')==='all' ? 'Всім' : (['include'=>'Тільки','exclude'=>'Крім'][$s->geo_mode]??''); @endphp
+                                <tr style="{{ !($s->is_visible??true) ? 'opacity:.45;' : '' }}">
+                                    <td style="{{ $tdStyle }}">
+                                        <span style="display:inline-flex;align-items:center;gap:5px;">
+                                            <span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span>
+                                            <span style="font-size:11px;color:var(--text-3);">{{ ucfirst($s->platform) }}</span>
+                                        </span>
+                                    </td>
+                                    <td style="{{ $tdStyle }}color:var(--text-2);">{{ $s->handle ?: '—' }}</td>
+                                    <td style="{{ $tdStyle }}color:var(--text-3);font-size:11px;">{{ $sgTxt }}</td>
+                                    <td style="{{ $tdStyle }}text-align:center;">
+                                        @if($s->is_visible??true)
+                                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+                                        @else
+                                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                            @endif
+
+                            {{-- Socials --}}
+                            @if($allSocNets->count())
+                            <div style="padding:10px 14px 4px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Соцмережі</div>
+                            <table style="width:100%;border-collapse:collapse;">
+                                <thead><tr>
+                                    <th style="{{ $thStyle }}">Платф.</th>
+                                    <th style="{{ $thStyle }}">Handle</th>
+                                    <th style="{{ $thStyle }}">Гео</th>
+                                    <th style="{{ $thStyle }}">Видно</th>
+                                </tr></thead>
+                                <tbody>
+                                @foreach($allSocNets as $s)
+                                @php $sk = strtolower($s->platform??''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'']; $sgTxt = ($s->geo_mode??'all')==='all' ? 'Всім' : (['include'=>'Тільки','exclude'=>'Крім'][$s->geo_mode]??''); @endphp
+                                <tr style="{{ !($s->is_visible??true) ? 'opacity:.45;' : '' }}">
+                                    <td style="{{ $tdStyle }}">
+                                        <span style="display:inline-flex;align-items:center;gap:5px;">
+                                            <span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span>
+                                            <span style="font-size:11px;color:var(--text-3);">{{ ucfirst($s->platform) }}</span>
+                                        </span>
+                                    </td>
+                                    <td style="{{ $tdStyle }}color:var(--text-2);">{{ $s->handle ?: '—' }}</td>
+                                    <td style="{{ $tdStyle }}color:var(--text-3);font-size:11px;">{{ $sgTxt }}</td>
+                                    <td style="{{ $tdStyle }}text-align:center;">
+                                        @if($s->is_visible??true)
+                                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+                                        @else
+                                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
                             @endif
                         </div>
                     </div>
