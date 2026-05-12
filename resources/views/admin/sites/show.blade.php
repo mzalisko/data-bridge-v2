@@ -776,10 +776,6 @@
                                 <input type="hidden" name="type" value="phone"><input type="hidden" name="id" value="{{ $ph->id }}">
                                 <button type="submit" class="icon-btn" title="Зробити резервним" style="color:var(--text-3);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
                             </form>
-                            @if(!$ph->is_blocked)
-                            @php $phStandbys=$shownPhones->filter(fn($pp)=>$pp->is_standby&&!$pp->is_blocked)->map(fn($pp)=>['id'=>$pp->id,'label'=>($pp->dial_code?'+'.$pp->dial_code.' ':'').$pp->number.($pp->label?' · '.$pp->label:''),'paired'=>$pp->standby_for_id==$ph->id])->values()->toJson(); @endphp
-                            <button class="icon-btn" title="Failover — підмінити резервним" style="color:var(--warning);" onclick="dtOpenFailover('phone','{{ $ph->id }}','{{ addslashes(($ph->dial_code?'+'.$ph->dial_code.' ':'').$ph->number) }}',{{ $phStandbys }})"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></button>
-                            @endif
                             @else
                             <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
                                 <input type="hidden" name="type" value="phone"><input type="hidden" name="id" value="{{ $ph->id }}">
@@ -953,10 +949,6 @@
                                 <input type="hidden" name="type" value="social"><input type="hidden" name="id" value="{{ $ms->id }}">
                                 <button type="submit" class="icon-btn" title="Зробити резервним" style="color:var(--text-3);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
                             </form>
-                            @if(!$ms->is_blocked)
-                            @php $foStandbys=$shownMessengers->filter(fn($m)=>$m->is_standby&&!$m->is_blocked)->map(fn($m)=>['id'=>$m->id,'label'=>ucfirst($m->platform).' '.$m->handle,'paired'=>$m->standby_for_id==$ms->id])->values()->toJson(); @endphp
-                            <button class="icon-btn" title="Failover — підмінити резервом" style="color:var(--warning);" onclick="dtOpenFailover('social','{{ $ms->id }}','{{ addslashes(ucfirst($ms->platform).' '.($ms->handle?:$ms->platform)) }}',{{ $foStandbys }})"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></button>
-                            @endif
                             @else
                             <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
                                 <input type="hidden" name="type" value="social"><input type="hidden" name="id" value="{{ $ms->id }}">
@@ -1940,6 +1932,61 @@
                     </div>
                 </div>
 
+                {{-- [TEST] Failover signal simulator — видалити після інтеграції зовнішнього сервісу --}}
+                <div class="dt-card" style="margin-top:24px;border:1px dashed var(--warning);">
+                    <div class="dt-card-head" style="background:rgba(237,137,54,.06);">
+                        <span class="dt-card-head__icon" style="color:var(--warning);">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        </span>
+                        <span class="dt-card-head__title">Симуляція сигналів failover</span>
+                        <span style="font-size:10px;font-weight:600;color:var(--warning);background:rgba(237,137,54,.15);padding:2px 8px;border-radius:99px;letter-spacing:.04em;">TEMP · видалити після інтеграції</span>
+                    </div>
+                    <div style="padding:14px 16px;">
+                        <p style="font-size:12px;color:var(--text-3);margin:0 0 12px;">
+                            Імітуй сигнали що надходитимуть від зовнішнього сервісу моніторингу.<br>
+                            <strong>BLOCK</strong> → активує наступний резерв у черзі (за sort_order).<br>
+                            <strong>RESTORE</strong> → повертає оригінальний номер у пріоритет.
+                        </p>
+                        @php $simPhones = $site->phones->sortBy('sort_order'); @endphp
+                        @forelse($simPhones as $sp)
+                        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border-2);">
+                            <div style="flex:1;min-width:0;overflow:hidden;">
+                                <span style="font-family:var(--font-mono);font-size:12.5px;">{{ ($sp->dial_code ? '+'.$sp->dial_code.' ' : '').$sp->number }}</span>
+                                @if($sp->label)<span style="font-size:11px;color:var(--text-3);margin-left:6px;">{{ $sp->label }}</span>@endif
+                            </div>
+                            <span style="font-size:11px;white-space:nowrap;
+                                @if($sp->is_blocked) color:var(--danger);
+                                @elseif($sp->is_standby) color:var(--accent);
+                                @else color:var(--dot-ok); @endif">
+                                @if($sp->is_blocked)✕ заблок.@elseif($sp->is_standby)⟳ резерв@else✓ активний@endif
+                            </span>
+                            @if(!$sp->is_standby && !$sp->is_blocked)
+                            <form method="POST" action="{{ route('sites.failover.trigger',$site) }}" style="margin:0;"
+                                  onsubmit="return confirm('Симулювати BLOCK для {{ addslashes($sp->number) }}?')">
+                                @csrf
+                                <input type="hidden" name="type" value="phone">
+                                <input type="hidden" name="primary_id" value="{{ $sp->id }}">
+                                <input type="hidden" name="reason" value="[SIM] Test block signal">
+                                <button type="submit" class="btn btn--sm" style="background:rgba(245,101,101,.1);color:var(--danger);border:1px solid rgba(245,101,101,.25);">BLOCK</button>
+                            </form>
+                            @elseif($sp->is_blocked)
+                            <form method="POST" action="{{ route('sites.failover.restore',$site) }}" style="margin:0;">
+                                @csrf
+                                <input type="hidden" name="type" value="phone">
+                                <input type="hidden" name="primary_id" value="{{ $sp->id }}">
+                                <button type="submit" class="btn btn--sm" style="background:rgba(72,187,120,.1);color:var(--dot-ok);border:1px solid rgba(72,187,120,.25);">RESTORE</button>
+                            </form>
+                            @else
+                            <span style="font-size:11px;color:var(--text-3);padding:0 8px;">в пулі</span>
+                            @endif
+                        </div>
+                        @empty
+                        <p style="font-size:12px;color:var(--text-3);margin:0;">Немає телефонів для симуляції.</p>
+                        @endforelse
+                    </div>
+                </div>
+                {{-- [/TEST] --}}
+
             </div>
         @endif
     </div>
@@ -2260,42 +2307,6 @@
 
 @endif
 
-{{-- Failover trigger modal --}}
-@if($tab === 'data')
-<div id="fo-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;">
-    <div style="background:var(--bg-card);border-radius:var(--radius-card);padding:28px;width:440px;max-width:90vw;box-shadow:var(--shadow-card);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-            <span style="font-weight:600;font-size:15px;">Активувати failover</span>
-            <button id="fo-close" class="icon-btn" style="font-size:18px;">×</button>
-        </div>
-        <div style="font-size:12px;color:var(--text-3);margin-bottom:16px;">
-            Заблокований: <strong id="fo-label"></strong>
-        </div>
-        <form method="POST" action="{{ route('sites.failover.trigger',$site) }}">
-            @csrf
-            <input type="hidden" id="fo-type" name="type">
-            <input type="hidden" id="fo-id"   name="primary_id">
-            <div style="margin-bottom:14px;">
-                <label class="dt-label">Замінити на резервний *</label>
-                <select id="fo-standby" name="standby_id" class="dt-input" required></select>
-                <div style="font-size:10px;color:var(--text-3);margin-top:4px;">
-                    ✓ прив'язаний — попередньо призначений для цього запису
-                </div>
-            </div>
-            <div style="margin-bottom:16px;">
-                <label class="dt-label">Причина блокування *</label>
-                <input type="text" id="fo-reason" name="reason" class="dt-input"
-                       placeholder="WhatsApp banned, Number inactive…" required>
-            </div>
-            <div style="display:flex;gap:8px;">
-                <button id="fo-submit" type="submit" class="btn btn--primary btn--sm">Активувати failover</button>
-                <button type="button" class="btn btn--secondary btn--sm"
-                        onclick="document.getElementById('fo-modal').style.display='none'">Скасувати</button>
-            </div>
-        </form>
-    </div>
-</div>
-@endif
 
 @endsection
 
@@ -2526,45 +2537,6 @@ function actToggle(row) {
     setInterval(ping, 60000);
 })();
 
-// ── Failover modal ──────────────────────────────────────────────────────────
-function dtOpenFailover(type, id, label, standbys) {
-    document.getElementById('fo-type').value        = type;
-    document.getElementById('fo-id').value          = id;
-    document.getElementById('fo-label').textContent = label;
-    document.getElementById('fo-reason').value      = '';
-
-    const sel = document.getElementById('fo-standby');
-    sel.innerHTML = '';
-
-    if (!standbys || standbys.length === 0) {
-        const opt = document.createElement('option');
-        opt.value = '';
-        opt.textContent = '— немає доступних резервів —';
-        opt.disabled = true;
-        sel.appendChild(opt);
-        document.getElementById('fo-submit').disabled = true;
-    } else {
-        document.getElementById('fo-submit').disabled = false;
-        // Paired first, then general pool
-        const sorted = [...standbys].sort((a, b) => (b.paired ? 1 : 0) - (a.paired ? 1 : 0));
-        sorted.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s.id;
-            opt.textContent = s.label + (s.paired ? ' ✓ прив\'язаний' : '');
-            if (s.paired) opt.selected = true;
-            sel.appendChild(opt);
-        });
-    }
-
-    document.getElementById('fo-modal').style.display = 'flex';
-    document.getElementById('fo-reason').focus();
-}
-document.getElementById('fo-close')?.addEventListener('click', () => {
-    document.getElementById('fo-modal').style.display = 'none';
-});
-document.getElementById('fo-modal')?.addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
-});
 
 // ── Pointer-based gesture: swipe ←→ = standby toggle, drag ↕ = reorder ──
 (function () {
@@ -2625,8 +2597,6 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
                 standbyBtn.title = isNowStandby ? 'Зняти з резерву' : 'Зробити резервним';
                 standbyBtn.style.color = isNowStandby ? 'var(--accent)' : 'var(--text-3)';
             }
-            var foBtn = actions.querySelector('button[title^="Failover"]');
-            if (foBtn) foBtn.style.display = isNowStandby ? 'none' : '';
         }
     }
 

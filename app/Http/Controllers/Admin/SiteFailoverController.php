@@ -86,6 +86,23 @@ class SiteFailoverController extends Controller
         return back()->with('success', 'Прив\'язку резерву оновлено.');
     }
 
+    /** Restore original primary from CRM (manual / test simulation). */
+    public function restoreManual(Request $request, Site $site): RedirectResponse
+    {
+        $data = $request->validate([
+            'type'       => ['required', 'in:phone,social'],
+            'primary_id' => ['required', 'integer'],
+        ]);
+
+        try {
+            FailoverService::restore($site, $data['type'], (int) $data['primary_id']);
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Оригінальний запис відновлено — повернувся у пріоритет.');
+    }
+
     /** Rollback a specific failover log from CRM. */
     public function rollback(Site $site, SiteFailoverLog $log): RedirectResponse
     {
