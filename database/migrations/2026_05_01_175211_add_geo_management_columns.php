@@ -8,8 +8,8 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('sites', function (Blueprint $table) {
-            $table->json('active_geos')->nullable()->after('plugin_webhook_url');
-            $table->json('geo_rules')->nullable()->after('active_geos');
+            $table->json('active_geos')->nullable();
+            $table->json('geo_rules')->nullable();
         });
 
         Schema::table('site_phones', function (Blueprint $table) {

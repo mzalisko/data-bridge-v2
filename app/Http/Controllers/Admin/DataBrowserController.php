@@ -16,16 +16,18 @@ use Illuminate\Http\Request;
 
 class DataBrowserController extends Controller
 {
+    private const MESSENGER_PLATFORMS = [
+        'telegram','whatsapp','viber','signal','discord','skype','wechat','line',
+    ];
+
     public function index(Request $request): View
     {
-        $type = $request->get('type', 'phones');
-        $q    = trim($request->get('q', ''));
+        $type = $request->query('type', 'phones');
+        $q    = trim($request->query('q', ''));
 
         $rows     = collect();
         $sites    = Site::orderBy('name')->get(['id', 'name', 'url']);
         $countries = Country::orderBy('sort_order')->orderBy('iso')->get(['iso', 'dial_code', 'name']);
-
-        $search = fn($w) => $w;
 
         switch ($type) {
             case 'phones':
@@ -36,6 +38,16 @@ class DataBrowserController extends Controller
                     ->orWhere('country_iso', 'like', "%{$q}%")
                     ->orWhere('dial_code', 'like', "%{$q}%")
                     ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%")->orWhere('url', 'like', "%{$q}%")));
+                break;
+            case 'messengers':
+                $query = SiteSocial::with(['site.siteGroup'])
+                    ->whereIn('platform', self::MESSENGER_PLATFORMS)
+                    ->orderBy('site_id')->orderBy('sort_order');
+                if ($q) $query->where(fn($w) => $w
+                    ->where('handle', 'like', "%{$q}%")
+                    ->orWhere('platform', 'like', "%{$q}%")
+                    ->orWhere('url', 'like', "%{$q}%")
+                    ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%")));
                 break;
             case 'prices':
                 $query = SitePrice::with(['site.siteGroup'])->orderBy('site_id')->orderBy('sort_order');
@@ -54,9 +66,11 @@ class DataBrowserController extends Controller
                     ->orWhere('label', 'like', "%{$q}%")
                     ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%")));
                 break;
-            default: // socials
+            default: // socials (non-messenger)
                 $type  = 'socials';
-                $query = SiteSocial::with(['site.siteGroup'])->orderBy('site_id')->orderBy('sort_order');
+                $query = SiteSocial::with(['site.siteGroup'])
+                    ->whereNotIn('platform', self::MESSENGER_PLATFORMS)
+                    ->orderBy('site_id')->orderBy('sort_order');
                 if ($q) $query->where(fn($w) => $w
                     ->where('handle', 'like', "%{$q}%")
                     ->orWhere('platform', 'like', "%{$q}%")
@@ -68,10 +82,11 @@ class DataBrowserController extends Controller
         $rows = $query->paginate(50)->withQueryString();
 
         $counts = [
-            'phones'    => SitePhone::count(),
-            'prices'    => SitePrice::count(),
-            'addresses' => SiteAddress::count(),
-            'socials'   => SiteSocial::count(),
+            'phones'     => SitePhone::count(),
+            'messengers' => SiteSocial::whereIn('platform', self::MESSENGER_PLATFORMS)->count(),
+            'prices'     => SitePrice::count(),
+            'addresses'  => SiteAddress::count(),
+            'socials'    => SiteSocial::whereNotIn('platform', self::MESSENGER_PLATFORMS)->count(),
         ];
 
         return view('admin.data.index', compact('type', 'q', 'rows', 'sites', 'countries', 'counts'));
@@ -163,20 +178,22 @@ class DataBrowserController extends Controller
     private function modelForType(string $type): string
     {
         return match($type) {
-            'phones'    => SitePhone::class,
-            'prices'    => SitePrice::class,
-            'addresses' => SiteAddress::class,
-            'socials'   => SiteSocial::class,
+            'phones'     => SitePhone::class,
+            'messengers' => SiteSocial::class,
+            'prices'     => SitePrice::class,
+            'addresses'  => SiteAddress::class,
+            'socials'    => SiteSocial::class,
         };
     }
 
     private function editableFields(string $type): array
     {
         return match($type) {
-            'phones'    => ['number', 'label', 'country_iso', 'dial_code', 'is_primary'],
-            'prices'    => ['amount', 'currency', 'label', 'period'],
-            'addresses' => ['country_iso', 'city', 'street', 'building', 'postal_code', 'label'],
-            'socials'   => ['platform', 'url', 'handle'],
+            'phones'     => ['number', 'label', 'country_iso', 'dial_code', 'is_primary'],
+            'messengers' => ['platform', 'handle', 'url'],
+            'prices'     => ['amount', 'currency', 'label', 'period'],
+            'addresses'  => ['country_iso', 'city', 'street', 'building', 'postal_code', 'label'],
+            'socials'    => ['platform', 'url', 'handle'],
         };
     }
 }

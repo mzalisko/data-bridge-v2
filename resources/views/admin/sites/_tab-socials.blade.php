@@ -1,9 +1,15 @@
 {{-- Socials tab — variables: $site, $socials --}}
 @php
 $platformLabels = [
-    'instagram' => 'Instagram', 'facebook' => 'Facebook', 'telegram' => 'Telegram',
-    'youtube' => 'YouTube', 'tiktok' => 'TikTok', 'linkedin' => 'LinkedIn',
-    'twitter' => 'Twitter / X', 'viber' => 'Viber', 'whatsapp' => 'WhatsApp', 'other' => 'Інше',
+    // Месенджери
+    'telegram' => 'Telegram',   'whatsapp' => 'WhatsApp',  'viber'     => 'Viber',
+    'signal'   => 'Signal',     'discord'  => 'Discord',   'skype'     => 'Skype',
+    'wechat'   => 'WeChat',     'line'     => 'Line',
+    // Соцмережі
+    'instagram' => 'Instagram', 'facebook' => 'Facebook',  'youtube'   => 'YouTube',
+    'tiktok'    => 'TikTok',    'twitter'  => 'Twitter / X','linkedin'  => 'LinkedIn',
+    'pinterest' => 'Pinterest', 'threads'  => 'Threads',   'reddit'    => 'Reddit',
+    'vk'        => 'ВКонтакте', 'twitch'   => 'Twitch',    'other'     => 'Інше',
 ];
 @endphp
 

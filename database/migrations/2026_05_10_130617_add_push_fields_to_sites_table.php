@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sites', function (Blueprint $table) {
-            $table->string('push_url')->nullable()->after('plugin_webhook_url');
+            $table->string('push_url')->nullable();
             $table->string('push_key', 64)->nullable()->after('push_url');
         });
     }
