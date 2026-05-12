@@ -2591,6 +2591,52 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
         });
     }
 
+    function applyStandbyToggle(item, isNowStandby) {
+        // Close edit panel if open
+        var panel = item.querySelector('.dt-panel');
+        if (panel) panel.style.display = 'none';
+        var chevronBtn = item.querySelector('[id^="dt-expand-"]');
+        if (chevronBtn) { var cSvg = chevronBtn.querySelector('svg'); if (cSvg) cSvg.style.transform = ''; item.classList.remove('is-editing'); }
+        var list2 = item.closest('.dt-nav-list');
+        if (list2 && !list2.querySelector('.dt-item.is-editing')) list2.classList.remove('has-edit');
+
+        item.dataset.isStandby = isNowStandby ? '1' : '0';
+        item.classList.toggle('dt-item--root', !isNowStandby);
+        item.classList.toggle('dt-item--child', isNowStandby);
+
+        var row = item.querySelector('.dt-item-row');
+        if (row) row.classList.toggle('dt-nav-primary', !isNowStandby);
+
+        // Standby badge
+        var main = item.querySelector('.dt-item-main');
+        if (main) {
+            if (isNowStandby) {
+                var sub = main.querySelector('.dt-item-sub');
+                if (!sub) { sub = document.createElement('div'); sub.className = 'dt-item-sub'; main.appendChild(sub); }
+                if (!sub.querySelector('.dt-badge--standby')) {
+                    var b = document.createElement('span');
+                    b.className = 'dt-badge dt-badge--standby'; b.textContent = '⟳ резерв';
+                    sub.insertBefore(b, sub.firstChild);
+                }
+            } else {
+                var sbadge = main.querySelector('.dt-badge--standby');
+                if (sbadge) sbadge.remove();
+            }
+        }
+
+        // Standby toggle button + failover button
+        var actions = item.querySelector('.dt-item-actions');
+        if (actions) {
+            var standbyBtn = actions.querySelector('button[title="Зробити резервним"], button[title="Зняти з резерву"]');
+            if (standbyBtn) {
+                standbyBtn.title = isNowStandby ? 'Зняти з резерву' : 'Зробити резервним';
+                standbyBtn.style.color = isNowStandby ? 'var(--accent)' : 'var(--text-3)';
+            }
+            var foBtn = actions.querySelector('button[title^="Failover"]');
+            if (foBtn) foBtn.style.display = isNowStandby ? 'none' : '';
+        }
+    }
+
     function sendReorder(list, type) {
         var items = Array.from(list.querySelectorAll(':scope > .dt-item'))
             .filter(function (el) { return !el.classList.contains('dnd-placeholder'); })
@@ -2666,7 +2712,13 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
                 if (triggered) {
                     item.style.opacity = '.4';
                     postJSON(URL_STANDBY, { type: type, id: parseInt(item.dataset.id) })
-                        .then(function () { location.reload(); });
+                        .then(function (r) { return r.json(); })
+                        .then(function (data) {
+                            item.style.opacity = '';
+                            item.style.transform = '';
+                            applyStandbyToggle(item, !!data.is_standby);
+                        })
+                        .catch(function () { location.reload(); });
                 } else {
                     item.style.transition = 'transform .2s cubic-bezier(.4,0,.2,1)';
                     item.style.transform  = '';
