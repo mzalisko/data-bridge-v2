@@ -88,12 +88,13 @@ class SiteController extends Controller
 
         $failoverLogs = SiteFailoverLog::where('site_id', $site->id)
             ->orderByDesc('created_at')
-            ->limit(30)
-            ->get();
+            ->paginate(10, ['*'], 'failover_page');
+
+        $isFavorite = auth()->user()->favoriteSites()->where('site_id', $site->id)->exists();
 
         return view('admin.sites.show', compact(
             'site', 'groups', 'tab', 'countries', 'presenceOthers',
-            'activityLogs', 'siteSyncs', 'failoverLogs',
+            'activityLogs', 'siteSyncs', 'failoverLogs', 'isFavorite',
         ));
     }
 

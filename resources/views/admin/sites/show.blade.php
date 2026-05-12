@@ -137,6 +137,12 @@
             @if($site->push_url && $site->push_key)
             <form id="form-head-sync" method="POST" action="{{ route('sites.sync', $site) }}" style="display:none;">@csrf</form>
             @endif
+            <button id="fav-btn" onclick="toggleFavorite()" class="btn btn--secondary btn--md" title="{{ $isFavorite ? 'Прибрати з улюблених' : 'Додати до улюблених' }}"
+                    style="color:{{ $isFavorite ? '#f6ad55' : 'var(--text-3)' }};">
+                <svg id="fav-icon" viewBox="0 0 24 24" width="14" height="14" fill="{{ $isFavorite ? '#f6ad55' : 'none' }}" stroke="{{ $isFavorite ? '#f6ad55' : 'currentColor' }}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+            </button>
             @if($site->url)
                 <a href="{{ $site->url }}" target="_blank" class="btn btn--secondary btn--md">
                     <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
@@ -283,8 +289,14 @@
                 {{-- Country selector tabs --}}
                 <div style="border-top:1px solid var(--border-2);padding:10px 16px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--panel-2);">
                     <span style="font-size:11px;color:var(--text-3);font-weight:600;margin-right:4px;">Перегляд для:</span>
-                    <button onclick="showVisitorPanel('_all')" id="vis-tab-_all"
+                    <button onclick="showVisitorPanel('_raw')" id="vis-tab-_raw"
                             class="btn btn--sm btn--primary"
+                            style="font-weight:700;gap:5px;">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="5" rx="1"/><rect x="3" y="10" width="18" height="5" rx="1"/><rect x="3" y="17" width="18" height="4" rx="1"/></svg>
+                        Всі дані
+                    </button>
+                    <button onclick="showVisitorPanel('_all')" id="vis-tab-_all"
+                            class="btn btn--sm btn--ghost"
                             style="font-weight:700;gap:5px;">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                         Весь світ
@@ -308,7 +320,7 @@
                     $wTotal   = $wPhones->count() + $wPrices->count() + $wAddrs->count() + $wSocials->count();
                     $totalAll = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count();
                 @endphp
-                <div id="vis-panel-_all">
+                <div id="vis-panel-_all" style="display:none;">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
                         {{-- Left: what everyone sees --}}
                         <div style="background:var(--panel);padding:20px;">
@@ -416,6 +428,116 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+
+                {{-- "Всі дані" panel: every record, no geo filter, full site snapshot --}}
+                <div id="vis-panel-_raw">
+                    @php
+                        $rawSocNets  = $site->socials->filter(fn($s) => !in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber']));
+                        $rawMsgngers = $site->socials->filter(fn($s) =>  in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber']));
+                        $rawTruePh   = $site->phones->filter(fn($p) => !$p->is_standby && !$p->standby_for_id)->sortBy('sort_order');
+                        $rawStdbyPh  = $site->phones->filter(fn($p) => $p->is_standby || $p->standby_for_id)->sortBy('sort_order');
+                    @endphp
+                    <div style="background:var(--panel);padding:20px;">
+                        <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
+                            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="5" rx="1"/><rect x="3" y="10" width="18" height="5" rx="1"/><rect x="3" y="17" width="18" height="4" rx="1"/></svg>
+                            Повна картина — всі записи
+                            <span style="font-family:var(--font-mono);font-weight:700;color:var(--text-2);">{{ $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count() }}</span>
+                        </div>
+
+                        @if($site->phones->count())
+                        <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px;">Телефони</div>
+                        <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:14px;">
+                            @foreach($site->phones->sortBy('sort_order') as $rp)
+                            @php
+                                $rpGeo  = $rp->geo_mode ?? 'all';
+                                $rpGeoLabel = ['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'][$rpGeo] ?? $rpGeo;
+                                $rpCountries = $rp->geo_countries ? (is_array($rp->geo_countries) ? implode(', ', $rp->geo_countries) : $rp->geo_countries) : '';
+                            @endphp
+                            <div style="background:var(--panel-2);border-radius:var(--radius-item);padding:8px 10px;display:flex;align-items:center;gap:8px;{{ !($rp->is_visible??true) ? 'opacity:.5;' : '' }}">
+                                <div style="flex:1;">
+                                    <div style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text);{{ $rp->is_blocked ? 'text-decoration:line-through;color:var(--danger);' : '' }}">{{ $rp->number }}</div>
+                                    @if($rp->label)<div style="font-size:11px;color:var(--text-3);margin-top:1px;">{{ $rp->label }}</div>@endif
+                                </div>
+                                <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
+                                    @if($rp->is_blocked)
+                                        <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(245,101,101,.15);color:var(--danger);font-weight:600;">BLOCKED</span>
+                                    @elseif($rp->is_standby && !$rp->standby_for_id)
+                                        <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:var(--panel-3,var(--border-2));color:var(--text-3);font-weight:600;">ПУЛ</span>
+                                    @elseif($rp->is_standby)
+                                        <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(99,179,237,.12);color:#63b3ed;font-weight:600;">РЕЗЕРВ</span>
+                                    @elseif($rp->standby_for_id)
+                                        <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(72,187,120,.15);color:#48bb78;font-weight:600;">АКТИВНИЙ</span>
+                                    @else
+                                        <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(72,187,120,.12);color:#48bb78;font-weight:600;">ОСНОВНИЙ</span>
+                                    @endif
+                                    @if($rpGeo !== 'all')
+                                        <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:var(--panel-3,var(--border-2));color:var(--text-3);">{{ $rpGeoLabel }}{{ $rpCountries ? ' '.$rpCountries : '' }}</span>
+                                    @endif
+                                    @if(!($rp->is_visible??true))
+                                        <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:var(--border-2);color:var(--text-3);">сх.</span>
+                                    @endif
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
+
+                        @if($site->prices->count())
+                        <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px;">Ціни</div>
+                        <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:14px;">
+                            @foreach($site->prices as $rpr)
+                            @php $rprGeo = $rpr->geo_mode ?? 'all'; $rprCountries = $rpr->geo_countries ? (is_array($rpr->geo_countries) ? implode(', ', $rpr->geo_countries) : $rpr->geo_countries) : ''; @endphp
+                            <div style="background:var(--panel-2);border-radius:var(--radius-item);padding:7px 10px;display:flex;align-items:center;gap:8px;{{ !($rpr->is_visible??true) ? 'opacity:.5;' : '' }}">
+                                <span style="flex:1;font-size:12px;color:var(--text-2);">{{ $rpr->label }}</span>
+                                <span style="font-family:var(--font-mono);font-weight:700;font-size:13px;color:#34d399;">{{ $rpr->amount }} {{ $rpr->currency }}</span>
+                                @if($rprGeo !== 'all')<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:var(--border-2);color:var(--text-3);">{{ ['include'=>'Тільки','exclude'=>'Крім'][$rprGeo] ?? $rprGeo }}{{ $rprCountries ? ' '.$rprCountries : '' }}</span>@endif
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
+
+                        @if($site->addresses->count())
+                        <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px;">Адреси</div>
+                        <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:14px;">
+                            @foreach($site->addresses as $ra)
+                            @php $raGeo = $ra->geo_mode ?? 'all'; $raCountries = $ra->geo_countries ? (is_array($ra->geo_countries) ? implode(', ', $ra->geo_countries) : $ra->geo_countries) : ''; @endphp
+                            <div style="background:var(--panel-2);border-radius:var(--radius-item);padding:7px 10px;display:flex;align-items:center;gap:8px;{{ !($ra->is_visible??true) ? 'opacity:.5;' : '' }}">
+                                <span style="flex:1;font-size:12px;color:var(--text-2);">{{ trim(($ra->city ?? '').' '.($ra->street ?? '')) ?: '—' }}</span>
+                                @if($raGeo !== 'all')<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:var(--border-2);color:var(--text-3);">{{ ['include'=>'Тільки','exclude'=>'Крім'][$raGeo] ?? $raGeo }}{{ $raCountries ? ' '.$raCountries : '' }}</span>@endif
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
+
+                        @if($rawSocNets->count())
+                        <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px;">Соц.мережі</div>
+                        <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:14px;">
+                            @foreach($rawSocNets as $rs)
+                            @php $sk = strtolower($rs->platform ?? ''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'']; $rsGeo = $rs->geo_mode ?? 'all'; @endphp
+                            <div style="background:var(--panel-2);border-radius:var(--radius-item);padding:7px 10px;display:flex;align-items:center;gap:8px;{{ !($rs->is_visible??true) ? 'opacity:.5;' : '' }}">
+                                <span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span>
+                                <span style="flex:1;font-size:12px;color:var(--text-2);">{{ ucfirst($rs->platform) }}: {{ $rs->handle }}</span>
+                                @if($rsGeo !== 'all')<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:var(--border-2);color:var(--text-3);">{{ ['include'=>'Тільки','exclude'=>'Крім'][$rsGeo] ?? $rsGeo }}</span>@endif
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
+
+                        @if($rawMsgngers->count())
+                        <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px;">Месенджери</div>
+                        <div style="display:flex;flex-direction:column;gap:4px;">
+                            @foreach($rawMsgngers as $rs)
+                            @php $sk = strtolower($rs->platform ?? ''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'']; $rsGeo = $rs->geo_mode ?? 'all'; @endphp
+                            <div style="background:var(--panel-2);border-radius:var(--radius-item);padding:7px 10px;display:flex;align-items:center;gap:8px;{{ !($rs->is_visible??true) ? 'opacity:.5;' : '' }}">
+                                <span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span>
+                                <span style="flex:1;font-size:12px;color:var(--text-2);">{{ ucfirst($rs->platform) }}: {{ $rs->handle }}</span>
+                                @if($rsGeo !== 'all')<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:var(--border-2);color:var(--text-3);">{{ ['include'=>'Тільки','exclude'=>'Крім'][$rsGeo] ?? $rsGeo }}</span>@endif
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
                     </div>
                 </div>
 
@@ -578,15 +700,12 @@
 
                 {{-- Conflicts — always visible so manager can verify setup --}}
                 <div style="border-top:1px solid var(--border-2);padding:12px 20px;">
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:{{ count($conflicts) ? '10px' : '0' }};">
-                        @if(count($conflicts) > 0)
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                            <span style="font-size:12px;font-weight:600;color:#f87171;text-transform:uppercase;letter-spacing:.05em;">Конфлікти ({{ count($conflicts) }})</span>
-                        @else
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                            <span style="font-size:12px;font-weight:600;color:#34d399;text-transform:uppercase;letter-spacing:.05em;">Конфліктів не виявлено</span>
-                        @endif
+                    @if(count($conflicts) > 0)
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <span style="font-size:12px;font-weight:600;color:#f87171;text-transform:uppercase;letter-spacing:.05em;">Конфлікти ({{ count($conflicts) }})</span>
                     </div>
+                    @endif
                     @if(count($conflicts) > 0)
                         <div style="display:flex;flex-direction:column;gap:5px;">
                             @foreach($conflicts as $cf)
@@ -716,11 +835,19 @@
 
                 <div class="dt-nav-list" data-type="phone">
                 @php
-                    $ordPrimariesPh = $shownPhones->where('is_standby', false)->sortBy('sort_order');
+                    // Roots = original primaries (no parent link, not in standby pool)
+                    $ordPrimariesPh = $shownPhones->filter(fn($p) => !$p->standby_for_id && !$p->is_standby)->sortBy('sort_order');
                     $primaryIdsPh   = $ordPrimariesPh->pluck('id')->all();
-                    $byParentPh     = $shownPhones->where('is_standby', true)->filter(fn($s) => $s->standby_for_id && in_array($s->standby_for_id, $primaryIdsPh))->groupBy('standby_for_id');
-                    $unlinkedPh     = $shownPhones->where('is_standby', true)->filter(fn($s) => !$s->standby_for_id || !in_array($s->standby_for_id, $primaryIdsPh))->sortBy('sort_order');
-                    $sbCountsPh     = $byParentPh->map(fn($g) => $g->count());
+                    // Children = ANY phone with standby_for_id (includes promoted active replacements)
+                    $byParentPh     = $shownPhones->filter(fn($s) => $s->standby_for_id && in_array($s->standby_for_id, $primaryIdsPh))->groupBy('standby_for_id');
+                    // Pool = is_standby=true with no parent link (general pool)
+                    $poolPh         = $shownPhones->filter(fn($p) => !$p->standby_for_id && $p->is_standby)->sortBy('sort_order');
+                    // Orphans = standby_for_id set but parent not known
+                    $unlinkedPh     = $shownPhones->filter(fn($s) => $s->standby_for_id && !in_array($s->standby_for_id, $primaryIdsPh))->sortBy('sort_order');
+                    // Badge count = waiting standbys only (is_standby=true, not blocked)
+                    $sbCountsPh     = $byParentPh->map(fn($g) => $g->where('is_standby', true)->where('is_blocked', false)->count());
+                    $phonesByIdPh   = $shownPhones->keyBy('id');
+                    $allPhonesByIdPh= $site->phones->keyBy('id');
                     $flatPhones     = collect();
                     foreach ($ordPrimariesPh as $prPh) {
                         $flatPhones->push(['item' => $prPh, 'depth' => 0]);
@@ -728,32 +855,53 @@
                             $flatPhones->push(['item' => $sbPh, 'depth' => 1]);
                         }
                     }
+                    foreach ($poolPh as $sbPh) { $flatPhones->push(['item' => $sbPh, 'depth' => 0]); }
                     foreach ($unlinkedPh as $sbPh) { $flatPhones->push(['item' => $sbPh, 'depth' => 1]); }
                 @endphp
                 @if($flatPhones->isEmpty())
                     <div class="dt-empty">Телефонів немає</div>
                 @else
                 @foreach($flatPhones as $entry)
-                @php $ph = $entry['item']; $phDepth = $entry['depth']; $sbCount = $sbCountsPh->get($ph->id, 0); @endphp
+                @php
+                    $ph = $entry['item']; $phDepth = $entry['depth']; $sbCount = $sbCountsPh->get($ph->id, 0);
+                    $parentPhItem   = $phDepth && $ph->standby_for_id ? $allPhonesByIdPh->get($ph->standby_for_id) : null;
+                    // Active replacement: child with is_standby=false (promoted by failover)
+                    $isActiveReplPh = $phDepth && !$ph->is_standby && !$ph->is_blocked;
+                @endphp
                 <div class="dt-item {{ $phDepth ? 'dt-item--child' : 'dt-item--root' }}"
                      data-id="{{ $ph->id }}"
                      data-is-standby="{{ $ph->is_standby ? 1 : 0 }}"
                      data-parent-id="{{ $ph->standby_for_id ?? '' }}"
+                     data-has-standbys="{{ $sbCount > 0 ? '1' : '0' }}"
+                     data-sb-count="{{ $sbCount }}"
                      data-type="phone">
                     <div class="dt-item-row {{ !$phDepth ? 'dt-nav-primary' : '' }}" onclick="dtExpandItem('phone-{{ $ph->id }}')">
-                        <span class="dt-nav-grip" title="Потягни вправо = резерв, вліво = основний"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
+                        <span class="dt-nav-grip" title="{{ (!$phDepth && $sbCount > 0) ? 'Має резервних — не можна зробити резервним' : 'Потягни вправо = резерв, вліво = основний' }}"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
                         <span class="dt-item-icon">{!! $dtIcons['phones'] !!}</span>
                         <div class="dt-item-main">
                             <div class="dt-item-name" style="font-family:var(--font-mono);">{{ $ph->number }}</div>
                             @if(!$phDepth)
                                 @if($ph->label || $ph->is_blocked)
                                 <div class="dt-item-sub">
-                                    {{ $ph->label }}
-                                    @if($ph->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif
+                                    @if($ph->label){{ $ph->label }}@endif
+                                    @if($ph->is_blocked)
+                                        @if($ph->label)&thinsp;·&thinsp;@endif
+                                        <span class="dt-badge dt-badge--blocked">✕ заблок.</span>
+                                    @endif
                                 </div>
                                 @endif
                             @else
-                                <div class="dt-item-sub">{{ $ph->label }}@if($ph->label)&thinsp;·&thinsp;@endif<span class="dt-badge dt-badge--standby">⟳ резерв</span>@if($ph->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif</div>
+                                <div class="dt-item-sub">
+                                    @if($ph->label){{ $ph->label }}&thinsp;·&thinsp;@endif
+                                    @if($isActiveReplPh)
+                                        <span class="dt-badge dt-badge--replacing">⟳ активний</span>
+                                        @if($parentPhItem)<span class="dt-replacing-label">замість {{ ($parentPhItem->dial_code ? '+'.$parentPhItem->dial_code.' ' : '').$parentPhItem->number }}</span>@endif
+                                    @elseif($ph->is_blocked)
+                                        <span class="dt-badge dt-badge--blocked">✕ заблок.</span>
+                                    @else
+                                        <span class="dt-badge dt-badge--standby">⟳ резерв</span>
+                                    @endif
+                                </div>
                             @endif
                         </div>
                         @if(!$phDepth && $sbCount > 0)<span class="dt-nav-sb-badge">{{ $sbCount }}&thinsp;⟳</span>@endif
@@ -771,31 +919,10 @@
                             <form method="POST" action="{{ route('phones.destroy',[$site,$ph]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
                                 <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
                             </form>
-                            @if(!$phDepth)
-                            <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
-                                <input type="hidden" name="type" value="phone"><input type="hidden" name="id" value="{{ $ph->id }}">
-                                <button type="submit" class="icon-btn" title="Зробити резервним" style="color:var(--text-3);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
-                            </form>
-                            @else
-                            <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
-                                <input type="hidden" name="type" value="phone"><input type="hidden" name="id" value="{{ $ph->id }}">
-                                <button type="submit" class="icon-btn" title="Зняти з резерву" style="color:var(--accent);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
-                            </form>
-                            @endif
                             <button class="icon-btn" id="dt-expand-phone-{{ $ph->id }}" title="Редагувати" onclick="dtExpandItem('phone-{{ $ph->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
                         </div>
                     </div>
                     <div class="dt-panel" id="dt-edit-phone-{{ $ph->id }}" style="display:none;">
-                        @if($phDepth)
-                        <div class="dt-link-panel">
-                            <form method="POST" action="{{ route('sites.failover.link',$site) }}" style="display:contents;">@csrf
-                                <input type="hidden" name="type" value="phone"><input type="hidden" name="id" value="{{ $ph->id }}">
-                                <label class="dt-label" style="margin:0;flex-shrink:0;">Резерв для:</label>
-                                <select name="standby_for_id" class="dt-input" style="flex:1;min-width:140px;"><option value="">— Загальний пул —</option>@foreach($ordPrimariesPh as $pp)<option value="{{ $pp->id }}" {{ $ph->standby_for_id==$pp->id?'selected':'' }}>{{ ($pp->dial_code?'+'.$pp->dial_code.' ':'').$pp->number }}{{ $pp->label?' · '.$pp->label:'' }}</option>@endforeach</select>
-                                <button type="submit" class="btn btn--primary btn--sm">Прив'язати</button>
-                            </form>
-                        </div>
-                        @endif
                         <form method="POST" action="{{ route('phones.update',[$site,$ph]) }}">@csrf @method('PUT')
                             <input type="hidden" name="sort_order" value="{{ $ph->sort_order }}">
                             <div class="dt-row dt-row--2">
@@ -891,11 +1018,14 @@
 
                 <div class="dt-nav-list" data-type="social">
                 @php
-                    $ordPrimariesMs = $shownMessengers->where('is_standby', false)->sortBy('sort_order');
+                    $ordPrimariesMs = $shownMessengers->filter(fn($p) => !$p->standby_for_id && !$p->is_standby)->sortBy('sort_order');
                     $primaryIdsMs   = $ordPrimariesMs->pluck('id')->all();
-                    $byParentMs     = $shownMessengers->where('is_standby', true)->filter(fn($s) => $s->standby_for_id && in_array($s->standby_for_id, $primaryIdsMs))->groupBy('standby_for_id');
-                    $unlinkedMs     = $shownMessengers->where('is_standby', true)->filter(fn($s) => !$s->standby_for_id || !in_array($s->standby_for_id, $primaryIdsMs))->sortBy('sort_order');
-                    $sbCountsMs     = $byParentMs->map(fn($g) => $g->count());
+                    $byParentMs     = $shownMessengers->filter(fn($s) => $s->standby_for_id && in_array($s->standby_for_id, $primaryIdsMs))->groupBy('standby_for_id');
+                    $poolMs         = $shownMessengers->filter(fn($p) => !$p->standby_for_id && $p->is_standby)->sortBy('sort_order');
+                    $unlinkedMs     = $shownMessengers->filter(fn($s) => $s->standby_for_id && !in_array($s->standby_for_id, $primaryIdsMs))->sortBy('sort_order');
+                    $sbCountsMs     = $byParentMs->map(fn($g) => $g->where('is_standby', true)->where('is_blocked', false)->count());
+                    $socialsByIdMs   = $shownMessengers->keyBy('id');
+                    $allSocialsByIdMs= $site->socials->keyBy('id');
                     $flatMessengers = collect();
                     foreach ($ordPrimariesMs as $prMs) {
                         $flatMessengers->push(['item' => $prMs, 'depth' => 0]);
@@ -903,30 +1033,50 @@
                             $flatMessengers->push(['item' => $sbMs, 'depth' => 1]);
                         }
                     }
+                    foreach ($poolMs as $sbMs) { $flatMessengers->push(['item' => $sbMs, 'depth' => 0]); }
                     foreach ($unlinkedMs as $sbMs) { $flatMessengers->push(['item' => $sbMs, 'depth' => 1]); }
                 @endphp
                 @if($flatMessengers->isEmpty())
                     <div class="dt-empty">Месенджерів немає</div>
                 @else
                 @foreach($flatMessengers as $entry)
-                @php $ms = $entry['item']; $msDepth = $entry['depth']; $msbCount = $sbCountsMs->get($ms->id, 0); $msk=strtolower($ms->platform??''); $msic=$socialIcon[$msk]??['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>']; @endphp
+                @php
+                    $ms = $entry['item']; $msDepth = $entry['depth']; $msbCount = $sbCountsMs->get($ms->id, 0);
+                    $msk=strtolower($ms->platform??''); $msic=$socialIcon[$msk]??['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>'];
+                    $parentMsItem   = $msDepth && $ms->standby_for_id ? $allSocialsByIdMs->get($ms->standby_for_id) : null;
+                    $isActiveReplMs = $msDepth && !$ms->is_standby && !$ms->is_blocked;
+                @endphp
                 <div class="dt-item {{ $msDepth ? 'dt-item--child' : 'dt-item--root' }}"
                      data-id="{{ $ms->id }}"
                      data-is-standby="{{ $ms->is_standby ? 1 : 0 }}"
                      data-parent-id="{{ $ms->standby_for_id ?? '' }}"
+                     data-has-standbys="{{ $msbCount > 0 ? '1' : '0' }}"
+                     data-sb-count="{{ $msbCount }}"
                      data-type="social">
                     <div class="dt-item-row {{ !$msDepth ? 'dt-nav-primary' : '' }}" onclick="dtExpandItem('social-{{ $ms->id }}')">
-                        <span class="dt-nav-grip" title="Потягни вправо = резерв, вліво = основний"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
+                        <span class="dt-nav-grip" title="{{ (!$msDepth && $msbCount > 0) ? 'Має резервних — не можна зробити резервним' : 'Потягни вправо = резерв, вліво = основний' }}"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
                         <span class="dt-item-icon" style="color:{{ $msic['c'] }}">{!! $msic['svg'] !!}</span>
                         <div class="dt-item-main">
                             <div class="dt-item-name">{{ $ms->handle ?: ucfirst($ms->platform) }}</div>
                             @if(!$msDepth)
                                 <div class="dt-item-sub">{{ ucfirst($ms->platform) }}
                                     @if($ms->phone_id && ($linkedPh=$site->phones->find($ms->phone_id)))<span class="dt-link-badge"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 10a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.59a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.72 16z"/></svg>{{ $linkedPh->number }}</span>@endif
-                                    @if($ms->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif
+                                    @if($ms->is_blocked)
+                                        <span class="dt-badge dt-badge--blocked">✕ заблок.</span>
+                                    @endif
                                 </div>
                             @else
-                                <div class="dt-item-sub">{{ ucfirst($ms->platform) }}&thinsp;·&thinsp;<span class="dt-badge dt-badge--standby">⟳ резерв</span>@if($ms->is_blocked)<span class="dt-badge dt-badge--blocked">✕ заблок.</span>@endif</div>
+                                <div class="dt-item-sub">
+                                    {{ ucfirst($ms->platform) }}&thinsp;·&thinsp;
+                                    @if($isActiveReplMs)
+                                        <span class="dt-badge dt-badge--replacing">⟳ активний</span>
+                                        @if($parentMsItem)<span class="dt-replacing-label">замість {{ $parentMsItem->handle ?: ucfirst($parentMsItem->platform) }}</span>@endif
+                                    @elseif($ms->is_blocked)
+                                        <span class="dt-badge dt-badge--blocked">✕ заблок.</span>
+                                    @else
+                                        <span class="dt-badge dt-badge--standby">⟳ резерв</span>
+                                    @endif
+                                </div>
                             @endif
                         </div>
                         @if(!$msDepth && $msbCount > 0)<span class="dt-nav-sb-badge">{{ $msbCount }}&thinsp;⟳</span>@endif
@@ -944,31 +1094,10 @@
                             <form method="POST" action="{{ route('socials.destroy',[$site,$ms]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
                                 <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
                             </form>
-                            @if(!$msDepth)
-                            <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
-                                <input type="hidden" name="type" value="social"><input type="hidden" name="id" value="{{ $ms->id }}">
-                                <button type="submit" class="icon-btn" title="Зробити резервним" style="color:var(--text-3);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
-                            </form>
-                            @else
-                            <form method="POST" action="{{ route('sites.failover.standby',$site) }}" style="margin:0;">@csrf
-                                <input type="hidden" name="type" value="social"><input type="hidden" name="id" value="{{ $ms->id }}">
-                                <button type="submit" class="icon-btn" title="Зняти з резерву" style="color:var(--accent);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></button>
-                            </form>
-                            @endif
                             <button class="icon-btn" id="dt-expand-social-{{ $ms->id }}" title="Редагувати" onclick="dtExpandItem('social-{{ $ms->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
                         </div>
                     </div>
                     <div class="dt-panel" id="dt-edit-social-{{ $ms->id }}" style="display:none;">
-                        @if($msDepth)
-                        <div class="dt-link-panel">
-                            <form method="POST" action="{{ route('sites.failover.link',$site) }}" style="display:contents;">@csrf
-                                <input type="hidden" name="type" value="social"><input type="hidden" name="id" value="{{ $ms->id }}">
-                                <label class="dt-label" style="margin:0;flex-shrink:0;">Резерв для:</label>
-                                <select name="standby_for_id" class="dt-input" style="flex:1;min-width:140px;"><option value="">— Загальний пул —</option>@foreach($ordPrimariesMs as $pm)<option value="{{ $pm->id }}" {{ $ms->standby_for_id==$pm->id?'selected':'' }}>{{ ucfirst($pm->platform) }}{{ $pm->handle?' '.$pm->handle:'' }}</option>@endforeach</select>
-                                <button type="submit" class="btn btn--primary btn--sm">Прив'язати</button>
-                            </form>
-                        </div>
-                        @endif
                         <form method="POST" action="{{ route('socials.update',[$site,$ms]) }}">@csrf @method('PUT')
                             <input type="hidden" name="sort_order" value="{{ $ms->sort_order }}">
                             <div class="dt-row dt-row--2">
@@ -1669,10 +1798,6 @@
             </div>{{-- /dt-grid --}}
 
             {{-- ═══ FAILOVER LOG ════════════════════════════════════ --}}
-            @php
-                $activeFailovers  = $failoverLogs->where('rolled_back_at', null);
-                $resolvedFailovers = $failoverLogs->whereNotNull('rolled_back_at');
-            @endphp
             @if($failoverLogs->isNotEmpty())
             <div class="dt-card" id="data-failover" style="margin-top:12px;">
                 <div class="dt-card-head">
@@ -1680,10 +1805,24 @@
                         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                     </span>
                     <span class="dt-card-head__title">Failover журнал</span>
-                    <span class="dt-card-head__count">{{ $activeFailovers->count() }} активних</span>
+                    <span class="dt-card-head__count">{{ $failoverLogs->total() }} записів</span>
                 </div>
                 <div class="dt-items">
                     @foreach($failoverLogs as $fl)
+                    @php
+                        $flPrimary = $fl->type === 'phone'
+                            ? $site->phones->find($fl->primary_id)
+                            : $site->socials->find($fl->primary_id);
+                        $flStandby = $fl->type === 'phone'
+                            ? $site->phones->find($fl->standby_id)
+                            : $site->socials->find($fl->standby_id);
+                        $flPrimaryLabel = $flPrimary
+                            ? (($flPrimary->number ?? null) ? ($flPrimary->dial_code ? '+'.$flPrimary->dial_code.' ' : '').$flPrimary->number : ucfirst($flPrimary->platform ?? '').' '.$flPrimary->handle)
+                            : '#'.$fl->primary_id;
+                        $flStandbyLabel = $flStandby
+                            ? (($flStandby->number ?? null) ? ($flStandby->dial_code ? '+'.$flStandby->dial_code.' ' : '').$flStandby->number : ucfirst($flStandby->platform ?? '').' '.$flStandby->handle)
+                            : '#'.$fl->standby_id;
+                    @endphp
                     <div class="dt-item" style="{{ $fl->rolled_back_at ? 'opacity:.55;' : '' }}">
                         <div class="dt-item-row" style="cursor:default;">
                             <span class="dt-item-icon" style="color:{{ $fl->rolled_back_at ? 'var(--text-3)' : 'var(--warning)' }};">
@@ -1694,15 +1833,14 @@
                                 @endif
                             </span>
                             <div class="dt-item-main">
-                                <div class="dt-item-name" style="font-size:12px;">
-                                    {{ $fl->type === 'phone' ? 'Телефон' : 'Соцмережа' }} #{{ $fl->primary_id }}
-                                    → резерв #{{ $fl->standby_id }}
+                                <div class="dt-item-name" style="font-size:12px;font-family:var(--font-mono);">
+                                    {{ $flPrimaryLabel }} → {{ $flStandbyLabel }}
                                 </div>
                                 <div class="dt-item-sub">
                                     {{ $fl->trigger_reason }}
-                                    · {{ $fl->triggered_by === 'api' ? 'API' : 'вручну' }}
-                                    · {{ $fl->created_at->format('d.m H:i') }}
-                                    @if($fl->rolled_back_at) · відкат {{ $fl->rolled_back_at->format('d.m H:i') }} @endif
+                                    &thinsp;·&thinsp;{{ $fl->triggered_by === 'api' ? 'API' : 'вручну' }}
+                                    &thinsp;·&thinsp;{{ $fl->created_at->format('d.m H:i') }}
+                                    @if($fl->rolled_back_at)&thinsp;·&thinsp;відкат {{ $fl->rolled_back_at->format('d.m H:i') }}@endif
                                 </div>
                             </div>
                             @if(!$fl->rolled_back_at)
@@ -1710,9 +1848,7 @@
                                 <form method="POST" action="{{ route('sites.failover.rollback',[$site,$fl]) }}" style="margin:0;"
                                       onsubmit="return confirm('Відновити первинний запис і повернути резерв у пул?')">
                                     @csrf
-                                    <button type="submit" class="btn btn--secondary btn--sm" style="font-size:11px;padding:3px 10px;">
-                                        Відкат
-                                    </button>
+                                    <button type="submit" class="btn btn--secondary btn--sm" style="font-size:11px;padding:3px 10px;">Відкат</button>
                                 </form>
                             </div>
                             @endif
@@ -1720,6 +1856,28 @@
                     </div>
                     @endforeach
                 </div>
+                @if($failoverLogs->hasPages())
+                <div style="padding:10px 16px;border-top:1px solid var(--border-2);display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <span style="font-size:11px;color:var(--text-3);">{{ $failoverLogs->firstItem() }}–{{ $failoverLogs->lastItem() }} з {{ $failoverLogs->total() }}</span>
+                    <div style="display:flex;gap:4px;">
+                        @if($failoverLogs->onFirstPage())
+                            <span class="btn btn--ghost btn--sm" style="opacity:.4;pointer-events:none;">←</span>
+                        @else
+                            <a href="{{ $failoverLogs->appends(request()->query())->previousPageUrl() }}" class="btn btn--ghost btn--sm">←</a>
+                        @endif
+                        @foreach($failoverLogs->getUrlRange(1, $failoverLogs->lastPage()) as $page => $pageUrl)
+                            <a href="{{ $failoverLogs->appends(request()->query())->url($page) }}"
+                               class="btn btn--sm {{ $page === $failoverLogs->currentPage() ? 'btn--primary' : 'btn--ghost' }}"
+                               style="min-width:28px;justify-content:center;">{{ $page }}</a>
+                        @endforeach
+                        @if($failoverLogs->hasMorePages())
+                            <a href="{{ $failoverLogs->appends(request()->query())->nextPageUrl() }}" class="btn btn--ghost btn--sm">→</a>
+                        @else
+                            <span class="btn btn--ghost btn--sm" style="opacity:.4;pointer-events:none;">→</span>
+                        @endif
+                    </div>
+                </div>
+                @endif
             </div>
             @endif
 
@@ -1917,10 +2075,22 @@
 
                 {{-- Footer --}}
                 <div style="padding-top:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-                    <button type="submit" form="form-site-delete" class="btn btn--danger btn--md">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
-                        Видалити сайт
-                    </button>
+                    <div style="display:flex;gap:8px;">
+                        <button type="submit" form="form-site-delete" class="btn btn--danger btn--md">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                            Видалити сайт
+                        </button>
+                        @if($failoverLogs->total() > 0)
+                        <form method="POST" action="{{ route('sites.failover.history.clear', $site) }}"
+                              onsubmit="return confirm('Видалити весь журнал failover ({{ $failoverLogs->total() }} записів)?')" style="margin:0;">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn--md" style="background:rgba(245,101,101,.08);color:var(--danger);border:1px solid rgba(245,101,101,.25);">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/><line x1="18" y1="6" x2="23" y2="11"/><line x1="23" y1="6" x2="18" y2="11"/></svg>
+                                Очистити журнал
+                            </button>
+                        </form>
+                        @endif
+                    </div>
                     <div style="display:flex;gap:8px;">
                         @if($site->push_url && $site->push_key)
                         <button type="submit" form="form-site-sync" class="btn btn--secondary btn--md">
@@ -1947,42 +2117,104 @@
                             <strong>BLOCK</strong> → активує наступний резерв у черзі (за sort_order).<br>
                             <strong>RESTORE</strong> → повертає оригінальний номер у пріоритет.
                         </p>
-                        @php $simPhones = $site->phones->sortBy('sort_order'); @endphp
-                        @forelse($simPhones as $sp)
-                        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border-2);">
-                            <div style="flex:1;min-width:0;overflow:hidden;">
-                                <span style="font-family:var(--font-mono);font-size:12.5px;">{{ ($sp->dial_code ? '+'.$sp->dial_code.' ' : '').$sp->number }}</span>
-                                @if($sp->label)<span style="font-size:11px;color:var(--text-3);margin-left:6px;">{{ $sp->label }}</span>@endif
+                        @php
+                            $simAll      = $site->phones->keyBy('id');
+                            $simFmt      = fn($p) => ($p->dial_code ? '+'.$p->dial_code.' ' : '').$p->number.($p->label ? ' · '.$p->label : '');
+                            // True primaries: is_standby=false AND no standby_for_id (original primaries only)
+                            $truePrimaries = $site->phones->filter(fn($p) => !$p->is_standby && !$p->standby_for_id)->sortBy('sort_order');
+                            // All chain members (standbys + promoted) grouped by original primary id
+                            $chainByPrimary = $site->phones->filter(fn($p) => $p->standby_for_id)->groupBy('standby_for_id');
+                            // General pool: is_standby=true with no standby_for_id
+                            $simPool = $site->phones->filter(fn($p) => $p->is_standby && !$p->standby_for_id)->sortBy('sort_order');
+                        @endphp
+                        @if($truePrimaries->isEmpty() && $simPool->isEmpty())
+                        <p style="font-size:12px;color:var(--text-3);margin:0;">Немає телефонів для симуляції.</p>
+                        @else
+                        @foreach($truePrimaries as $sp)
+                        @php
+                            // Full chain: all records with standby_for_id=this primary, sorted by sort_order
+                            $chain = $chainByPrimary->get($sp->id, collect())->sortBy('sort_order');
+                            // Currently active replacement: promoted (is_standby=false), not blocked
+                            $activeRepl = $chain->first(fn($r) => !$r->is_standby && !$r->is_blocked);
+                            // Next standby in queue: still is_standby=true, not blocked
+                            $nextWaiting = $chain->first(fn($r) => $r->is_standby && !$r->is_blocked);
+                        @endphp
+                        {{-- Primary row --}}
+                        <div style="display:flex;align-items:center;gap:8px;padding:9px 0 7px;border-bottom:1px solid var(--border-2);">
+                            <div style="flex:1;min-width:0;">
+                                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                    <span style="font-family:var(--font-mono);font-size:12.5px;font-weight:{{ $sp->is_blocked ? '400' : '600' }};">{{ $simFmt($sp) }}</span>
+                                    @if($chain->count() > 0)
+                                        <span style="font-size:10px;background:rgba(102,119,255,.12);color:var(--accent);padding:1px 6px;border-radius:99px;white-space:nowrap;">{{ $chain->count() }} резерв{{ $chain->count() > 1 ? 'и' : '' }}</span>
+                                    @endif
+                                </div>
                             </div>
-                            <span style="font-size:11px;white-space:nowrap;
-                                @if($sp->is_blocked) color:var(--danger);
-                                @elseif($sp->is_standby) color:var(--accent);
-                                @else color:var(--dot-ok); @endif">
-                                @if($sp->is_blocked)✕ заблок.@elseif($sp->is_standby)⟳ резерв@else✓ активний@endif
+                            <span style="font-size:11px;white-space:nowrap;flex-shrink:0;{{ $sp->is_blocked ? 'color:var(--danger)' : 'color:var(--dot-ok)' }}">
+                                {{ $sp->is_blocked ? '✕ заблок.' : '✓ активний' }}
                             </span>
-                            @if(!$sp->is_standby && !$sp->is_blocked)
-                            <form method="POST" action="{{ route('sites.failover.trigger',$site) }}" style="margin:0;"
-                                  onsubmit="return confirm('Симулювати BLOCK для {{ addslashes($sp->number) }}?')">
+                            @if(!$sp->is_blocked)
+                            <form method="POST" action="{{ route('sites.failover.trigger',$site) }}" style="margin:0;flex-shrink:0;"
+                                  onsubmit="return confirm('BLOCK: {{ addslashes($sp->number) }}')">
                                 @csrf
                                 <input type="hidden" name="type" value="phone">
                                 <input type="hidden" name="primary_id" value="{{ $sp->id }}">
-                                <input type="hidden" name="reason" value="[SIM] Test block signal">
+                                @if($nextWaiting)<input type="hidden" name="standby_id" value="{{ $nextWaiting->id }}">@endif
+                                <input type="hidden" name="reason" value="[SIM] Block">
                                 <button type="submit" class="btn btn--sm" style="background:rgba(245,101,101,.1);color:var(--danger);border:1px solid rgba(245,101,101,.25);">BLOCK</button>
                             </form>
-                            @elseif($sp->is_blocked)
-                            <form method="POST" action="{{ route('sites.failover.restore',$site) }}" style="margin:0;">
+                            @else
+                            <form method="POST" action="{{ route('sites.failover.restore',$site) }}" style="margin:0;flex-shrink:0;">
                                 @csrf
                                 <input type="hidden" name="type" value="phone">
                                 <input type="hidden" name="primary_id" value="{{ $sp->id }}">
-                                <button type="submit" class="btn btn--sm" style="background:rgba(72,187,120,.1);color:var(--dot-ok);border:1px solid rgba(72,187,120,.25);">RESTORE</button>
+                                <button type="submit" class="btn btn--sm" style="background:rgba(72,187,120,.1);color:var(--dot-ok);border:1px solid rgba(72,187,120,.25);">RESTORE ALL</button>
                             </form>
-                            @else
-                            <span style="font-size:11px;color:var(--text-3);padding:0 8px;">в пулі</span>
                             @endif
                         </div>
-                        @empty
-                        <p style="font-size:12px;color:var(--text-3);margin:0;">Немає телефонів для симуляції.</p>
-                        @endforelse
+                        {{-- Chain rows (all standbys + promoted, ordered by sort_order) --}}
+                        @foreach($chain as $ssb)
+                        @php
+                            $isActive    = !$ssb->is_standby && !$ssb->is_blocked;   // currently replacing
+                            $isBlocked   = $ssb->is_blocked;                           // was active, now blocked
+                            $isWaiting   = $ssb->is_standby && !$ssb->is_blocked;     // still in queue
+                        @endphp
+                        <div style="display:flex;align-items:center;gap:8px;padding:5px 0 5px 18px;border-bottom:1px solid var(--border-2);{{ $isBlocked ? 'opacity:.55' : '' }}">
+                            <span style="color:var(--border);font-size:13px;line-height:1;flex-shrink:0;">{{ $loop->last ? '└' : '├' }}</span>
+                            <div style="flex:1;min-width:0;">
+                                <span style="font-family:var(--font-mono);font-size:12px;">{{ $simFmt($ssb) }}</span>
+                            </div>
+                            <span style="font-size:10.5px;white-space:nowrap;flex-shrink:0;
+                                @if($isBlocked) color:var(--danger);
+                                @elseif($isActive) color:var(--dot-ok);font-weight:600;
+                                @else color:var(--accent); @endif">
+                                @if($isBlocked)✕ заблок.
+                                @elseif($isActive)⟳ активний
+                                @else⟳ #{{ $loop->iteration }}@endif
+                            </span>
+                            {{-- BLOCK on currently active replacement triggers cascade --}}
+                            @if($isActive && $sp->is_blocked)
+                            <form method="POST" action="{{ route('sites.failover.cascade',$site) }}" style="margin:0;flex-shrink:0;"
+                                  onsubmit="return confirm('BLOCK активний резерв: {{ addslashes($ssb->number) }}?')">
+                                @csrf
+                                <input type="hidden" name="type" value="phone">
+                                <input type="hidden" name="active_id" value="{{ $ssb->id }}">
+                                <button type="submit" class="btn btn--sm" style="background:rgba(245,101,101,.1);color:var(--danger);border:1px solid rgba(245,101,101,.25);">BLOCK</button>
+                            </form>
+                            @endif
+                        </div>
+                        @endforeach
+                        @endforeach
+                        {{-- General pool --}}
+                        @if($simPool->isNotEmpty())
+                        <div style="padding:8px 0 3px;font-size:10px;color:var(--text-3);font-weight:600;letter-spacing:.05em;text-transform:uppercase;">Загальний пул</div>
+                        @foreach($simPool as $sp)
+                        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border-2);opacity:.65;">
+                            <div style="flex:1;font-family:var(--font-mono);font-size:12px;">{{ $simFmt($sp) }}</div>
+                            <span style="font-size:10.5px;color:var(--text-3);">не закріплений</span>
+                        </div>
+                        @endforeach
+                        @endif
+                        @endif
                     </div>
                 </div>
                 {{-- [/TEST] --}}
@@ -2506,6 +2738,23 @@ function actToggle(row) {
     if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
 }
 
+// ── Favorite toggle ──────────────────────────────────────────────────────
+var _isFav = {{ $isFavorite ? 'true' : 'false' }};
+function toggleFavorite() {
+    var btn  = document.getElementById('fav-btn');
+    var icon = document.getElementById('fav-icon');
+    fetch('{{ route('sites.favorite', $site) }}', {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' }
+    }).then(function(r){ return r.json(); }).then(function(data){
+        _isFav = data.favorite;
+        icon.setAttribute('fill', _isFav ? '#f6ad55' : 'none');
+        icon.setAttribute('stroke', _isFav ? '#f6ad55' : 'currentColor');
+        btn.style.color = _isFav ? '#f6ad55' : 'var(--text-3)';
+        btn.title = _isFav ? 'Прибрати з улюблених' : 'Додати до улюблених';
+    });
+}
+
 // ── Site presence heartbeat ───────────────────────────────────────────────
 (function() {
     var presenceUrl  = '{{ route("sites.presence", $site) }}';
@@ -2546,6 +2795,7 @@ function actToggle(row) {
         social: '{{ route('socials.reorder', $site) }}',
     };
     var URL_STANDBY = '{{ route('sites.failover.standby', $site) }}';
+    var URL_LINK    = '{{ route('sites.failover.link', $site) }}';
     var SWIPE_THRESHOLD = 60;
 
     function postJSON(url, data) {
@@ -2556,6 +2806,32 @@ function actToggle(row) {
         });
     }
 
+    function refreshPrimaryBadge(list, primaryId, delta) {
+        if (!primaryId) return;
+        var primaryEl = list.querySelector('.dt-item[data-id="' + primaryId + '"]');
+        if (!primaryEl) return;
+        var count = Math.max(0, (parseInt(primaryEl.dataset.sbCount) || 0) + delta);
+        primaryEl.dataset.sbCount = count;
+        var badge = primaryEl.querySelector('.dt-nav-sb-badge');
+        if (count > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'dt-nav-sb-badge';
+                var vis = primaryEl.querySelector('.dt-item-row .dt-vis');
+                if (vis) vis.before(badge); else primaryEl.querySelector('.dt-item-row').appendChild(badge);
+            }
+            badge.textContent = count + ' ⟳';
+            primaryEl.dataset.hasStandbys = '1';
+            var grip = primaryEl.querySelector('.dt-nav-grip');
+            if (grip) grip.title = 'Має резервних — не можна зробити резервним';
+        } else {
+            if (badge) badge.remove();
+            primaryEl.dataset.hasStandbys = '0';
+            var grip = primaryEl.querySelector('.dt-nav-grip');
+            if (grip) grip.title = 'Потягни вправо = резерв, вліво = основний';
+        }
+    }
+
     function applyStandbyToggle(item, isNowStandby) {
         // Close edit panel if open
         var panel = item.querySelector('.dt-panel');
@@ -2564,6 +2840,28 @@ function actToggle(row) {
         if (chevronBtn) { var cSvg = chevronBtn.querySelector('svg'); if (cSvg) cSvg.style.transform = ''; item.classList.remove('is-editing'); }
         var list2 = item.closest('.dt-nav-list');
         if (list2 && !list2.querySelector('.dt-item.is-editing')) list2.classList.remove('has-edit');
+
+        // Update parent primary's badge before changing isStandby state
+        if (isNowStandby) {
+            // Becoming standby — find nearest primary above in DOM
+            var nearestPrimary = null;
+            var el2 = item.previousElementSibling;
+            while (el2) {
+                if (el2.classList.contains('dt-item') && el2.dataset.isStandby === '0') { nearestPrimary = el2; break; }
+                el2 = el2.previousElementSibling;
+            }
+            if (nearestPrimary) {
+                refreshPrimaryBadge(list2, parseInt(nearestPrimary.dataset.id), +1);
+                item.dataset.parentId = nearestPrimary.dataset.id;
+                // Persist standby_for_id immediately after swipe (drag saves it via updateStandbyParent, swipe must do it here)
+                postJSON(URL_LINK, { type: item.dataset.type, id: parseInt(item.dataset.id), standby_for_id: parseInt(nearestPrimary.dataset.id) });
+            }
+        } else {
+            // Leaving standby — toggleStandby already clears standby_for_id in DB
+            var oldParentId2 = item.dataset.parentId ? parseInt(item.dataset.parentId) : null;
+            if (oldParentId2) refreshPrimaryBadge(list2, oldParentId2, -1);
+            item.dataset.parentId = '';
+        }
 
         item.dataset.isStandby = isNowStandby ? '1' : '0';
         item.classList.toggle('dt-item--root', !isNowStandby);
@@ -2589,7 +2887,7 @@ function actToggle(row) {
             }
         }
 
-        // Standby toggle button + failover button
+        // Standby toggle button
         var actions = item.querySelector('.dt-item-actions');
         if (actions) {
             var standbyBtn = actions.querySelector('button[title="Зробити резервним"], button[title="Зняти з резерву"]');
@@ -2598,6 +2896,7 @@ function actToggle(row) {
                 standbyBtn.style.color = isNowStandby ? 'var(--accent)' : 'var(--text-3)';
             }
         }
+
     }
 
     function sendReorder(list, type) {
@@ -2605,6 +2904,25 @@ function actToggle(row) {
             .filter(function (el) { return !el.classList.contains('dnd-placeholder'); })
             .map(function (el, i) { return { id: parseInt(el.dataset.id), sort_order: i }; });
         postJSON(URL_REORDER[type], { items: items });
+    }
+
+    function updateStandbyParent(item, type) {
+        var newParentId = null;
+        var el = item.previousElementSibling;
+        while (el) {
+            if (el.classList.contains('dt-item') && el.dataset.isStandby === '0') {
+                newParentId = parseInt(el.dataset.id);
+                break;
+            }
+            el = el.previousElementSibling;
+        }
+        var currentParentId = item.dataset.parentId ? parseInt(item.dataset.parentId) : null;
+        if (newParentId === currentParentId) return;
+        var list = item.closest('.dt-nav-list');
+        if (currentParentId) refreshPrimaryBadge(list, currentParentId, -1);
+        if (newParentId)     refreshPrimaryBadge(list, newParentId,     +1);
+        item.dataset.parentId = newParentId || '';
+        postJSON(URL_LINK, { type: type, id: parseInt(item.dataset.id), standby_for_id: newParentId });
     }
 
     document.querySelectorAll('.dt-nav-list').forEach(function (list) {
@@ -2671,12 +2989,17 @@ function actToggle(row) {
             var isStandby = item.dataset.isStandby === '1';
 
             if (mode === 'swipe') {
-                var triggered = (dx > SWIPE_THRESHOLD && !isStandby) || (dx < -SWIPE_THRESHOLD && isStandby);
+                var hasStandbys = item.dataset.hasStandbys === '1';
+                var triggered = (dx > SWIPE_THRESHOLD && !isStandby && !hasStandbys) || (dx < -SWIPE_THRESHOLD && isStandby);
                 if (triggered) {
                     item.style.opacity = '.4';
                     postJSON(URL_STANDBY, { type: type, id: parseInt(item.dataset.id) })
-                        .then(function (r) { return r.json(); })
+                        .then(function (r) {
+                            if (!r.ok) { item.style.opacity = ''; item.style.transform = ''; return null; }
+                            return r.json();
+                        })
                         .then(function (data) {
+                            if (!data) return;
                             item.style.opacity = '';
                             item.style.transform = '';
                             applyStandbyToggle(item, !!data.is_standby);
@@ -2694,6 +3017,9 @@ function actToggle(row) {
                 list.insertBefore(item, s.ph);
                 s.ph.remove(); s.ph = null;
                 sendReorder(list, type);
+                if (item.dataset.isStandby === '1') {
+                    updateStandbyParent(item, type);
+                }
             }
 
             cleanup();

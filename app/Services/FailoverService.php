@@ -166,6 +166,106 @@ class FailoverService
     }
 
     /**
+     * Block the currently active replacement and promote the next standby in priority order.
+     * Used for cascade: Primary blocked → #1 active → #1 blocked → #2 active → …
+     *
+     * @throws \RuntimeException
+     */
+    public static function blockAndCascade(
+        Site $site,
+        string $type,
+        int $activeId,
+        string $reason = '[SIM] Cascade block',
+        string $triggeredBy = 'manual',
+    ): void {
+        [$model] = self::resolve($type);
+
+        $active = $model::where('site_id', $site->id)
+            ->where('is_standby', false)
+            ->where('is_blocked', false)
+            ->findOrFail($activeId);
+
+        $originalPrimaryId = $active->standby_for_id;
+        if (!$originalPrimaryId) {
+            throw new \RuntimeException("Record #{$activeId} has no original primary reference.");
+        }
+
+        // Next standby: still in standby pool for the same original primary, lowest sort_order
+        $next = $model::where('site_id', $site->id)
+            ->where('is_standby', true)
+            ->where('is_blocked', false)
+            ->where('standby_for_id', $originalPrimaryId)
+            ->orderBy('sort_order')
+            ->first();
+
+        DB::transaction(function () use ($site, $type, $active, $next, $reason, $triggeredBy, $originalPrimaryId) {
+            $active->update(['is_blocked' => true, 'is_visible' => false, 'blocked_reason' => $reason]);
+
+            if ($next) {
+                $next->update(['is_standby' => false, 'is_visible' => true]);
+
+                SiteFailoverLog::create([
+                    'site_id'        => $site->id,
+                    'type'           => $type,
+                    'primary_id'     => $originalPrimaryId,
+                    'standby_id'     => $next->id,
+                    'triggered_by'   => $triggeredBy,
+                    'trigger_reason' => $reason,
+                    'snapshot'       => [
+                        'primary_before' => ['cascaded_from' => $active->id],
+                        'standby_before' => $next->toArray(),
+                    ],
+                ]);
+            }
+
+            SyncPushService::push($site);
+        });
+    }
+
+    /**
+     * Full chain restore: unblock primary + reset every standby in its chain.
+     * Handles cascaded failovers where multiple standbys were activated sequentially.
+     *
+     * @throws \RuntimeException
+     */
+    public static function restoreChain(Site $site, string $type, int $primaryId): void
+    {
+        [$model] = self::resolve($type);
+
+        $primary = $model::where('site_id', $site->id)->findOrFail($primaryId);
+
+        if (!$primary->is_blocked) {
+            throw new \RuntimeException("Record #{$primaryId} is not blocked.");
+        }
+
+        DB::transaction(function () use ($site, $type, $primary, $model, $primaryId) {
+            // Unblock original primary
+            $primary->update(['is_blocked' => false, 'is_visible' => true, 'blocked_reason' => null]);
+
+            // Reset all records in this chain: those promoted (is_standby=false) or blocked standbys
+            $model::where('site_id', $site->id)
+                ->where('standby_for_id', $primaryId)
+                ->each(function ($record) {
+                    $record->update([
+                        'is_standby'  => true,
+                        'is_blocked'  => false,
+                        'is_visible'  => true,
+                        'blocked_reason' => null,
+                    ]);
+                });
+
+            // Mark all active failover logs for this primary as rolled back
+            SiteFailoverLog::where('site_id', $site->id)
+                ->where('type', $type)
+                ->where('primary_id', $primaryId)
+                ->whereNull('rolled_back_at')
+                ->update(['rolled_back_at' => now()]);
+
+            SyncPushService::push($site);
+        });
+    }
+
+    /**
      * Get available standbys for a given primary record (for UI select).
      */
     public static function getAvailableStandbys(Site $site, string $type, int $primaryId): \Illuminate\Support\Collection

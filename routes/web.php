@@ -89,8 +89,10 @@ Route::middleware('auth')->group(function () {
     Route::post(  'sites/{site}/failover/standby',        [SiteFailoverController::class, 'toggleStandby'])->name('sites.failover.standby');
     Route::post(  'sites/{site}/failover/link',           [SiteFailoverController::class, 'linkStandby'])->name('sites.failover.link');
     Route::post(  'sites/{site}/failover/trigger',        [SiteFailoverController::class, 'trigger'])->name('sites.failover.trigger');
+    Route::post(  'sites/{site}/failover/cascade',        [SiteFailoverController::class, 'cascade'])->name('sites.failover.cascade');
     Route::post(  'sites/{site}/failover/restore',        [SiteFailoverController::class, 'restoreManual'])->name('sites.failover.restore');
     Route::post(  'sites/{site}/failover/{log}/rollback', [SiteFailoverController::class, 'rollback'])->name('sites.failover.rollback');
+    Route::delete('sites/{site}/failover/history',        [SiteFailoverController::class, 'clearHistory'])->name('sites.failover.history.clear');
 
     // Bulk data operations (multi-site) — UI planned, controller scaffolded
     Route::post('bulk/phones',  [BulkDataController::class, 'addPhone'])->name('bulk.phones');

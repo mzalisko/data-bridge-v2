@@ -28,6 +28,19 @@ class SiteFailoverController extends Controller
         $record = $model::where('site_id', $site->id)->findOrFail($data['id']);
         $newStandby = !$record->is_standby;
 
+        // Cannot make standby if it has its own standbys assigned to it
+        if ($newStandby) {
+            $hasChildren = $model::where('site_id', $site->id)
+                ->where('standby_for_id', $record->id)
+                ->exists();
+            if ($hasChildren) {
+                if ($request->wantsJson()) {
+                    return response()->json(['ok' => false, 'error' => 'has_standbys'], 422);
+                }
+                return back()->with('error', 'Не можна зробити резервним — цей запис має власних резервних. Спочатку від\'яжіть їх.');
+            }
+        }
+
         $record->update([
             'is_standby'     => $newStandby,
             'standby_for_id' => $newStandby ? ($data['standby_for_id'] ?? null) : null,
@@ -86,7 +99,30 @@ class SiteFailoverController extends Controller
         return back()->with('success', 'Прив\'язку резерву оновлено.');
     }
 
-    /** Restore original primary from CRM (manual / test simulation). */
+    /** Block the currently active replacement and cascade to the next standby. */
+    public function cascade(Request $request, Site $site): RedirectResponse
+    {
+        $data = $request->validate([
+            'type'      => ['required', 'in:phone,social'],
+            'active_id' => ['required', 'integer'],
+        ]);
+
+        try {
+            FailoverService::blockAndCascade(
+                site:        $site,
+                type:        $data['type'],
+                activeId:    (int) $data['active_id'],
+                reason:      '[SIM] Block active replacement',
+                triggeredBy: 'manual',
+            );
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Активний резерв заблоковано — підключено наступний у черзі.');
+    }
+
+    /** Restore original primary from CRM — full chain reset. */
     public function restoreManual(Request $request, Site $site): RedirectResponse
     {
         $data = $request->validate([
@@ -95,12 +131,21 @@ class SiteFailoverController extends Controller
         ]);
 
         try {
-            FailoverService::restore($site, $data['type'], (int) $data['primary_id']);
+            FailoverService::restoreChain($site, $data['type'], (int) $data['primary_id']);
         } catch (\RuntimeException $e) {
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', 'Оригінальний запис відновлено — повернувся у пріоритет.');
+        return back()->with('success', 'Оригінальний запис відновлено — весь ланцюг скинуто.');
+    }
+
+    /** Delete all failover history for a site (admin action from Settings). */
+    public function clearHistory(Site $site): RedirectResponse
+    {
+        SiteFailoverLog::where('site_id', $site->id)->delete();
+
+        return redirect()->route('sites.show', ['site' => $site, 'tab' => 'settings'])
+            ->with('success', 'Журнал failover очищено.');
     }
 
     /** Rollback a specific failover log from CRM. */

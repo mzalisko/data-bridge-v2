@@ -24,63 +24,56 @@ class DataBrowserController extends Controller
         $sites    = Site::orderBy('name')->get(['id', 'name', 'url']);
         $countries = Country::orderBy('sort_order')->orderBy('iso')->get(['iso', 'dial_code', 'name']);
 
+        $search = fn($w) => $w;
+
         switch ($type) {
             case 'phones':
-                $query = SitePhone::with('site')->orderBy('id');
-                if ($q) {
-                    $query->where(function ($w) use ($q) {
-                        $w->where('number', 'like', "%{$q}%")
-                          ->orWhere('label', 'like', "%{$q}%")
-                          ->orWhere('country_iso', 'like', "%{$q}%")
-                          ->orWhere('dial_code', 'like', "%{$q}%")
-                          ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%"));
-                    });
-                }
-                $rows = $query->get();
+                $query = SitePhone::with(['site.siteGroup'])->orderBy('site_id')->orderBy('sort_order');
+                if ($q) $query->where(fn($w) => $w
+                    ->where('number', 'like', "%{$q}%")
+                    ->orWhere('label', 'like', "%{$q}%")
+                    ->orWhere('country_iso', 'like', "%{$q}%")
+                    ->orWhere('dial_code', 'like', "%{$q}%")
+                    ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%")->orWhere('url', 'like', "%{$q}%")));
                 break;
-
             case 'prices':
-                $query = SitePrice::with('site')->orderBy('id');
-                if ($q) {
-                    $query->where(function ($w) use ($q) {
-                        $w->where('label', 'like', "%{$q}%")
-                          ->orWhere('currency', 'like', "%{$q}%")
-                          ->orWhere('amount', 'like', "%{$q}%")
-                          ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%"));
-                    });
-                }
-                $rows = $query->get();
+                $query = SitePrice::with(['site.siteGroup'])->orderBy('site_id')->orderBy('sort_order');
+                if ($q) $query->where(fn($w) => $w
+                    ->where('label', 'like', "%{$q}%")
+                    ->orWhere('currency', 'like', "%{$q}%")
+                    ->orWhere('amount', 'like', "%{$q}%")
+                    ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%")));
                 break;
-
             case 'addresses':
-                $query = SiteAddress::with('site')->orderBy('id');
-                if ($q) {
-                    $query->where(function ($w) use ($q) {
-                        $w->where('city', 'like', "%{$q}%")
-                          ->orWhere('street', 'like', "%{$q}%")
-                          ->orWhere('country_iso', 'like', "%{$q}%")
-                          ->orWhere('label', 'like', "%{$q}%")
-                          ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%"));
-                    });
-                }
-                $rows = $query->get();
+                $query = SiteAddress::with(['site.siteGroup'])->orderBy('site_id')->orderBy('sort_order');
+                if ($q) $query->where(fn($w) => $w
+                    ->where('city', 'like', "%{$q}%")
+                    ->orWhere('street', 'like', "%{$q}%")
+                    ->orWhere('country_iso', 'like', "%{$q}%")
+                    ->orWhere('label', 'like', "%{$q}%")
+                    ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%")));
                 break;
-
-            case 'socials':
-                $query = SiteSocial::with('site')->orderBy('id');
-                if ($q) {
-                    $query->where(function ($w) use ($q) {
-                        $w->where('url', 'like', "%{$q}%")
-                          ->orWhere('platform', 'like', "%{$q}%")
-                          ->orWhere('handle', 'like', "%{$q}%")
-                          ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%"));
-                    });
-                }
-                $rows = $query->get();
+            default: // socials
+                $type  = 'socials';
+                $query = SiteSocial::with(['site.siteGroup'])->orderBy('site_id')->orderBy('sort_order');
+                if ($q) $query->where(fn($w) => $w
+                    ->where('handle', 'like', "%{$q}%")
+                    ->orWhere('platform', 'like', "%{$q}%")
+                    ->orWhere('url', 'like', "%{$q}%")
+                    ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%")));
                 break;
         }
 
-        return view('admin.data.index', compact('type', 'q', 'rows', 'sites', 'countries'));
+        $rows = $query->paginate(50)->withQueryString();
+
+        $counts = [
+            'phones'    => SitePhone::count(),
+            'prices'    => SitePrice::count(),
+            'addresses' => SiteAddress::count(),
+            'socials'   => SiteSocial::count(),
+        ];
+
+        return view('admin.data.index', compact('type', 'q', 'rows', 'sites', 'countries', 'counts'));
     }
 
     public function bulkDelete(Request $request): RedirectResponse
