@@ -736,7 +736,6 @@
                 @foreach($flatPhones as $entry)
                 @php $ph = $entry['item']; $phDepth = $entry['depth']; $sbCount = $sbCountsPh->get($ph->id, 0); @endphp
                 <div class="dt-item {{ $phDepth ? 'dt-item--child' : 'dt-item--root' }}"
-                     draggable="true"
                      data-id="{{ $ph->id }}"
                      data-is-standby="{{ $ph->is_standby ? 1 : 0 }}"
                      data-parent-id="{{ $ph->standby_for_id ?? '' }}"
@@ -923,7 +922,6 @@
                 @foreach($flatMessengers as $entry)
                 @php $ms = $entry['item']; $msDepth = $entry['depth']; $msbCount = $sbCountsMs->get($ms->id, 0); $msk=strtolower($ms->platform??''); $msic=$socialIcon[$msk]??['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>']; @endphp
                 <div class="dt-item {{ $msDepth ? 'dt-item--child' : 'dt-item--root' }}"
-                     draggable="true"
                      data-id="{{ $ms->id }}"
                      data-is-standby="{{ $ms->is_standby ? 1 : 0 }}"
                      data-parent-id="{{ $ms->standby_for_id ?? '' }}"
@@ -2575,14 +2573,15 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
     if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
 });
 
-// ── DnD: Y-only reorder within the same list ──
-(function() {
+// ── Pointer-based gesture: swipe ←→ = standby toggle, drag ↕ = reorder ──
+(function () {
     var CSRF        = '{{ csrf_token() }}';
     var URL_REORDER = {
         phone:  '{{ route('phones.reorder', $site) }}',
         social: '{{ route('socials.reorder', $site) }}',
     };
-    var _drag = null;
+    var URL_STANDBY = '{{ route('sites.failover.standby', $site) }}';
+    var SWIPE_THRESHOLD = 60;
 
     function postJSON(url, data) {
         return fetch(url, {
@@ -2591,70 +2590,102 @@ document.getElementById('fo-modal')?.addEventListener('click', (e) => {
             body: JSON.stringify(data),
         });
     }
-    function clearPH(list) {
-        list.querySelectorAll(':scope > .dnd-placeholder').forEach(function(p) { p.remove(); });
-    }
-    function makePH(indented) {
-        var ph = document.createElement('div');
-        ph.className = 'dnd-placeholder';
-        if (indented) ph.style.marginLeft = '20px';
-        return ph;
-    }
-    function insertionPoint(list, clientY) {
-        var items = Array.from(list.querySelectorAll(':scope > .dt-item:not(.dnd-dragging)'));
-        for (var i = 0; i < items.length; i++) {
-            var r = items[i].getBoundingClientRect();
-            if (clientY < r.top + r.height / 2) return items[i];
-        }
-        return null;
-    }
+
     function sendReorder(list, type) {
         var items = Array.from(list.querySelectorAll(':scope > .dt-item'))
-            .filter(function(e) { return !e.classList.contains('dnd-placeholder'); })
-            .map(function(el, i) { return { id: parseInt(el.dataset.id), sort_order: i }; });
+            .filter(function (el) { return !el.classList.contains('dnd-placeholder'); })
+            .map(function (el, i) { return { id: parseInt(el.dataset.id), sort_order: i }; });
         postJSON(URL_REORDER[type], { items: items });
     }
 
-    document.querySelectorAll('.dt-nav-list').forEach(function(list) {
+    document.querySelectorAll('.dt-nav-list').forEach(function (list) {
         var type = list.dataset.type;
+        var s = { active: false, item: null, ph: null, mode: null, sx: 0, sy: 0, pid: null };
 
-        list.addEventListener('dragstart', function(e) {
-            var item = e.target.closest('.dt-item[draggable]');
+        function cleanup() {
+            if (s.item) {
+                s.item.style.transform = '';
+                s.item.style.transition = '';
+                s.item.classList.remove('is-dragging', 'swipe-right', 'swipe-left');
+            }
+            if (s.ph) { s.ph.remove(); s.ph = null; }
+            if (s.pid !== null) { try { list.releasePointerCapture(s.pid); } catch (e) {} }
+            s.active = false; s.item = null; s.mode = null; s.pid = null;
+        }
+
+        list.addEventListener('pointerdown', function (e) {
+            if (!e.target.closest('.dt-nav-grip')) return;
+            var item = e.target.closest('.dt-item[data-id]');
             if (!item || !list.contains(item)) return;
-            _drag = item;
-            item.classList.add('dnd-dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', item.dataset.id);
-        });
-
-        list.addEventListener('dragend', function() {
-            if (_drag) _drag.classList.remove('dnd-dragging');
-            clearPH(list);
-            _drag = null;
-        });
-
-        list.addEventListener('dragover', function(e) {
-            if (!_drag || !list.contains(_drag)) return;
             e.preventDefault();
-            var bef = insertionPoint(list, e.clientY);
-            clearPH(list);
-            var ph = makePH(_drag.classList.contains('dt-item--child'));
-            if (bef) list.insertBefore(ph, bef); else list.appendChild(ph);
+            list.setPointerCapture(e.pointerId);
+            s.active = true; s.item = item; s.mode = null;
+            s.sx = e.clientX; s.sy = e.clientY; s.pid = e.pointerId;
+            item.style.transition = 'none';
         });
 
-        list.addEventListener('dragleave', function(e) {
-            if (!list.contains(e.relatedTarget)) clearPH(list);
+        list.addEventListener('pointermove', function (e) {
+            if (!s.active || !s.item) return;
+            var dx = e.clientX - s.sx, dy = e.clientY - s.sy;
+            var adx = Math.abs(dx), ady = Math.abs(dy);
+
+            if (!s.mode) {
+                if (adx > 10 && adx > ady * 1.2)      s.mode = 'swipe';
+                else if (ady > 10 && ady > adx * 1.2) { s.mode = 'reorder'; s.item.classList.add('is-dragging'); }
+            }
+
+            if (s.mode === 'swipe') {
+                var clamped = Math.max(-130, Math.min(130, dx));
+                s.item.style.transform = 'translateX(' + clamped + 'px)';
+                s.item.classList.toggle('swipe-right', dx > 40);
+                s.item.classList.toggle('swipe-left',  dx < -40);
+            }
+
+            if (s.mode === 'reorder') {
+                if (s.ph) s.ph.remove();
+                s.ph = document.createElement('div');
+                s.ph.className = 'dnd-placeholder' + (s.item.classList.contains('dt-item--child') ? ' dnd-placeholder--child' : '');
+                var items = Array.from(list.querySelectorAll(':scope > .dt-item')).filter(function (el) { return el !== s.item; });
+                var before = null;
+                for (var i = 0; i < items.length; i++) {
+                    var r = items[i].getBoundingClientRect();
+                    if (e.clientY < r.top + r.height / 2) { before = items[i]; break; }
+                }
+                if (before) list.insertBefore(s.ph, before); else list.appendChild(s.ph);
+            }
         });
 
-        list.addEventListener('drop', function(e) {
-            e.preventDefault();
-            if (!_drag || !list.contains(_drag)) return;
-            var bef = insertionPoint(list, e.clientY);
-            clearPH(list);
-            if (bef) list.insertBefore(_drag, bef); else list.appendChild(_drag);
-            sendReorder(list, type);
+        list.addEventListener('pointerup', function (e) {
+            if (!s.active || !s.item) return;
+            var dx = e.clientX - s.sx;
+            var item = s.item, mode = s.mode;
+            var isStandby = item.dataset.isStandby === '1';
+
+            if (mode === 'swipe') {
+                var triggered = (dx > SWIPE_THRESHOLD && !isStandby) || (dx < -SWIPE_THRESHOLD && isStandby);
+                if (triggered) {
+                    item.style.opacity = '.4';
+                    postJSON(URL_STANDBY, { type: type, id: parseInt(item.dataset.id) })
+                        .then(function () { location.reload(); });
+                } else {
+                    item.style.transition = 'transform .2s cubic-bezier(.4,0,.2,1)';
+                    item.style.transform  = '';
+                    setTimeout(function () { item.style.transition = ''; }, 220);
+                }
+                item.classList.remove('swipe-right', 'swipe-left');
+            }
+
+            if (mode === 'reorder' && s.ph) {
+                list.insertBefore(item, s.ph);
+                s.ph.remove(); s.ph = null;
+                sendReorder(list, type);
+            }
+
+            cleanup();
         });
+
+        list.addEventListener('pointercancel', cleanup);
     });
-})();
+}());
 </script>
 @endpush

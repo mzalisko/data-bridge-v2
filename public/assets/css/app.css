@@ -876,8 +876,13 @@ img, svg { display: block; max-width: 100%; }
 .dt-nav-grip {
   cursor: grab; padding: 0 5px 0 8px; color: var(--muted);
   display: flex; align-items: center; flex-shrink: 0;
+  touch-action: none; user-select: none;
 }
 .dt-nav-grip:active { cursor: grabbing; }
+.dt-item.is-dragging  { opacity: .4; }
+.dt-item.swipe-right  { background: rgba(72,187,120,.10); }
+.dt-item.swipe-left   { background: rgba(245,101,101,.10); }
+.dnd-placeholder--child { margin-left: 20px; }
 .dt-nav-arrow {
   flex-shrink: 0; font-size: 12px; color: var(--muted);
   margin-right: 2px; line-height: 1; font-family: var(--font-mono);

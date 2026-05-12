@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 class SiteFailoverController extends Controller
 {
     /** Mark a phone/social as standby (toggle) and optionally link to a primary. */
-    public function toggleStandby(Request $request, Site $site): RedirectResponse
+    public function toggleStandby(Request $request, Site $site): RedirectResponse|JsonResponse
     {
         $data = $request->validate([
             'type'           => ['required', 'in:phone,social'],
