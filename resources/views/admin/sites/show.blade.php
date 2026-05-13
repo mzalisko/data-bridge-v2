@@ -332,12 +332,12 @@
                     $totalAll = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count();
                 @endphp
                 <div id="vis-panel-_all" style="display:none;">
-                    {{-- What everyone sees (full-width) --}}
-                    <div style="background:var(--panel);padding:20px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
+                        {{-- LEFT: що бачать усі відвідувачі --}}
+                        <div style="background:var(--panel);padding:20px;">
                             <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
                                 <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                                 Що бачать усі відвідувачі
-                                <span style="font-family:var(--font-mono);font-weight:700;color:var(--text-2);">{{ $wTotal }}/{{ $totalAll }}</span>
                             </div>
                             @if($wTotal === 0)
                                 <div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px;">Усі записи мають гео-обмеження</div>
@@ -398,6 +398,97 @@
                             @endif
                             @endif
                         </div>
+                        {{-- RIGHT: всі поля з гео-режимом --}}
+                        @php
+                            $wTdS = 'padding:4px 8px;font-size:11px;border-bottom:1px solid var(--border-2);';
+                            $wVKey = \App\Models\CustomPlatform::messengerSlugs();
+                            $wAllPhs  = $site->phones->sortBy('sort_order');
+                            $wAllPrs  = $site->prices->sortBy('sort_order');
+                            $wAllAds  = $site->addresses->sortBy('sort_order');
+                            $wAllMsgr = $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$wVKey))->sortBy('sort_order');
+                            $wAllSocN = $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$wVKey))->sortBy('sort_order');
+                            $wIsVis = fn($item) => ($item->is_visible ?? true) && in_array($item->geo_mode ?? 'all', ['all', 'exclude']);
+                        @endphp
+                        <div style="background:var(--panel);overflow-y:auto;">
+                            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;padding:10px 12px 8px;display:flex;justify-content:space-between;border-bottom:1px solid var(--border-2);">
+                                <span>Всі поля</span>
+                                <span style="font-family:var(--font-mono);color:{{ $wTotal===$totalAll?'#34d399':($wTotal>0?'var(--warning)':'#f87171') }};">{{ $wTotal }}/{{ $totalAll }}</span>
+                            </div>
+                            @if($wAllPhs->count())
+                            <div style="padding:6px 12px 3px;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Телефони</div>
+                            <table style="width:100%;border-collapse:collapse;">
+                                <tbody>
+                                @foreach($wAllPhs as $p)
+                                @php $pV = $wIsVis($p); @endphp
+                                <tr style="{{ !$pV?'opacity:.38;':'' }}">
+                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text);">{{ ($p->dial_code?'+'.$p->dial_code.' ':'').$p->number }}</td>
+                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:10px;">{{ $p->label ?: '' }}</td>
+                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                            @endif
+                            @if($wAllPrs->count())
+                            <div style="padding:6px 12px 3px;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Ціни</div>
+                            <table style="width:100%;border-collapse:collapse;">
+                                <tbody>
+                                @foreach($wAllPrs as $p)
+                                @php $pV = $wIsVis($p); @endphp
+                                <tr style="{{ !$pV?'opacity:.38;':'' }}">
+                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }} {{ $p->currency }}</td>
+                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:10px;">{{ $p->label ?: '' }}</td>
+                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                            @endif
+                            @if($wAllAds->count())
+                            <div style="padding:6px 12px 3px;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Адреси</div>
+                            <table style="width:100%;border-collapse:collapse;">
+                                <tbody>
+                                @foreach($wAllAds as $a)
+                                @php $pV = $wIsVis($a); @endphp
+                                <tr style="{{ !$pV?'opacity:.38;':'' }}">
+                                    <td style="{{ $wTdS }}color:var(--text-2);">{{ trim(($a->city??'').' '.($a->street??'')) ?: '—' }}</td>
+                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                            @endif
+                            @if($wAllMsgr->count())
+                            <div style="padding:6px 12px 3px;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Месенджери</div>
+                            <table style="width:100%;border-collapse:collapse;">
+                                <tbody>
+                                @foreach($wAllMsgr as $s)
+                                @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>'']; @endphp
+                                <tr style="{{ !$pV?'opacity:.38;':'' }}">
+                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:10px;color:var(--text-3);">{{ ucfirst($s->platform) }}</span></span></td>
+                                    <td style="{{ $wTdS }}color:var(--text-2);font-size:10px;">{{ $s->handle ?: '—' }}</td>
+                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                            @endif
+                            @if($wAllSocN->count())
+                            <div style="padding:6px 12px 3px;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Соцмережі</div>
+                            <table style="width:100%;border-collapse:collapse;">
+                                <tbody>
+                                @foreach($wAllSocN as $s)
+                                @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>'']; @endphp
+                                <tr style="{{ !$pV?'opacity:.38;':'' }}">
+                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:10px;color:var(--text-3);">{{ ucfirst($s->platform) }}</span></span></td>
+                                    <td style="{{ $wTdS }}color:var(--text-2);font-size:10px;">{{ $s->handle ?: '—' }}</td>
+                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
@@ -411,8 +502,8 @@
                         $rSocN  = $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$rMsgrK))->sortBy('sort_order');
                         $rMsgr  = $site->socials->filter(fn($s)=> in_array(strtolower($s->platform??''),$rMsgrK))->sortBy('sort_order');
                         $rTot   = $rPhs->count()+$rPrs->count()+$rAds->count()+$site->socials->count();
-                        $thR = 'padding:5px 8px;text-align:left;font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border-2);white-space:nowrap;';
-                        $tdR = 'padding:5px 8px;font-size:12px;border-bottom:1px solid var(--border-2);';
+                        $thR = 'padding:5px 8px;text-align:left;font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border-2);white-space:nowrap;overflow:hidden;';
+                        $tdR = 'padding:5px 8px;font-size:12px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
                     @endphp
                     <div style="background:var(--panel);">
                         <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;padding:10px 14px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-2);">
@@ -423,7 +514,8 @@
 
                         @if($rPhs->count())
                         <div style="padding:8px 14px 4px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Телефони</div>
-                        <table style="width:100%;border-collapse:collapse;">
+                        <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                            <colgroup><col style="width:68px"><col><col style="width:100px"><col style="width:82px"><col style="width:38px"></colgroup>
                             <thead><tr>
                                 <th style="{{ $thR }}">Статус</th>
                                 <th style="{{ $thR }}">Номер</th>
@@ -456,7 +548,8 @@
 
                         @if($rPrs->count())
                         <div style="padding:10px 14px 4px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Ціни</div>
-                        <table style="width:100%;border-collapse:collapse;">
+                        <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                            <colgroup><col style="width:82px"><col style="width:62px"><col><col style="width:82px"></colgroup>
                             <thead><tr>
                                 <th style="{{ $thR }}">Сума</th>
                                 <th style="{{ $thR }}">Валюта</th>
@@ -479,7 +572,8 @@
 
                         @if($rAds->count())
                         <div style="padding:10px 14px 4px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Адреси</div>
-                        <table style="width:100%;border-collapse:collapse;">
+                        <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                            <colgroup><col style="width:110px"><col style="width:46px"><col><col style="width:82px"><col style="width:38px"></colgroup>
                             <thead><tr>
                                 <th style="{{ $thR }}">Місто</th>
                                 <th style="{{ $thR }}">ISO</th>
@@ -503,7 +597,8 @@
 
                         @if($rMsgr->count())
                         <div style="padding:10px 14px 4px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Месенджери</div>
-                        <table style="width:100%;border-collapse:collapse;">
+                        <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                            <colgroup><col style="width:120px"><col><col style="width:82px"><col style="width:38px"></colgroup>
                             <thead><tr>
                                 <th style="{{ $thR }}">Платф.</th>
                                 <th style="{{ $thR }}">Handle</th>
@@ -526,7 +621,8 @@
 
                         @if($rSocN->count())
                         <div style="padding:10px 14px 4px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Соцмережі</div>
-                        <table style="width:100%;border-collapse:collapse;">
+                        <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                            <colgroup><col style="width:120px"><col><col style="width:82px"><col style="width:38px"></colgroup>
                             <thead><tr>
                                 <th style="{{ $thR }}">Платф.</th>
                                 <th style="{{ $thR }}">Handle</th>

@@ -681,6 +681,7 @@ function gdbUpdateSelection() {
     var count = _gdbSelected.size;
     var bar   = document.getElementById('gdb-action-bar');
     bar.style.display = count > 0 ? 'flex' : 'none';
+    updateActionBarBottom();
     document.getElementById('gdb-sel-count').textContent = count + ' обрано';
     var all = document.querySelectorAll('.gdb-row-cb').length;
     var cbAll = document.getElementById('gdb-cb-all');
@@ -796,6 +797,14 @@ function poolClear() {
     poolSetStep(1);
 }
 
+function updateActionBarBottom() {
+    var bar = document.getElementById('pool-bar');
+    var actionBar = document.getElementById('gdb-action-bar');
+    if (!actionBar) return;
+    var poolH = (bar && bar.classList.contains('is-visible')) ? bar.offsetHeight : 0;
+    actionBar.style.bottom = (poolH > 0 ? poolH + 12 : 80) + 'px';
+}
+
 function poolRender() {
     var bar   = document.getElementById('pool-bar');
     var chips = document.getElementById('pool-chips');
@@ -819,7 +828,7 @@ function poolRender() {
 
     // Show/hide bar
     if (_pool.length > 0) bar.classList.add('is-visible');
-    else { bar.classList.remove('is-visible', 'is-expanded'); return; }
+    else { bar.classList.remove('is-visible', 'is-expanded'); updateActionBarBottom(); return; }
 
     // Render chips
     chips.innerHTML = '';
@@ -833,13 +842,14 @@ function poolRender() {
             + '<button class="pool-chip__rm" onclick="poolRemove(\'' + item.id + '\')" title="Прибрати з пулу">×</button>';
         chips.appendChild(chip);
     });
-
+    updateActionBarBottom();
 }
 
 function poolToggleExpand() {
     document.getElementById('pool-bar').classList.toggle('is-expanded');
     var icon = document.getElementById('pool-expand-icon');
     icon.textContent = document.getElementById('pool-bar').classList.contains('is-expanded') ? '▾' : '▸';
+    updateActionBarBottom();
 }
 
 function poolSetStep(step) {
@@ -870,7 +880,7 @@ function poolGoToOp() {
 var _editOps  = [];
 var _editType = '{{ $type }}';
 var _editFields = {
-    phones:     [{v:'number',l:'Номер'},{v:'label',l:'Мітка'},{v:'country_iso',l:'Країна ISO'},{v:'dial_code',l:'Код (+)'}],
+    phones:     [{v:'number',l:'Номер'},{v:'label',l:'Мітка'},{v:'dial_code',l:'Код (+)'}],
     messengers: [{v:'handle',l:'Handle'},{v:'url',l:'URL'},{v:'platform',l:'Платформа'}],
     prices:     [{v:'amount',l:'Сума'},{v:'currency',l:'Валюта'},{v:'label',l:'Мітка'},{v:'period',l:'Период'}],
     addresses:  [{v:'city',l:'Місто'},{v:'country_iso',l:'Країна ISO'},{v:'street',l:'Вулиця'},{v:'label',l:'Мітка'}],
