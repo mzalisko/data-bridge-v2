@@ -507,7 +507,7 @@
                     @endphp
                     <div style="background:var(--panel);padding:14px;display:flex;flex-direction:column;gap:10px;">
                         @php
-                            $thR    = 'padding:6px 10px;text-align:left;font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border-2);white-space:nowrap;';
+                            $thR    = 'padding:6px 10px;text-align:left;font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border-2);white-space:nowrap;overflow:hidden;';
                             $tdR    = 'padding:7px 10px;font-size:12px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
                             $secH   = 'display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:var(--panel-2);border-bottom:1px solid var(--border-2);border-radius:7px 7px 0 0;';
                             $secL   = 'font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;';
@@ -526,7 +526,7 @@
                         <div style="{{ $card }}">
                             <div style="{{ $secH }}"><span style="{{ $secL }}">Телефони</span><span style="{{ $secN }}">{{ $rPhs->count() }}</span></div>
                             <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-                                <colgroup><col style="width:92px"><col><col style="width:160px"><col style="width:130px"><col style="width:44px"></colgroup>
+                                <colgroup><col style="width:92px"><col><col style="width:160px"><col style="width:130px"><col style="width:62px"></colgroup>
                                 <thead><tr>
                                     <th style="{{ $thR }}">Статус</th>
                                     <th style="{{ $thR }}">Номер</th>
@@ -588,7 +588,7 @@
                         <div style="{{ $card }}">
                             <div style="{{ $secH }}"><span style="{{ $secL }}">Адреси</span><span style="{{ $secN }}">{{ $rAds->count() }}</span></div>
                             <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-                                <colgroup><col style="width:160px"><col style="width:52px"><col><col style="width:150px"><col style="width:44px"></colgroup>
+                                <colgroup><col style="width:160px"><col style="width:52px"><col><col style="width:150px"><col style="width:62px"></colgroup>
                                 <thead><tr>
                                     <th style="{{ $thR }}">Місто</th>
                                     <th style="{{ $thR }}">ISO</th>
@@ -615,7 +615,7 @@
                         <div style="{{ $card }}">
                             <div style="{{ $secH }}"><span style="{{ $secL }}">Месенджери</span><span style="{{ $secN }}">{{ $rMsgr->count() }}</span></div>
                             <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-                                <colgroup><col style="width:160px"><col><col style="width:130px"><col style="width:44px"></colgroup>
+                                <colgroup><col style="width:160px"><col><col style="width:130px"><col style="width:62px"></colgroup>
                                 <thead><tr>
                                     <th style="{{ $thR }}">Платформа</th>
                                     <th style="{{ $thR }}">Handle</th>
@@ -641,7 +641,7 @@
                         <div style="{{ $card }}">
                             <div style="{{ $secH }}"><span style="{{ $secL }}">Соцмережі</span><span style="{{ $secN }}">{{ $rSocN->count() }}</span></div>
                             <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-                                <colgroup><col style="width:160px"><col><col style="width:130px"><col style="width:44px"></colgroup>
+                                <colgroup><col style="width:160px"><col><col style="width:130px"><col style="width:62px"></colgroup>
                                 <thead><tr>
                                     <th style="{{ $thR }}">Платформа</th>
                                     <th style="{{ $thR }}">Handle</th>
