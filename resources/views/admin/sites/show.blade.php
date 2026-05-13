@@ -332,9 +332,9 @@
                     $totalAll = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count();
                 @endphp
                 <div id="vis-panel-_all" style="display:none;">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
-                        {{-- LEFT: що бачать усі відвідувачі --}}
-                        <div style="background:var(--panel);padding:20px;">
+                    <div>
+                        {{-- LEFT: removed --}}
+                        <div style="display:none;">
                             <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
                                 <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                                 Що бачать усі відвідувачі
@@ -400,7 +400,7 @@
                         </div>
                         {{-- RIGHT: всі поля з гео-режимом --}}
                         @php
-                            $wTdS = 'padding:4px 8px;font-size:11px;border-bottom:1px solid var(--border-2);';
+                            $wTdS = 'padding:4px 8px;font-size:11px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
                             $wVKey = \App\Models\CustomPlatform::messengerSlugs();
                             $wAllPhs  = $site->phones->sortBy('sort_order');
                             $wAllPrs  = $site->prices->sortBy('sort_order');
@@ -416,14 +416,14 @@
                             </div>
                             @if($wAllPhs->count())
                             <div style="padding:6px 12px 3px;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Телефони</div>
-                            <table style="width:100%;border-collapse:collapse;">
+                            <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                                <colgroup><col><col style="width:26px"></colgroup>
                                 <tbody>
                                 @foreach($wAllPhs as $p)
                                 @php $pV = $wIsVis($p); @endphp
-                                <tr style="{{ !$pV?'opacity:.38;':'' }}">
-                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text);">{{ $p->number }}</td>
-                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:10px;">{{ $p->label ?: '' }}</td>
-                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
+                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text);">{{ $p->number }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:10px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
+                                    <td style="{{ $wTdS }}text-align:center;width:26px;padding:4px 6px;">@if($pV)<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                 </tr>
                                 @endforeach
                                 </tbody>
@@ -431,14 +431,14 @@
                             @endif
                             @if($wAllPrs->count())
                             <div style="padding:6px 12px 3px;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Ціни</div>
-                            <table style="width:100%;border-collapse:collapse;">
+                            <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                                <colgroup><col><col style="width:26px"></colgroup>
                                 <tbody>
                                 @foreach($wAllPrs as $p)
                                 @php $pV = $wIsVis($p); @endphp
-                                <tr style="{{ !$pV?'opacity:.38;':'' }}">
-                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }} {{ $p->currency }}</td>
-                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:10px;">{{ $p->label ?: '' }}</td>
-                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
+                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }} {{ $p->currency }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:10px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
+                                    <td style="{{ $wTdS }}text-align:center;width:26px;padding:4px 6px;">@if($pV)<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                 </tr>
                                 @endforeach
                                 </tbody>
@@ -446,13 +446,14 @@
                             @endif
                             @if($wAllAds->count())
                             <div style="padding:6px 12px 3px;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Адреси</div>
-                            <table style="width:100%;border-collapse:collapse;">
+                            <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                                <colgroup><col><col style="width:26px"></colgroup>
                                 <tbody>
                                 @foreach($wAllAds as $a)
                                 @php $pV = $wIsVis($a); @endphp
-                                <tr style="{{ !$pV?'opacity:.38;':'' }}">
+                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
                                     <td style="{{ $wTdS }}color:var(--text-2);">{{ trim(($a->city??'').' '.($a->street??'')) ?: '—' }}</td>
-                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
+                                    <td style="{{ $wTdS }}text-align:center;width:26px;padding:4px 6px;">@if($pV)<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                 </tr>
                                 @endforeach
                                 </tbody>
@@ -460,14 +461,14 @@
                             @endif
                             @if($wAllMsgr->count())
                             <div style="padding:6px 12px 3px;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Месенджери</div>
-                            <table style="width:100%;border-collapse:collapse;">
+                            <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                                <colgroup><col><col style="width:26px"></colgroup>
                                 <tbody>
                                 @foreach($wAllMsgr as $s)
                                 @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>'']; @endphp
-                                <tr style="{{ !$pV?'opacity:.38;':'' }}">
-                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:10px;color:var(--text-3);">{{ ucfirst($s->platform) }}</span></span></td>
-                                    <td style="{{ $wTdS }}color:var(--text-2);font-size:10px;">{{ $s->handle ?: '—' }}</td>
-                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
+                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:10px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
+                                    <td style="{{ $wTdS }}text-align:center;width:26px;padding:4px 6px;">@if($pV)<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                 </tr>
                                 @endforeach
                                 </tbody>
@@ -475,14 +476,14 @@
                             @endif
                             @if($wAllSocN->count())
                             <div style="padding:6px 12px 3px;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Соцмережі</div>
-                            <table style="width:100%;border-collapse:collapse;">
+                            <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                                <colgroup><col><col style="width:26px"></colgroup>
                                 <tbody>
                                 @foreach($wAllSocN as $s)
                                 @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>'']; @endphp
-                                <tr style="{{ !$pV?'opacity:.38;':'' }}">
-                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:10px;color:var(--text-3);">{{ ucfirst($s->platform) }}</span></span></td>
-                                    <td style="{{ $wTdS }}color:var(--text-2);font-size:10px;">{{ $s->handle ?: '—' }}</td>
-                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
+                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:10px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
+                                    <td style="{{ $wTdS }}text-align:center;width:26px;padding:4px 6px;">@if($pV)<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                 </tr>
                                 @endforeach
                                 </tbody>
@@ -676,10 +677,10 @@
                         $totalAll  = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count();
                     @endphp
                     <div id="vis-panel-{{ $visIso }}" style="display:none;">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
+                        <div>
 
-                            {{-- LEFT: Що бачить відвідувач --}}
-                            <div style="background:var(--panel);padding:20px;">
+                            {{-- LEFT: removed --}}
+                            <div style="display:none;">
                                 <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
                                     <span style="width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block;"></span>
                                     Що бачить відвідувач — {{ $visIso }}
