@@ -179,7 +179,6 @@ tr.in-pool td { background: rgba(99,179,237,.05) !important; }
                 <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text-3);white-space:nowrap;">Сайт</th>
                 @if($type==='phones')
                     <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text-3);">Номер</th>
-                    <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text-3);">Країна</th>
                     <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text-3);">Мітка</th>
                     <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text-3);">Гео</th>
                     <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text-3);">Статус</th>
@@ -214,7 +213,7 @@ tr.in-pool td { background: rgba(99,179,237,.05) !important; }
             $grpColor = $row->site?->siteGroup?->color ?? '#708499';
             // Build display string for pool chip
             if ($type === 'phones') {
-                $display = ($row->dial_code ? '+'.$row->dial_code.' ' : '') . $row->number;
+                $display = $row->number;
             } elseif ($type === 'messengers' || $type === 'socials') {
                 $display = ucfirst($row->platform) . ' · ' . ($row->handle ?: $row->url);
             } elseif ($type === 'prices') {
@@ -243,10 +242,7 @@ tr.in-pool td { background: rgba(99,179,237,.05) !important; }
             </td>
             @if($type==='phones')
                 <td style="padding:8px 12px;font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text);">
-                    {{ ($row->dial_code ? '+'.$row->dial_code.' ' : '') . $row->number }}
-                </td>
-                <td style="padding:8px 12px;">
-                    @if($row->country_iso)<span style="font-size:11px;font-family:var(--font-mono);background:var(--panel-2);padding:2px 6px;border-radius:4px;color:var(--text-2);">{{ $row->country_iso }}</span>@else<span style="color:var(--text-3);">—</span>@endif
+                    {{ $row->number }}
                 </td>
                 <td style="padding:8px 12px;font-size:12px;color:var(--text-3);">{{ $row->label ?: '—' }}</td>
                 <td style="padding:8px 12px;">
@@ -548,17 +544,8 @@ tr.in-pool td { background: rgba(99,179,237,.05) !important; }
         <div style="border-top:1px solid var(--border-2);padding-top:16px;">
         {{-- Phone fields --}}
         <div id="bulk-fields-phones" class="bulk-type-fields form-stack">
-            <div style="display:grid;grid-template-columns:90px 1fr;gap:10px;">
-                <div><label class="dt-label">Код</label><input type="text" class="dt-input" name="dial_code" placeholder="+380" maxlength="8"></div>
-                <div><label class="dt-label">Номер *</label><input type="text" class="dt-input" name="number" placeholder="50 123 4567" required></div>
-            </div>
+            <div><label class="dt-label">Номер *</label><input type="text" class="dt-input" name="number" placeholder="+380 50 123 4567" required></div>
             <div><label class="dt-label">Мітка</label><input type="text" class="dt-input" name="label" placeholder="Головний, Продажі…"></div>
-            <div><label class="dt-label">Країна ISO</label>
-                <select class="dt-input" name="country_iso">
-                    <option value="">— не вказано —</option>
-                    @foreach($countries as $c)<option value="{{ $c->iso }}">{{ $c->iso }} — {{ $c->name }}</option>@endforeach
-                </select>
-            </div>
         </div>
         {{-- Messenger fields --}}
         <div id="bulk-fields-messengers" class="bulk-type-fields form-stack" style="display:none;">
@@ -803,6 +790,7 @@ function updateActionBarBottom() {
     if (!actionBar) return;
     var poolH = (bar && bar.classList.contains('is-visible')) ? bar.offsetHeight : 0;
     actionBar.style.bottom = (poolH > 0 ? poolH + 12 : 80) + 'px';
+    document.querySelectorAll('.drawer.is-open').forEach(function(d) { d.style.bottom = poolH + 'px'; });
 }
 
 function poolRender() {
@@ -880,7 +868,7 @@ function poolGoToOp() {
 var _editOps  = [];
 var _editType = '{{ $type }}';
 var _editFields = {
-    phones:     [{v:'number',l:'Номер'},{v:'label',l:'Мітка'},{v:'dial_code',l:'Код (+)'}],
+    phones:     [{v:'number',l:'Номер'},{v:'label',l:'Мітка'}],
     messengers: [{v:'handle',l:'Handle'},{v:'url',l:'URL'},{v:'platform',l:'Платформа'}],
     prices:     [{v:'amount',l:'Сума'},{v:'currency',l:'Валюта'},{v:'label',l:'Мітка'},{v:'period',l:'Период'}],
     addresses:  [{v:'city',l:'Місто'},{v:'country_iso',l:'Країна ISO'},{v:'street',l:'Вулиця'},{v:'label',l:'Мітка'}],
@@ -948,8 +936,7 @@ function getValWidget(field, idx) {
         return '<select class="'+cls+'" '+attr+' style="font-size:12px;">'+opts+'</select>';
     }
     if (field === 'amount')    return '<input type="number" class="'+cls+'" '+attr+' step="0.01" min="0" placeholder="0.00" style="font-size:12px;">';
-    if (field === 'dial_code') return '<input type="text" class="'+cls+'" '+attr+' placeholder="380" maxlength="8" style="font-size:12px;font-family:var(--font-mono);">';
-    if (field === 'number')    return '<input type="text" class="'+cls+'" '+attr+' placeholder="50 123 4567" style="font-size:12px;font-family:var(--font-mono);">';
+    if (field === 'number')    return '<input type="text" class="'+cls+'" '+attr+' placeholder="+380 50 123 4567" style="font-size:12px;font-family:var(--font-mono);">';
     if (field === 'url')       return '<input type="url" class="'+cls+'" '+attr+' placeholder="https://..." style="font-size:12px;">';
     return '<input type="text" class="'+cls+'" '+attr+' placeholder="Нове значення…" style="font-size:12px;">';
 }

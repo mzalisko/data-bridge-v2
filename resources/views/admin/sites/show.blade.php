@@ -242,7 +242,7 @@
             $hasAnyData = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count() > 0;
             $conflicts = [];
             foreach ([
-                ['Телефони',  $site->phones,    fn($p) => ($p->dial_code ? '+'.$p->dial_code.' ' : '') . $p->number],
+                ['Телефони',  $site->phones,    fn($p) => $p->number],
                 ['Ціни',      $site->prices,    fn($p) => $p->label . ' — ' . number_format($p->amount, 2) . ' ' . $p->currency],
                 ['Адреси',    $site->addresses, fn($a) => $a->city . ($a->street ? ', '.$a->street : '')],
                 ['Соцмережі', $site->socials,   fn($s) => ucfirst($s->platform).': '.$s->handle],
@@ -421,9 +421,9 @@
                                 @foreach($wAllPhs as $p)
                                 @php $pV = $wIsVis($p); @endphp
                                 <tr style="{{ !$pV?'opacity:.38;':'' }}">
-                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text);">{{ ($p->dial_code?'+'.$p->dial_code.' ':'').$p->number }}</td>
+                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text);">{{ $p->number }}</td>
                                     <td style="{{ $wTdS }}color:var(--text-3);font-size:10px;">{{ $p->label ?: '' }}</td>
-                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                 </tr>
                                 @endforeach
                                 </tbody>
@@ -438,7 +438,7 @@
                                 <tr style="{{ !$pV?'opacity:.38;':'' }}">
                                     <td style="{{ $wTdS }}font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }} {{ $p->currency }}</td>
                                     <td style="{{ $wTdS }}color:var(--text-3);font-size:10px;">{{ $p->label ?: '' }}</td>
-                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                 </tr>
                                 @endforeach
                                 </tbody>
@@ -452,7 +452,7 @@
                                 @php $pV = $wIsVis($a); @endphp
                                 <tr style="{{ !$pV?'opacity:.38;':'' }}">
                                     <td style="{{ $wTdS }}color:var(--text-2);">{{ trim(($a->city??'').' '.($a->street??'')) ?: '—' }}</td>
-                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                 </tr>
                                 @endforeach
                                 </tbody>
@@ -467,7 +467,7 @@
                                 <tr style="{{ !$pV?'opacity:.38;':'' }}">
                                     <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:10px;color:var(--text-3);">{{ ucfirst($s->platform) }}</span></span></td>
                                     <td style="{{ $wTdS }}color:var(--text-2);font-size:10px;">{{ $s->handle ?: '—' }}</td>
-                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                 </tr>
                                 @endforeach
                                 </tbody>
@@ -482,7 +482,7 @@
                                 <tr style="{{ !$pV?'opacity:.38;':'' }}">
                                     <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:10px;color:var(--text-3);">{{ ucfirst($s->platform) }}</span></span></td>
                                     <td style="{{ $wTdS }}color:var(--text-2);font-size:10px;">{{ $s->handle ?: '—' }}</td>
-                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                    <td style="{{ $wTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                 </tr>
                                 @endforeach
                                 </tbody>
@@ -536,10 +536,10 @@
                                     @elseif($p->standby_for_id)<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(99,179,237,.12);color:#63b3ed;font-weight:600;">Резерв</span>
                                     @else<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(72,187,120,.1);color:#48bb78;font-weight:600;">Осн.</span>@endif
                                 </td>
-                                <td style="{{ $tdR }}font-family:var(--font-mono);font-weight:600;color:var(--text);{{ $p->is_blocked?'text-decoration:line-through;':'' }}">{{ ($p->dial_code?'+'.$p->dial_code.' ':'').$p->number }}</td>
+                                <td style="{{ $tdR }}font-family:var(--font-mono);font-weight:600;color:var(--text);{{ $p->is_blocked?'text-decoration:line-through;':'' }}">{{ $p->number }}</td>
                                 <td style="{{ $tdR }}color:var(--text-3);">{{ $p->label ?: '—' }}</td>
                                 <td style="{{ $tdR }}color:var(--text-3);font-size:11px;">{{ $pGeoTxt }}</td>
-                                <td style="{{ $tdR }}text-align:center;">@if($p->is_visible??true)<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                <td style="{{ $tdR }}text-align:center;">@if($p->is_visible??true)<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                             </tr>
                             @endforeach
                             </tbody>
@@ -588,7 +588,7 @@
                                 <td style="{{ $tdR }}font-family:var(--font-mono);color:var(--text-3);">{{ $a->country_iso ?: '—' }}</td>
                                 <td style="{{ $tdR }}color:var(--text-3);">{{ $a->street ?: '—' }}</td>
                                 <td style="{{ $tdR }}color:var(--text-3);">{{ $a->label ?: '—' }}</td>
-                                <td style="{{ $tdR }}text-align:center;">@if($a->is_visible??true)<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                <td style="{{ $tdR }}text-align:center;">@if($a->is_visible??true)<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                             </tr>
                             @endforeach
                             </tbody>
@@ -607,12 +607,12 @@
                             </tr></thead>
                             <tbody>
                             @foreach($rMsgr as $s)
-                            @php $sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sgTxt=($s->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$s->geo_mode]??''); @endphp
+                            @php $sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sgTxt=($s->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$s->geo_mode]??'');if(($s->geo_mode??'all')!=='all'&&$s->geo_countries)$sgTxt.=' '.implode(',', (array)$s->geo_countries); @endphp
                             <tr style="{{ !($s->is_visible??true)?'opacity:.45;':'' }}">
                                 <td style="{{ $tdR }}"><span style="display:inline-flex;align-items:center;gap:5px;"><span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-3);">{{ ucfirst($s->platform) }}</span></span></td>
                                 <td style="{{ $tdR }}color:var(--text-2);">{{ $s->handle ?: '—' }}</td>
                                 <td style="{{ $tdR }}color:var(--text-3);font-size:11px;">{{ $sgTxt }}</td>
-                                <td style="{{ $tdR }}text-align:center;">@if($s->is_visible??true)<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                <td style="{{ $tdR }}text-align:center;">@if($s->is_visible??true)<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                             </tr>
                             @endforeach
                             </tbody>
@@ -631,12 +631,12 @@
                             </tr></thead>
                             <tbody>
                             @foreach($rSocN as $s)
-                            @php $sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sgTxt=($s->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$s->geo_mode]??''); @endphp
+                            @php $sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sgTxt=($s->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$s->geo_mode]??'');if(($s->geo_mode??'all')!=='all'&&$s->geo_countries)$sgTxt.=' '.implode(',', (array)$s->geo_countries); @endphp
                             <tr style="{{ !($s->is_visible??true)?'opacity:.45;':'' }}">
                                 <td style="{{ $tdR }}"><span style="display:inline-flex;align-items:center;gap:5px;"><span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-3);">{{ ucfirst($s->platform) }}</span></span></td>
                                 <td style="{{ $tdR }}color:var(--text-2);">{{ $s->handle ?: '—' }}</td>
                                 <td style="{{ $tdR }}color:var(--text-3);font-size:11px;">{{ $sgTxt }}</td>
-                                <td style="{{ $tdR }}text-align:center;">@if($s->is_visible??true)<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                <td style="{{ $tdR }}text-align:center;">@if($s->is_visible??true)<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                             </tr>
                             @endforeach
                             </tbody>
@@ -775,9 +775,9 @@
                                     @foreach($mAllPhs as $p)
                                     @php $pV = ($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso); @endphp
                                     <tr style="{{ !$pV?'opacity:.38;':'' }}">
-                                        <td style="{{ $mTdS }}font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text);">{{ ($p->dial_code?'+'.$p->dial_code.' ':'').$p->number }}</td>
+                                        <td style="{{ $mTdS }}font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text);">{{ $p->number }}</td>
                                         <td style="{{ $mTdS }}color:var(--text-3);font-size:10px;">{{ $p->label ?: '' }}</td>
-                                        <td style="{{ $mTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                        <td style="{{ $mTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                     </tr>
                                     @endforeach
                                     </tbody>
@@ -792,7 +792,7 @@
                                     <tr style="{{ !$pV?'opacity:.38;':'' }}">
                                         <td style="{{ $mTdS }}font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }} {{ $p->currency }}</td>
                                         <td style="{{ $mTdS }}color:var(--text-3);font-size:10px;">{{ $p->label ?: '' }}</td>
-                                        <td style="{{ $mTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                        <td style="{{ $mTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                     </tr>
                                     @endforeach
                                     </tbody>
@@ -806,7 +806,7 @@
                                     @php $pV = ($a->is_visible??true)&&$geoVis($a->geo_mode,$a->geo_countries,$visIso,$a->country_iso); @endphp
                                     <tr style="{{ !$pV?'opacity:.38;':'' }}">
                                         <td style="{{ $mTdS }}color:var(--text-2);">{{ trim(($a->city??'').' '.($a->street??'')) ?: '—' }}</td>
-                                        <td style="{{ $mTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                        <td style="{{ $mTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                     </tr>
                                     @endforeach
                                     </tbody>
@@ -821,7 +821,7 @@
                                     <tr style="{{ !$pV?'opacity:.38;':'' }}">
                                         <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:10px;color:var(--text-3);">{{ ucfirst($s->platform) }}</span></span></td>
                                         <td style="{{ $mTdS }}color:var(--text-2);font-size:10px;">{{ $s->handle ?: '—' }}</td>
-                                        <td style="{{ $mTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                        <td style="{{ $mTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                     </tr>
                                     @endforeach
                                     </tbody>
@@ -836,7 +836,7 @@
                                     <tr style="{{ !$pV?'opacity:.38;':'' }}">
                                         <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:10px;color:var(--text-3);">{{ ucfirst($s->platform) }}</span></span></td>
                                         <td style="{{ $mTdS }}color:var(--text-2);font-size:10px;">{{ $s->handle ?: '—' }}</td>
-                                        <td style="{{ $mTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#48bb78" stroke-width="2.5" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>@else<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>@endif</td>
+                                        <td style="{{ $mTdS }}text-align:center;width:20px;">@if($pV)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                     </tr>
                                     @endforeach
                                     </tbody>
@@ -1062,7 +1062,7 @@
                                     @if($ph->label){{ $ph->label }}&thinsp;·&thinsp;@endif
                                     @if($isActiveReplPh)
                                         <span class="dt-badge dt-badge--replacing">⟳ активний</span>
-                                        @if($parentPhItem)<span class="dt-replacing-label">замість {{ ($parentPhItem->dial_code ? '+'.$parentPhItem->dial_code.' ' : '').$parentPhItem->number }}</span>@endif
+                                        @if($parentPhItem)<span class="dt-replacing-label">замість {{ $parentPhItem->number }}</span>@endif
                                     @elseif($ph->is_blocked)
                                         <span class="dt-badge dt-badge--blocked">✕ заблок.</span>
                                     @else
@@ -1159,7 +1159,7 @@
                             <select name="phone_id" class="dt-input">
                                 <option value="">— без прив'язки —</option>
                                 @foreach($site->phones as $ph)
-                                    <option value="{{ $ph->id }}">{{ ($ph->dial_code ? '+'.$ph->dial_code.' ' : '').$ph->number }}{{ $ph->label ? ' · '.$ph->label : '' }}</option>
+                                    <option value="{{ $ph->id }}">{{ $ph->number }}{{ $ph->label ? ' · '.$ph->label : '' }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -1284,7 +1284,7 @@
                                 <div><label class="dt-label">Нікнейм / номер</label><input type="text" name="handle" class="dt-input" value="{{ $ms->handle }}"></div>
                             </div>
                             <div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">Посилання</label><input type="url" name="url" class="dt-input" value="{{ $ms->url }}"></div>
-                            @if($site->phones->count())<div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">Прив'язати до номеру</label><select name="phone_id" class="dt-input"><option value="">— без прив'язки —</option>@foreach($site->phones as $ph)<option value="{{ $ph->id }}" {{ $ms->phone_id==$ph->id?'selected':'' }}>{{ ($ph->dial_code?'+'.$ph->dial_code.' ':'').$ph->number }}{{ $ph->label?' · '.$ph->label:'' }}</option>@endforeach</select></div>@endif
+                            @if($site->phones->count())<div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">Прив'язати до номеру</label><select name="phone_id" class="dt-input"><option value="">— без прив'язки —</option>@foreach($site->phones as $ph)<option value="{{ $ph->id }}" {{ $ms->phone_id==$ph->id?'selected':'' }}>{{ $ph->number }}{{ $ph->label?' · '.$ph->label:'' }}</option>@endforeach</select></div>@endif
                             <div class="dt-geo-row"><span class="dt-geo-label">Видно:</span>
                                 @php $em=$ms->geo_mode??'all'; @endphp
                                 @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv=>$ml)<label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-so{{ $ms->id }}-{{ $mv }}"><input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;" onchange="dtGeoMode('so{{ $ms->id }}','{{ $mv }}')">{{ $ml }}</label>@endforeach
@@ -2011,10 +2011,10 @@
                             ? $site->phones->find($fl->standby_id)
                             : $site->socials->find($fl->standby_id);
                         $flPrimaryLabel = $flPrimary
-                            ? (($flPrimary->number ?? null) ? ($flPrimary->dial_code ? '+'.$flPrimary->dial_code.' ' : '').$flPrimary->number : ucfirst($flPrimary->platform ?? '').' '.$flPrimary->handle)
+                            ? (($flPrimary->number ?? null) ? $flPrimary->number : ucfirst($flPrimary->platform ?? '').' '.$flPrimary->handle)
                             : '#'.$fl->primary_id;
                         $flStandbyLabel = $flStandby
-                            ? (($flStandby->number ?? null) ? ($flStandby->dial_code ? '+'.$flStandby->dial_code.' ' : '').$flStandby->number : ucfirst($flStandby->platform ?? '').' '.$flStandby->handle)
+                            ? (($flStandby->number ?? null) ? $flStandby->number : ucfirst($flStandby->platform ?? '').' '.$flStandby->handle)
                             : '#'.$fl->standby_id;
                     @endphp
                     <div class="dt-item" style="{{ $fl->rolled_back_at ? 'opacity:.55;' : '' }}">
@@ -2313,7 +2313,7 @@
                         </p>
                         @php
                             $simAll      = $site->phones->keyBy('id');
-                            $simFmt      = fn($p) => ($p->dial_code ? '+'.$p->dial_code.' ' : '').$p->number.($p->label ? ' · '.$p->label : '');
+                            $simFmt      = fn($p) => $p->number.($p->label ? ' · '.$p->label : '');
                             // True primaries: is_standby=false AND no standby_for_id (original primaries only)
                             $truePrimaries = $site->phones->filter(fn($p) => !$p->is_standby && !$p->standby_for_id)->sortBy('sort_order');
                             // All chain members (standbys + promoted) grouped by original primary id

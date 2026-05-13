@@ -225,12 +225,14 @@ function openDrawer(id) {
     var dr = document.getElementById(id);
     if (ov) ov.classList.add('is-open');
     if (dr) dr.classList.add('is-open');
+    if (typeof updateActionBarBottom === 'function') updateActionBarBottom();
 }
 function closeDrawer(id) {
     var ov = document.getElementById(id + '-overlay');
     var dr = document.getElementById(id);
     if (ov) ov.classList.remove('is-open');
-    if (dr) dr.classList.remove('is-open');
+    if (dr) { dr.classList.remove('is-open'); dr.style.bottom = ''; }
+    if (typeof updateActionBarBottom === 'function') updateActionBarBottom();
 }
 // ── Activity diff toggle ─────────────────────────────────────
 function actToggle(row) {
