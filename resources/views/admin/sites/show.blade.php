@@ -514,8 +514,8 @@
 
                         @if($rPhs->count())
                         <div style="padding:8px 14px 4px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Телефони</div>
-                        <table style="width:auto;border-collapse:collapse;table-layout:fixed;">
-                            <colgroup><col style="width:70px"><col style="width:190px"><col style="width:120px"><col style="width:100px"><col style="width:40px"></colgroup>
+                        <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                            <colgroup><col style="width:13%"><col style="width:28%"><col style="width:22%"><col style="width:27%"><col style="width:10%"></colgroup>
                             <thead><tr>
                                 <th style="{{ $thR }}">Статус</th>
                                 <th style="{{ $thR }}">Номер</th>
@@ -548,8 +548,8 @@
 
                         @if($rPrs->count())
                         <div style="padding:10px 14px 4px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Ціни</div>
-                        <table style="width:auto;border-collapse:collapse;table-layout:fixed;">
-                            <colgroup><col style="width:82px"><col style="width:62px"><col style="width:180px"><col style="width:100px"></colgroup>
+                        <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                            <colgroup><col style="width:18%"><col style="width:12%"><col style="width:40%"><col style="width:30%"></colgroup>
                             <thead><tr>
                                 <th style="{{ $thR }}">Сума</th>
                                 <th style="{{ $thR }}">Валюта</th>
@@ -572,8 +572,8 @@
 
                         @if($rAds->count())
                         <div style="padding:10px 14px 4px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Адреси</div>
-                        <table style="width:auto;border-collapse:collapse;table-layout:fixed;">
-                            <colgroup><col style="width:110px"><col style="width:46px"><col style="width:180px"><col style="width:100px"><col style="width:40px"></colgroup>
+                        <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                            <colgroup><col style="width:22%"><col style="width:8%"><col style="width:36%"><col style="width:24%"><col style="width:10%"></colgroup>
                             <thead><tr>
                                 <th style="{{ $thR }}">Місто</th>
                                 <th style="{{ $thR }}">ISO</th>
@@ -597,8 +597,8 @@
 
                         @if($rMsgr->count())
                         <div style="padding:10px 14px 4px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Месенджери</div>
-                        <table style="width:auto;border-collapse:collapse;table-layout:fixed;">
-                            <colgroup><col style="width:120px"><col style="width:200px"><col style="width:100px"><col style="width:40px"></colgroup>
+                        <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                            <colgroup><col style="width:22%"><col style="width:42%"><col style="width:26%"><col style="width:10%"></colgroup>
                             <thead><tr>
                                 <th style="{{ $thR }}">Платф.</th>
                                 <th style="{{ $thR }}">Handle</th>
@@ -621,8 +621,8 @@
 
                         @if($rSocN->count())
                         <div style="padding:10px 14px 4px;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Соцмережі</div>
-                        <table style="width:auto;border-collapse:collapse;table-layout:fixed;">
-                            <colgroup><col style="width:120px"><col style="width:200px"><col style="width:100px"><col style="width:40px"></colgroup>
+                        <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                            <colgroup><col style="width:22%"><col style="width:42%"><col style="width:26%"><col style="width:10%"></colgroup>
                             <thead><tr>
                                 <th style="{{ $thR }}">Платф.</th>
                                 <th style="{{ $thR }}">Handle</th>
