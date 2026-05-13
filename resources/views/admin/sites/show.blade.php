@@ -785,13 +785,12 @@
                                 @if($mAllPhs->count())
                                 <div style="padding:6px 12px 3px;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Телефони</div>
                                 <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-                                    <colgroup><col style="width:140px"><col><col style="width:26px"></colgroup>
+                                    <colgroup><col><col style="width:26px"></colgroup>
                                     <tbody>
                                     @foreach($mAllPhs as $p)
                                     @php $pV = ($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso); @endphp
                                     <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
-                                        <td style="{{ $mTdS }}font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text);">{{ $p->number }}</td>
-                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:10px;">{{ $p->label ?: '' }}</td>
+                                        <td style="{{ $mTdS }}font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text);">{{ $p->number }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:10px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
                                         <td style="{{ $mTdS }}text-align:center;width:26px;padding:4px 6px;">@if($pV)<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                     </tr>
                                     @endforeach
@@ -801,13 +800,12 @@
                                 @if($mAllPrs->count())
                                 <div style="padding:6px 12px 3px;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Ціни</div>
                                 <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-                                    <colgroup><col style="width:110px"><col><col style="width:26px"></colgroup>
+                                    <colgroup><col><col style="width:26px"></colgroup>
                                     <tbody>
                                     @foreach($mAllPrs as $p)
                                     @php $pV = ($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso); @endphp
                                     <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
-                                        <td style="{{ $mTdS }}font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }} {{ $p->currency }}</td>
-                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:10px;">{{ $p->label ?: '' }}</td>
+                                        <td style="{{ $mTdS }}font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }} {{ $p->currency }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:10px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
                                         <td style="{{ $mTdS }}text-align:center;width:26px;padding:4px 6px;">@if($pV)<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                     </tr>
                                     @endforeach
@@ -832,13 +830,12 @@
                                 @if($mAllMsgr->count())
                                 <div style="padding:6px 12px 3px;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Месенджери</div>
                                 <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-                                    <colgroup><col style="width:110px"><col><col style="width:26px"></colgroup>
+                                    <colgroup><col><col style="width:26px"></colgroup>
                                     <tbody>
                                     @foreach($mAllMsgr as $s)
                                     @php $pV=($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>'']; @endphp
                                     <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
-                                        <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:10px;color:var(--text-3);">{{ ucfirst($s->platform) }}</span></span></td>
-                                        <td style="{{ $mTdS }}color:var(--text-2);font-size:10px;">{{ $s->handle ?: '—' }}</td>
+                                        <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:10px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
                                         <td style="{{ $mTdS }}text-align:center;width:26px;padding:4px 6px;">@if($pV)<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                     </tr>
                                     @endforeach
@@ -848,13 +845,12 @@
                                 @if($mAllSocN->count())
                                 <div style="padding:6px 12px 3px;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Соцмережі</div>
                                 <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-                                    <colgroup><col style="width:110px"><col><col style="width:26px"></colgroup>
+                                    <colgroup><col><col style="width:26px"></colgroup>
                                     <tbody>
                                     @foreach($mAllSocN as $s)
                                     @php $pV=($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>'']; @endphp
                                     <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
-                                        <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:10px;color:var(--text-3);">{{ ucfirst($s->platform) }}</span></span></td>
-                                        <td style="{{ $mTdS }}color:var(--text-2);font-size:10px;">{{ $s->handle ?: '—' }}</td>
+                                        <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:10px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
                                         <td style="{{ $mTdS }}text-align:center;width:26px;padding:4px 6px;">@if($pV)<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif</td>
                                     </tr>
                                     @endforeach
