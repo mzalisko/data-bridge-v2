@@ -71,6 +71,9 @@ class LogController extends Controller
         if ($request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
         }
+        if ($request->filled('source')) {
+            $query->where('source', $request->source);
+        }
 
         $logs   = $query->paginate(40)->withQueryString();
         $sites  = Site::orderBy('name')->get(['id', 'name']);

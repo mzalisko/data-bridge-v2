@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\SiteAddress;
+use App\Services\ActivityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -32,6 +33,7 @@ class ApiAddressController extends Controller
         ]);
 
         $address = $site->addresses()->create($validated);
+        ActivityService::log('address', 'create', $address, "API: адресу {$address->city} додано", $site, source: 'api');
 
         return response()->json([
             'status'    => 'ok',
@@ -68,7 +70,9 @@ class ApiAddressController extends Controller
             'sort_order'  => 'integer',
         ]);
 
+        $before = $address->toArray();
         $address->update($validated);
+        ActivityService::log('address', 'update', $address, "API: адресу {$address->city} оновлено", $site, $before, 'api');
 
         return response()->json([
             'status'    => 'ok',
@@ -92,6 +96,7 @@ class ApiAddressController extends Controller
             return response()->json(['status' => 'error', 'code' => 404, 'message' => 'Address not found'], 404);
         }
 
+        ActivityService::log('address', 'delete', $address, "API: адресу {$address->city} видалено", $site, source: 'api');
         $address->delete();
 
         return response()->json(['status' => 'ok', 'deleted_id' => $id]);

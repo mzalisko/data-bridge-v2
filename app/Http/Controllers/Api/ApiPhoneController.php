@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\SitePhone;
+use App\Services\ActivityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -28,6 +29,7 @@ class ApiPhoneController extends Controller
         ]);
 
         $phone = $site->phones()->create($validated);
+        ActivityService::log('phone', 'create', $phone, "API: телефон {$phone->number} додано", $site, source: 'api');
 
         return response()->json([
             'status'    => 'ok',
@@ -60,7 +62,9 @@ class ApiPhoneController extends Controller
             'sort_order' => 'integer',
         ]);
 
+        $before = $phone->toArray();
         $phone->update($validated);
+        ActivityService::log('phone', 'update', $phone, "API: телефон {$phone->number} оновлено", $site, $before, 'api');
 
         return response()->json([
             'status'    => 'ok',
@@ -84,6 +88,7 @@ class ApiPhoneController extends Controller
             return response()->json(['status' => 'error', 'code' => 404, 'message' => 'Phone not found'], 404);
         }
 
+        ActivityService::log('phone', 'delete', $phone, "API: телефон {$phone->number} видалено", $site, source: 'api');
         $phone->delete();
 
         return response()->json(['status' => 'ok', 'deleted_id' => $id]);

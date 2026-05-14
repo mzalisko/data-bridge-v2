@@ -10,8 +10,9 @@
         'address' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
         'social'  => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
         'field'   => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>',
+        'geo'     => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
     ];
-    $actLabels  = ['phone'=>'Телефон','price'=>'Ціна','address'=>'Адреса','social'=>'Соцмережа','field'=>'Поле'];
+    $actLabels  = ['phone'=>'Телефон','price'=>'Ціна','address'=>'Адреса','social'=>'Соцмережа','field'=>'Поле','geo'=>'Гео'];
     $actionLabel= ['create'=>'додано','update'=>'оновлено','delete'=>'видалено'];
     $fieldLabels= ['number'=>'Номер','label'=>'Мітка','geo_mode'=>'Гео-правило','geo_countries'=>'Країни','is_primary'=>'Основний','is_visible'=>'Видимий','amount'=>'Сума','currency'=>'Валюта','city'=>'Місто','street'=>'Вулиця','region'=>'Регіон','country_iso'=>'Країна','platform'=>'Платформа','handle'=>'Handle','url'=>'URL','field_key'=>'Ключ','field_value'=>'Значення','dial_code'=>'Код'];
     $skipFields = ['id','site_id','group_id','created_at','updated_at','sort_order'];
@@ -76,6 +77,22 @@
                 <input type="hidden" name="action" value="{{ request('action','') }}">
             </div>
 
+            {{-- Source --}}
+            <div class="cselect" id="cs-source">
+                <button type="button" class="cselect__trigger" onclick="csToggle('cs-source')">
+                    <span class="cselect__label">{{ ['crm'=>'CRM','api'=>'API','bulk'=>'Bulk'][request('source')] ?? 'Всі джерела' }}</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="cselect__menu">
+                    <div class="cselect__option {{ !request('source') ? 'is-active' : '' }}" onclick="csSelect('cs-source','','Всі джерела')">Всі джерела</div>
+                    <div class="cselect__divider"></div>
+                    <div class="cselect__option {{ request('source') === 'crm'  ? 'is-active' : '' }}" onclick="csSelect('cs-source','crm','CRM')">CRM</div>
+                    <div class="cselect__option {{ request('source') === 'api'  ? 'is-active' : '' }}" onclick="csSelect('cs-source','api','API')">API</div>
+                    <div class="cselect__option {{ request('source') === 'bulk' ? 'is-active' : '' }}" onclick="csSelect('cs-source','bulk','Bulk')">Bulk</div>
+                </div>
+                <input type="hidden" name="source" value="{{ request('source','') }}">
+            </div>
+
             {{-- Group --}}
             <div class="cselect" id="cs-group">
                 <button type="button" class="cselect__trigger" onclick="csToggle('cs-group')">
@@ -108,7 +125,7 @@
                 <input type="hidden" name="site_id" value="{{ request('site_id','') }}">
             </div>
 
-            @if(request()->anyFilled(['entity_type','action','site_id','group_id']))
+            @if(request()->anyFilled(['entity_type','action','source','site_id','group_id']))
                 <a href="{{ route('logs.activity') }}" class="btn btn--ghost btn--sm">✕ Скинути</a>
             @endif
             <span style="margin-left:auto;font-size:12px;color:var(--text-3);">{{ $logs->total() }} подій</span>
@@ -138,6 +155,9 @@
             <div class="act-row__meta">
                 <span class="act-row__when" title="{{ $log->created_at->format('d.m.Y H:i:s') }}">{{ $log->created_at->diffForHumans() }}</span>
                 <span class="act-badge act-badge--{{ $log->entity_type }}">{{ $actLabels[$log->entity_type] ?? $log->entity_type }}</span>
+                @if(!in_array($log->source, ['crm', null, '']))
+                    <span class="act-badge act-badge--src-{{ $log->source }}">{{ strtoupper($log->source) }}</span>
+                @endif
                 @if($isDelete && $log->snapshot)
                     <form method="POST" action="{{ route('sites.activity.restore', [$log->site_id, $log]) }}" style="margin:0;" onsubmit="event.stopPropagation();return confirm('Відновити запис?')">
                         @csrf

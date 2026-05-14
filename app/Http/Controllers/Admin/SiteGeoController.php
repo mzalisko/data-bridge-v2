@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Site;
+use App\Services\ActivityService;
 use App\Services\SyncPushService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,6 +28,7 @@ class SiteGeoController extends Controller
             $geos[$iso] = $name ?: $iso;
             $site->active_geos = $geos;
             $site->save();
+            ActivityService::logGeo('create', $site, "Гео {$iso} додано", ['after' => ['iso' => $iso, 'name' => $name ?: $iso]]);
         }
 
         SyncPushService::push($site);
@@ -57,6 +59,7 @@ class SiteGeoController extends Controller
         $site->geo_rules = $rules;
         $site->save();
 
+        ActivityService::logGeo('delete', $site, "Гео {$iso} видалено", ['before' => ['iso' => $iso]]);
         SyncPushService::push($site);
         return back()->with('success', "Geo {$iso} removed");
     }
@@ -91,9 +94,11 @@ class SiteGeoController extends Controller
             ));
             $clean[$dataIso] = ['mode' => $mode, 'countries' => $countries];
         }
+        $beforeRules     = $site->geo_rules ?? [];
         $site->geo_rules = $clean;
         $site->save();
 
+        ActivityService::logGeo('update', $site, "Гео-правила оновлено", ['before' => $beforeRules, 'after' => $clean]);
         SyncPushService::push($site);
         return back()->with('success', 'Geo rules updated');
     }

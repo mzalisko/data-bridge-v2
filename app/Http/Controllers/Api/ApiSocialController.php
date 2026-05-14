@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\SiteSocial;
+use App\Services\ActivityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -31,6 +32,7 @@ class ApiSocialController extends Controller
         ]);
 
         $social = $site->socials()->create($validated);
+        ActivityService::log('social', 'create', $social, "API: {$social->platform} {$social->handle} додано", $site, source: 'api');
 
         return response()->json([
             'status'    => 'ok',
@@ -61,7 +63,9 @@ class ApiSocialController extends Controller
             'sort_order' => 'integer',
         ]);
 
+        $before = $social->toArray();
         $social->update($validated);
+        ActivityService::log('social', 'update', $social, "API: {$social->platform} {$social->handle} оновлено", $site, $before, 'api');
 
         return response()->json([
             'status'    => 'ok',
@@ -85,6 +89,7 @@ class ApiSocialController extends Controller
             return response()->json(['status' => 'error', 'code' => 404, 'message' => 'Social not found'], 404);
         }
 
+        ActivityService::log('social', 'delete', $social, "API: {$social->platform} видалено", $site, source: 'api');
         $social->delete();
 
         return response()->json(['status' => 'ok', 'deleted_id' => $id]);

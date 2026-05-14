@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Site;
+use App\Services\ActivityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -59,7 +60,10 @@ class BulkDataController extends Controller
 
         $results = $this->applyToSites(
             $request->site_ids,
-            fn(Site $site) => $site->phones()->create($payload)
+            function (Site $site) use ($payload) {
+                $phone = $site->phones()->create($payload);
+                ActivityService::log('phone', 'create', $phone, "Bulk: телефон {$phone->number} додано", $site, source: 'bulk');
+            }
         );
 
         return response()->json($results);
@@ -101,7 +105,10 @@ class BulkDataController extends Controller
 
         $results = $this->applyToSites(
             $request->site_ids,
-            fn(Site $site) => $site->prices()->create($payload)
+            function (Site $site) use ($payload) {
+                $price = $site->prices()->create($payload);
+                ActivityService::log('price', 'create', $price, "Bulk: ціна «{$price->label}» додана", $site, source: 'bulk');
+            }
         );
 
         return response()->json($results);
@@ -138,7 +145,10 @@ class BulkDataController extends Controller
 
         $results = $this->applyToSites(
             $request->site_ids,
-            fn(Site $site) => $site->socials()->create($payload)
+            function (Site $site) use ($payload) {
+                $social = $site->socials()->create($payload);
+                ActivityService::log('social', 'create', $social, "Bulk: {$social->platform} {$social->handle} додано", $site, source: 'bulk');
+            }
         );
 
         return response()->json($results);
@@ -182,7 +192,10 @@ class BulkDataController extends Controller
 
         $results = $this->applyToSites(
             $request->site_ids,
-            fn(Site $site) => $site->addresses()->create($payload)
+            function (Site $site) use ($payload) {
+                $address = $site->addresses()->create($payload);
+                ActivityService::log('address', 'create', $address, "Bulk: адресу {$address->city} додано", $site, source: 'bulk');
+            }
         );
 
         return response()->json($results);
@@ -212,6 +225,7 @@ class BulkDataController extends Controller
                 if (!isset($geos[$iso])) {
                     $geos[$iso] = $name;
                     $site->update(['active_geos' => $geos]);
+                    ActivityService::logGeo('create', $site, "Bulk: гео {$iso} додано", ['after' => ['iso' => $iso, 'name' => $name]], 'bulk');
                 }
             }
         );
@@ -236,13 +250,19 @@ class BulkDataController extends Controller
             'match_value' => ['required', 'string', 'max:255'],
         ]);
 
-        $type  = $request->type;
-        $field = $request->match_field;
-        $value = $request->match_value;
+        $type       = $request->type;
+        $field      = $request->match_field;
+        $value      = $request->match_value;
+        $typeMap    = ['phones' => 'phone', 'prices' => 'price', 'socials' => 'social', 'addresses' => 'address'];
+        $entityType = $typeMap[$type];
 
         $results = $this->applyToSites(
             $request->site_ids,
-            function (Site $site) use ($type, $field, $value) {
+            function (Site $site) use ($type, $field, $value, $entityType) {
+                $toDelete = $site->{$type}()->where($field, $value)->get();
+                foreach ($toDelete as $entity) {
+                    ActivityService::log($entityType, 'delete', $entity, "Bulk: {$entityType} видалено", $site, source: 'bulk');
+                }
                 $site->{$type}()->where($field, $value)->delete();
             }
         );

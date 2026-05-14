@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\SitePrice;
+use App\Services\ActivityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -28,6 +29,7 @@ class ApiPriceController extends Controller
         ]);
 
         $price = $site->prices()->create($validated);
+        ActivityService::log('price', 'create', $price, "API: ціна «{$price->label}» додана", $site, source: 'api');
 
         return response()->json([
             'status'    => 'ok',
@@ -60,7 +62,9 @@ class ApiPriceController extends Controller
             'sort_order' => 'integer',
         ]);
 
+        $before = $price->toArray();
         $price->update($validated);
+        ActivityService::log('price', 'update', $price, "API: ціна «{$price->label}» оновлена", $site, $before, 'api');
 
         return response()->json([
             'status'    => 'ok',
@@ -84,6 +88,7 @@ class ApiPriceController extends Controller
             return response()->json(['status' => 'error', 'code' => 404, 'message' => 'Price not found'], 404);
         }
 
+        ActivityService::log('price', 'delete', $price, "API: ціна «{$price->label}» видалена", $site, source: 'api');
         $price->delete();
 
         return response()->json(['status' => 'ok', 'deleted_id' => $id]);

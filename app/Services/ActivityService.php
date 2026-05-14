@@ -18,6 +18,7 @@ class ActivityService
         string $summary,
         ?Site  $site = null,
         array  $before = [],
+        string $source = 'crm',
     ): void {
         $siteId  = $site?->id ?? ($entity->site_id ?? null);
         $groupId = $site?->group_id ?? null;
@@ -33,12 +34,32 @@ class ActivityService
             'site_id'     => $siteId,
             'group_id'    => $groupId,
             'user_id'     => auth()->id(),
-            'source'      => 'crm',
+            'source'      => $source,
             'entity_type' => $entityType,
             'entity_id'   => $entity->id,
             'action'      => $action,
             'summary'     => $summary,
             'snapshot'    => $snapshot,
+        ]);
+    }
+
+    public static function logGeo(
+        string $action,
+        Site   $site,
+        string $summary,
+        array  $snapshot = [],
+        string $source = 'crm',
+    ): void {
+        ActivityLog::create([
+            'site_id'     => $site->id,
+            'group_id'    => $site->group_id,
+            'user_id'     => auth()->id(),
+            'source'      => $source,
+            'entity_type' => 'geo',
+            'entity_id'   => $site->id,
+            'action'      => $action,
+            'summary'     => $summary,
+            'snapshot'    => $snapshot ?: null,
         ]);
     }
 
