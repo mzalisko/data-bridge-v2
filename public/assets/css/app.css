@@ -880,8 +880,10 @@ img, svg { display: block; max-width: 100%; }
 }
 .dt-nav-grip:active { cursor: grabbing; }
 .dt-item.is-dragging  { opacity: .4; }
-.dt-item.swipe-right  { background: rgba(72,187,120,.30); }
-.dt-item.swipe-left   { background: rgba(245,101,101,.30); }
+.dt-item.swipe-right,
+.dt-item.swipe-right .dt-item-row { background: rgba(72,187,120,.30); }
+.dt-item.swipe-left,
+.dt-item.swipe-left  .dt-item-row { background: rgba(245,101,101,.30); }
 .dnd-placeholder--child { margin-left: 20px; }
 .dt-nav-arrow {
   flex-shrink: 0; font-size: 12px; color: var(--muted);

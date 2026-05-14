@@ -3103,6 +3103,8 @@ function toggleFavorite() {
                 s.item.style.transform = '';
                 s.item.style.transition = '';
                 s.item.classList.remove('is-dragging', 'swipe-right', 'swipe-left');
+                var cleanRow = s.item.querySelector('.dt-item-row');
+                if (cleanRow) cleanRow.style.background = '';
             }
             if (s.ph) { s.ph.remove(); s.ph = null; }
             if (s.pid !== null) { try { list.releasePointerCapture(s.pid); } catch (e) {} }
@@ -3126,15 +3128,32 @@ function toggleFavorite() {
             var adx = Math.abs(dx), ady = Math.abs(dy);
 
             if (!s.mode) {
-                if (adx > 10 && adx > ady * 1.2)      s.mode = 'swipe';
-                else if (ady > 10 && ady > adx * 1.2) { s.mode = 'reorder'; s.item.classList.add('is-dragging'); }
+                if (adx > 10 && adx > ady * 1.2) {
+                    s.mode = 'swipe';
+                    // Close expanded panel immediately so color feedback is visible
+                    var openPanel = s.item.querySelector('.dt-panel');
+                    if (openPanel && openPanel.style.display !== 'none') {
+                        openPanel.style.display = 'none';
+                        var chBtn = s.item.querySelector('[id^="dt-expand-"]');
+                        if (chBtn) { var chSvg = chBtn.querySelector('svg'); if (chSvg) chSvg.style.transform = ''; }
+                        s.item.classList.remove('is-editing');
+                        if (!list.querySelector('.dt-item.is-editing')) list.classList.remove('has-edit');
+                    }
+                } else if (ady > 10 && ady > adx * 1.2) {
+                    s.mode = 'reorder';
+                    s.item.classList.add('is-dragging');
+                }
             }
 
             if (s.mode === 'swipe') {
                 var clamped = Math.max(-130, Math.min(130, dx));
                 s.item.style.transform = 'translateX(' + clamped + 'px)';
-                s.item.classList.toggle('swipe-right', dx > 40);
-                s.item.classList.toggle('swipe-left',  dx < -40);
+                var isSwRight = dx > 40, isSwLeft = dx < -40;
+                s.item.classList.toggle('swipe-right', isSwRight);
+                s.item.classList.toggle('swipe-left',  isSwLeft);
+                // Apply directly to row — guaranteed visible even if row has own background
+                var swRow = s.item.querySelector('.dt-item-row');
+                if (swRow) swRow.style.background = isSwRight ? 'rgba(72,187,120,.30)' : (isSwLeft ? 'rgba(245,101,101,.30)' : '');
             }
 
             if (s.mode === 'reorder') {
