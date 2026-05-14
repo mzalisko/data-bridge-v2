@@ -3096,19 +3096,23 @@ function toggleFavorite() {
 
     document.querySelectorAll('.dt-nav-list').forEach(function (list) {
         var type = list.dataset.type;
-        var s = { active: false, item: null, ph: null, mode: null, sx: 0, sy: 0, pid: null };
+        var s = { active: false, item: null, ph: null, mode: null, sx: 0, sy: 0, pid: null, fired: false };
 
         function cleanup() {
             if (s.item) {
-                s.item.style.transform = '';
-                s.item.style.transition = '';
-                s.item.classList.remove('is-dragging', 'swipe-right', 'swipe-left');
-                var cleanRow = s.item.querySelector('.dt-item-row');
-                if (cleanRow) cleanRow.style.background = '';
+                if (!s.fired) {
+                    // Not yet triggered — reset visual state fully
+                    s.item.style.transform = '';
+                    s.item.style.transition = '';
+                    s.item.classList.remove('swipe-right', 'swipe-left');
+                    var cleanRow = s.item.querySelector('.dt-item-row');
+                    if (cleanRow) cleanRow.style.background = '';
+                }
+                s.item.classList.remove('is-dragging');
             }
             if (s.ph) { s.ph.remove(); s.ph = null; }
             if (s.pid !== null) { try { list.releasePointerCapture(s.pid); } catch (e) {} }
-            s.active = false; s.item = null; s.mode = null; s.pid = null;
+            s.active = false; s.item = null; s.mode = null; s.pid = null; s.fired = false;
         }
 
         list.addEventListener('pointerdown', function (e) {
@@ -3145,15 +3149,37 @@ function toggleFavorite() {
                 }
             }
 
-            if (s.mode === 'swipe') {
+            if (s.mode === 'swipe' && !s.fired) {
                 var clamped = Math.max(-130, Math.min(130, dx));
                 s.item.style.transform = 'translateX(' + clamped + 'px)';
-                var isSwRight = dx > 40, isSwLeft = dx < -40;
-                s.item.classList.toggle('swipe-right', isSwRight);
-                s.item.classList.toggle('swipe-left',  isSwLeft);
-                // Apply directly to row — guaranteed visible even if row has own background
+                var isNowSb = s.item.dataset.isStandby === '1';
+                var hasSbs  = s.item.dataset.hasStandbys === '1';
+                var goRight = dx > 40 && !isNowSb && !hasSbs;
+                var goLeft  = dx < -40 && isNowSb;
+                s.item.classList.toggle('swipe-right', goRight);
+                s.item.classList.toggle('swipe-left',  goLeft);
                 var swRow = s.item.querySelector('.dt-item-row');
-                if (swRow) swRow.style.background = isSwRight ? 'rgba(72,187,120,.30)' : (isSwLeft ? 'rgba(245,101,101,.30)' : '');
+                if (swRow) swRow.style.background = goRight ? 'rgba(72,187,120,.30)' : (goLeft ? 'rgba(245,101,101,.30)' : '');
+
+                if (goRight || goLeft) {
+                    // Fire immediately when color threshold is crossed — don't wait for pointerup
+                    s.fired = true;
+                    var trigItem = s.item, trigType = type;
+                    trigItem.style.transition = 'transform .25s cubic-bezier(.4,0,.2,1)';
+                    trigItem.style.transform  = '';
+                    trigItem.style.opacity    = '.45';
+                    setTimeout(function () { trigItem.style.transition = ''; }, 260);
+                    postJSON(URL_STANDBY, { type: trigType, id: parseInt(trigItem.dataset.id) })
+                        .then(function (r) { return r.ok ? r.json() : null; })
+                        .then(function (data) {
+                            trigItem.style.opacity = '';
+                            trigItem.classList.remove('swipe-right', 'swipe-left');
+                            var trigRow = trigItem.querySelector('.dt-item-row');
+                            if (trigRow) trigRow.style.background = '';
+                            if (data) applyStandbyToggle(trigItem, !!data.is_standby);
+                        })
+                        .catch(function () { location.reload(); });
+                }
             }
 
             if (s.mode === 'reorder') {
@@ -3176,30 +3202,13 @@ function toggleFavorite() {
             var item = s.item, mode = s.mode;
             var isStandby = item.dataset.isStandby === '1';
 
-            if (mode === 'swipe') {
-                var hasStandbys = item.dataset.hasStandbys === '1';
-                var triggered = (dx > SWIPE_THRESHOLD && !isStandby && !hasStandbys) || (dx < -SWIPE_THRESHOLD && isStandby);
-                if (triggered) {
-                    item.style.opacity = '.4';
-                    postJSON(URL_STANDBY, { type: type, id: parseInt(item.dataset.id) })
-                        .then(function (r) {
-                            if (!r.ok) { item.style.opacity = ''; item.style.transform = ''; return null; }
-                            return r.json();
-                        })
-                        .then(function (data) {
-                            if (!data) return;
-                            item.style.opacity = '';
-                            item.style.transform = '';
-                            applyStandbyToggle(item, !!data.is_standby);
-                        })
-                        .catch(function () { location.reload(); });
-                } else {
-                    item.style.transition = 'transform .2s cubic-bezier(.4,0,.2,1)';
-                    item.style.transform  = '';
-                    setTimeout(function () { item.style.transition = ''; }, 220);
-                }
-                item.classList.remove('swipe-right', 'swipe-left');
+            if (mode === 'swipe' && !s.fired) {
+                // Threshold not reached on release — bounce back
+                item.style.transition = 'transform .2s cubic-bezier(.4,0,.2,1)';
+                item.style.transform  = '';
+                setTimeout(function () { item.style.transition = ''; }, 220);
             }
+            // If s.fired: action already in flight from pointermove — cleanup handles the rest
 
             if (mode === 'reorder' && s.ph) {
                 list.insertBefore(item, s.ph);
