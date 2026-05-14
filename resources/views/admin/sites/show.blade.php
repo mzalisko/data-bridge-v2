@@ -183,42 +183,6 @@
         </span>
     </div>
 
-    {{-- ========= SITE INFO BAR ========= --}}
-    @php $totalRecords = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count(); @endphp
-    <div class="card site-info-bar">
-        <div class="site-info-bar__item">
-            <span class="site-info-bar__label">Статус</span>
-            <div><x-status-pill :status="$statusName"/></div>
-        </div>
-        <div class="site-info-bar__sep"></div>
-        <div class="site-info-bar__item">
-            <span class="site-info-bar__label">Група</span>
-            @if($site->siteGroup)
-                <span class="group-chip" style="font-size:13px;">
-                    <span class="group-chip__dot" style="background:{{ $site->siteGroup->color ?? '#71717a' }}"></span>
-                    {{ $site->siteGroup->name }}
-                </span>
-            @else
-                <span class="site-info-bar__val" style="color:var(--text-3);">—</span>
-            @endif
-        </div>
-        <div class="site-info-bar__sep"></div>
-        <div class="site-info-bar__item">
-            <span class="site-info-bar__label">Записів</span>
-            <span class="site-info-bar__val">{{ $totalRecords }}</span>
-        </div>
-        <div class="site-info-bar__sep"></div>
-        <div class="site-info-bar__item">
-            <span class="site-info-bar__label">Додано</span>
-            <span class="site-info-bar__val">{{ $site->created_at->format('d M Y') }}</span>
-        </div>
-        <div class="site-info-bar__sep"></div>
-        <div class="site-info-bar__item">
-            <span class="site-info-bar__label">Остання синхр.</span>
-            <span class="site-info-bar__val" style="color:var(--text-2);">{{ $syncWhen }}</span>
-        </div>
-    </div>
-
     {{-- ========= MAIN TAB CARD ========= --}}
     <div class="card card--flush">
 
@@ -400,16 +364,16 @@
                         </div>
                         {{-- RIGHT: всі поля з гео-режимом --}}
                         @php
-                            $wTdS    = 'padding:6px 12px;font-size:12px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+                            $wTdS    = 'padding:6px 12px;font-size:13px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
                             $wVKey   = \App\Models\CustomPlatform::messengerSlugs();
-                            $wAllPhs = $site->phones->sortBy('sort_order');
+                            $wAllPhs = $site->phones->filter(fn($p)=>!$p->standby_for_id)->sortBy('sort_order');
                             $wAllPrs = $site->prices->sortBy('sort_order');
                             $wAllAds = $site->addresses->sortBy('sort_order');
                             $wAllMsgr= $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$wVKey))->sortBy('sort_order');
                             $wAllSocN= $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$wVKey))->sortBy('sort_order');
                             $wIsVis  = fn($item) => ($item->is_visible ?? true) && in_array($item->geo_mode ?? 'all', ['all', 'exclude']);
                             $wShRow  = 'background:var(--panel-2);';
-                            $wShCell = 'padding:6px 12px;font-size:9px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-top:2px solid var(--border-2);border-bottom:1px solid var(--border-2);';
+                            $wShCell = 'padding:8px 12px;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-top:2px solid var(--border-2);border-bottom:1px solid var(--border-2);';
                             $wShBadge= 'display:inline-block;font-size:10px;font-family:var(--font-mono);color:var(--text-3);background:var(--border-2);border-radius:3px;padding:0 5px;margin-left:6px;';
                             $wEyeOn  = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
                             $wEyeOff = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
@@ -421,7 +385,7 @@
                             </div>
                             @if($wAllPhs->count()||$wAllMsgr->count()||$wAllAds->count()||$wAllSocN->count()||$wAllPrs->count())
                             <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-                                <colgroup><col><col style="width:30px"></colgroup>
+                                <colgroup><col><col style="width:46px"></colgroup>
                                 @if($wAllPhs->count())
                                 <thead><tr style="{{ $wShRow }}"><td colspan="2" style="{{ $wShCell }}">Телефони<span style="{{ $wShBadge }}">{{ $wAllPhs->count() }}</span></td></tr></thead>
                                 <tbody>
@@ -502,10 +466,10 @@
                         $tdR = 'padding:5px 8px;font-size:12px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
                     @endphp
                     @php
-                        $thU    = 'padding:5px 14px;text-align:left;font-size:9px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border-2);white-space:nowrap;overflow:hidden;';
+                        $thU    = 'padding:5px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border-2);white-space:nowrap;overflow:hidden;';
                         $tdU    = 'padding:7px 14px;font-size:13px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
                         $shRow  = 'background:var(--panel-2);';
-                        $shCell = 'padding:6px 14px;font-size:9px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-top:2px solid var(--border-2);border-bottom:1px solid var(--border-2);';
+                        $shCell = 'padding:8px 14px;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-top:2px solid var(--border-2);border-bottom:1px solid var(--border-2);';
                         $shBadge= 'display:inline-block;font-size:10px;font-family:var(--font-mono);color:var(--text-3);background:var(--border-2);border-radius:3px;padding:0 5px;margin-left:6px;';
                         $eyeOn  = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
                         $eyeOff = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
@@ -524,7 +488,7 @@
                                 <col>
                                 <col style="width:140px">
                                 <col style="width:110px">
-                                <col style="width:52px">
+                                <col style="width:70px">
                             </colgroup>
 
                             @if($rPhs->count())
@@ -732,15 +696,15 @@
                             {{-- RIGHT: Всі поля з видимістю для цього відвідувача --}}
                             @php
                                 $mThS = 'padding:4px 8px;text-align:left;font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border-2);white-space:nowrap;';
-                                $mTdS    = 'padding:6px 12px;font-size:12px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+                                $mTdS    = 'padding:6px 12px;font-size:13px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
                                 $mVKey   = \App\Models\CustomPlatform::messengerSlugs();
-                                $mAllPhs = $site->phones->sortBy('sort_order');
+                                $mAllPhs = $site->phones->filter(fn($p)=>!$p->standby_for_id)->sortBy('sort_order');
                                 $mAllPrs = $site->prices->sortBy('sort_order');
                                 $mAllAds = $site->addresses->sortBy('sort_order');
                                 $mAllMsgr= $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$mVKey))->sortBy('sort_order');
                                 $mAllSocN= $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$mVKey))->sortBy('sort_order');
                                 $mShRow  = 'background:var(--panel-2);';
-                                $mShCell = 'padding:6px 12px;font-size:9px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-top:2px solid var(--border-2);border-bottom:1px solid var(--border-2);';
+                                $mShCell = 'padding:8px 12px;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-top:2px solid var(--border-2);border-bottom:1px solid var(--border-2);';
                                 $mShBadge= 'display:inline-block;font-size:10px;font-family:var(--font-mono);color:var(--text-3);background:var(--border-2);border-radius:3px;padding:0 5px;margin-left:6px;';
                                 $mEyeOn  = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
                                 $mEyeOff = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
@@ -752,7 +716,7 @@
                                 </div>
                                 @if($mAllPhs->count()||$mAllMsgr->count()||$mAllAds->count()||$mAllSocN->count()||$mAllPrs->count())
                                 <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-                                    <colgroup><col><col style="width:30px"></colgroup>
+                                    <colgroup><col><col style="width:46px"></colgroup>
                                     @if($mAllPhs->count())
                                     <thead><tr style="{{ $mShRow }}"><td colspan="2" style="{{ $mShCell }}">Телефони<span style="{{ $mShBadge }}">{{ $mAllPhs->count() }}</span></td></tr></thead>
                                     <tbody>
