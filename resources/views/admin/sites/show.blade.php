@@ -375,6 +375,7 @@
                             $wShRow  = 'background:var(--panel-2);';
                             $wShCell = 'padding:8px 12px;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-top:2px solid var(--border-2);border-bottom:1px solid var(--border-2);';
                             $wShBadge= 'display:inline-block;font-size:10px;font-family:var(--font-mono);color:var(--text-3);background:var(--border-2);border-radius:3px;padding:0 5px;margin-left:6px;';
+                            $wThS    = 'padding:5px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border-2);white-space:nowrap;overflow:hidden;';
                             $wEyeOn  = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
                             $wEyeOff = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
                         @endphp
@@ -385,63 +386,83 @@
                             </div>
                             @if($wAllPhs->count()||$wAllMsgr->count()||$wAllAds->count()||$wAllSocN->count()||$wAllPrs->count())
                             <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-                                <colgroup><col><col style="width:46px"></colgroup>
+                                <colgroup><col><col style="width:90px"><col style="width:46px"></colgroup>
                                 @if($wAllPhs->count())
-                                <thead><tr style="{{ $wShRow }}"><td colspan="2" style="{{ $wShCell }}">Телефони<span style="{{ $wShBadge }}">{{ $wAllPhs->count() }}</span></td></tr></thead>
+                                <thead>
+                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Телефони<span style="{{ $wShBadge }}">{{ $wAllPhs->count() }}</span></td></tr>
+                                    <tr><th style="{{ $wThS }}">Номер</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}text-align:center;">Видно</th></tr>
+                                </thead>
                                 <tbody>
                                 @foreach($wAllPhs as $p)
-                                @php $pV = $wIsVis($p); @endphp
+                                @php $pV=$wIsVis($p);$pg=$p->geo_mode??'all';$pgT=$pg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pg]??$pg);if($pg!=='all'&&$p->geo_countries)$pgT.=' '.implode(',', (array)$p->geo_countries); @endphp
                                 <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
-                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text);">{{ $p->number }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:10px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
+                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-weight:600;color:var(--text);">{{ $p->number }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:11px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
+                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $pgT }}</td>
                                     <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
                                 </tr>
                                 @endforeach
                                 </tbody>
                                 @endif
                                 @if($wAllMsgr->count())
-                                <thead><tr style="{{ $wShRow }}"><td colspan="2" style="{{ $wShCell }}">Месенджери<span style="{{ $wShBadge }}">{{ $wAllMsgr->count() }}</span></td></tr></thead>
+                                <thead>
+                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Месенджери<span style="{{ $wShBadge }}">{{ $wAllMsgr->count() }}</span></td></tr>
+                                    <tr><th style="{{ $wThS }}">Платформа</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}text-align:center;">Видно</th></tr>
+                                </thead>
                                 <tbody>
                                 @foreach($wAllMsgr as $s)
-                                @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>'']; @endphp
+                                @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries); @endphp
                                 <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
-                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:10px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
+                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
+                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
                                     <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
                                 </tr>
                                 @endforeach
                                 </tbody>
                                 @endif
                                 @if($wAllAds->count())
-                                <thead><tr style="{{ $wShRow }}"><td colspan="2" style="{{ $wShCell }}">Адреси<span style="{{ $wShBadge }}">{{ $wAllAds->count() }}</span></td></tr></thead>
+                                <thead>
+                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Адреси<span style="{{ $wShBadge }}">{{ $wAllAds->count() }}</span></td></tr>
+                                    <tr><th style="{{ $wThS }}">Адреса</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}text-align:center;">Видно</th></tr>
+                                </thead>
                                 <tbody>
                                 @foreach($wAllAds as $a)
-                                @php $pV = $wIsVis($a); @endphp
+                                @php $pV=$wIsVis($a);$ag=$a->geo_mode??'all';$agT=$ag==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$ag]??$ag);if($ag!=='all'&&$a->geo_countries)$agT.=' '.implode(',', (array)$a->geo_countries); @endphp
                                 <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
                                     <td style="{{ $wTdS }}color:var(--text-2);">{{ trim(($a->city??'').' '.($a->street??'')) ?: '—' }}</td>
+                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $agT }}</td>
                                     <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
                                 </tr>
                                 @endforeach
                                 </tbody>
                                 @endif
                                 @if($wAllSocN->count())
-                                <thead><tr style="{{ $wShRow }}"><td colspan="2" style="{{ $wShCell }}">Соцмережі<span style="{{ $wShBadge }}">{{ $wAllSocN->count() }}</span></td></tr></thead>
+                                <thead>
+                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Соцмережі<span style="{{ $wShBadge }}">{{ $wAllSocN->count() }}</span></td></tr>
+                                    <tr><th style="{{ $wThS }}">Платформа</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}text-align:center;">Видно</th></tr>
+                                </thead>
                                 <tbody>
                                 @foreach($wAllSocN as $s)
-                                @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>'']; @endphp
+                                @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries); @endphp
                                 <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
-                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:10px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
+                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
+                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
                                     <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
                                 </tr>
                                 @endforeach
                                 </tbody>
                                 @endif
                                 @if($wAllPrs->count())
-                                <thead><tr style="{{ $wShRow }}"><td colspan="2" style="{{ $wShCell }}">Ціни<span style="{{ $wShBadge }}">{{ $wAllPrs->count() }}</span></td></tr></thead>
+                                <thead>
+                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Ціни<span style="{{ $wShBadge }}">{{ $wAllPrs->count() }}</span></td></tr>
+                                    <tr><th style="{{ $wThS }}">Ціна</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}"></th></tr>
+                                </thead>
                                 <tbody>
                                 @foreach($wAllPrs as $p)
-                                @php $pV = $wIsVis($p); @endphp
+                                @php $pV=$wIsVis($p);$pg=$p->geo_mode??'all';$pgT=$pg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pg]??$pg);if($pg!=='all'&&$p->geo_countries)$pgT.=' '.implode(',', (array)$p->geo_countries); @endphp
                                 <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
-                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }} {{ $p->currency }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:10px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
-                                    <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
+                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }} {{ $p->currency }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:11px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
+                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $pgT }}</td>
+                                    <td style="{{ $wTdS }}"></td>
                                 </tr>
                                 @endforeach
                                 </tbody>
@@ -695,7 +716,7 @@
 
                             {{-- RIGHT: Всі поля з видимістю для цього відвідувача --}}
                             @php
-                                $mThS = 'padding:4px 8px;text-align:left;font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border-2);white-space:nowrap;';
+                                $mThS = 'padding:5px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border-2);white-space:nowrap;overflow:hidden;';
                                 $mTdS    = 'padding:6px 12px;font-size:13px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
                                 $mVKey   = \App\Models\CustomPlatform::messengerSlugs();
                                 $mAllPhs = $site->phones->filter(fn($p)=>!$p->standby_for_id)->sortBy('sort_order');
@@ -716,63 +737,83 @@
                                 </div>
                                 @if($mAllPhs->count()||$mAllMsgr->count()||$mAllAds->count()||$mAllSocN->count()||$mAllPrs->count())
                                 <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-                                    <colgroup><col><col style="width:46px"></colgroup>
+                                    <colgroup><col><col style="width:90px"><col style="width:46px"></colgroup>
                                     @if($mAllPhs->count())
-                                    <thead><tr style="{{ $mShRow }}"><td colspan="2" style="{{ $mShCell }}">Телефони<span style="{{ $mShBadge }}">{{ $mAllPhs->count() }}</span></td></tr></thead>
+                                    <thead>
+                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Телефони<span style="{{ $mShBadge }}">{{ $mAllPhs->count() }}</span></td></tr>
+                                        <tr><th style="{{ $mThS }}">Номер</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}text-align:center;">Видно</th></tr>
+                                    </thead>
                                     <tbody>
                                     @foreach($mAllPhs as $p)
-                                    @php $pV = ($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso); @endphp
+                                    @php $pV=($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso);$pg=$p->geo_mode??'all';$pgT=$pg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pg]??$pg);if($pg!=='all'&&$p->geo_countries)$pgT.=' '.implode(',', (array)$p->geo_countries); @endphp
                                     <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
-                                        <td style="{{ $mTdS }}font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text);">{{ $p->number }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:10px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
+                                        <td style="{{ $mTdS }}font-family:var(--font-mono);font-weight:600;color:var(--text);">{{ $p->number }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:11px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
+                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $pgT }}</td>
                                         <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
                                     </tr>
                                     @endforeach
                                     </tbody>
                                     @endif
                                     @if($mAllMsgr->count())
-                                    <thead><tr style="{{ $mShRow }}"><td colspan="2" style="{{ $mShCell }}">Месенджери<span style="{{ $mShBadge }}">{{ $mAllMsgr->count() }}</span></td></tr></thead>
+                                    <thead>
+                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Месенджери<span style="{{ $mShBadge }}">{{ $mAllMsgr->count() }}</span></td></tr>
+                                        <tr><th style="{{ $mThS }}">Платформа</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}text-align:center;">Видно</th></tr>
+                                    </thead>
                                     <tbody>
                                     @foreach($mAllMsgr as $s)
-                                    @php $pV=($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>'']; @endphp
+                                    @php $pV=($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries); @endphp
                                     <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
-                                        <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:10px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
+                                        <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
+                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
                                         <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
                                     </tr>
                                     @endforeach
                                     </tbody>
                                     @endif
                                     @if($mAllAds->count())
-                                    <thead><tr style="{{ $mShRow }}"><td colspan="2" style="{{ $mShCell }}">Адреси<span style="{{ $mShBadge }}">{{ $mAllAds->count() }}</span></td></tr></thead>
+                                    <thead>
+                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Адреси<span style="{{ $mShBadge }}">{{ $mAllAds->count() }}</span></td></tr>
+                                        <tr><th style="{{ $mThS }}">Адреса</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}text-align:center;">Видно</th></tr>
+                                    </thead>
                                     <tbody>
                                     @foreach($mAllAds as $a)
-                                    @php $pV = ($a->is_visible??true)&&$geoVis($a->geo_mode,$a->geo_countries,$visIso,$a->country_iso); @endphp
+                                    @php $pV=($a->is_visible??true)&&$geoVis($a->geo_mode,$a->geo_countries,$visIso,$a->country_iso);$ag=$a->geo_mode??'all';$agT=$ag==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$ag]??$ag);if($ag!=='all'&&$a->geo_countries)$agT.=' '.implode(',', (array)$a->geo_countries); @endphp
                                     <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
                                         <td style="{{ $mTdS }}color:var(--text-2);">{{ trim(($a->city??'').' '.($a->street??'')) ?: '—' }}</td>
+                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $agT }}</td>
                                         <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
                                     </tr>
                                     @endforeach
                                     </tbody>
                                     @endif
                                     @if($mAllSocN->count())
-                                    <thead><tr style="{{ $mShRow }}"><td colspan="2" style="{{ $mShCell }}">Соцмережі<span style="{{ $mShBadge }}">{{ $mAllSocN->count() }}</span></td></tr></thead>
+                                    <thead>
+                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Соцмережі<span style="{{ $mShBadge }}">{{ $mAllSocN->count() }}</span></td></tr>
+                                        <tr><th style="{{ $mThS }}">Платформа</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}text-align:center;">Видно</th></tr>
+                                    </thead>
                                     <tbody>
                                     @foreach($mAllSocN as $s)
-                                    @php $pV=($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>'']; @endphp
+                                    @php $pV=($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries); @endphp
                                     <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
-                                        <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:10px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
+                                        <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
+                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
                                         <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
                                     </tr>
                                     @endforeach
                                     </tbody>
                                     @endif
                                     @if($mAllPrs->count())
-                                    <thead><tr style="{{ $mShRow }}"><td colspan="2" style="{{ $mShCell }}">Ціни<span style="{{ $mShBadge }}">{{ $mAllPrs->count() }}</span></td></tr></thead>
+                                    <thead>
+                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Ціни<span style="{{ $mShBadge }}">{{ $mAllPrs->count() }}</span></td></tr>
+                                        <tr><th style="{{ $mThS }}">Ціна</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}"></th></tr>
+                                    </thead>
                                     <tbody>
                                     @foreach($mAllPrs as $p)
-                                    @php $pV = ($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso); @endphp
+                                    @php $pV=($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso);$pg=$p->geo_mode??'all';$pgT=$pg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pg]??$pg);if($pg!=='all'&&$p->geo_countries)$pgT.=' '.implode(',', (array)$p->geo_countries); @endphp
                                     <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
-                                        <td style="{{ $mTdS }}font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }} {{ $p->currency }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:10px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
-                                        <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
+                                        <td style="{{ $mTdS }}font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }} {{ $p->currency }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:11px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
+                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $pgT }}</td>
+                                        <td style="{{ $mTdS }}"></td>
                                     </tr>
                                     @endforeach
                                     </tbody>
