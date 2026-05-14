@@ -8,7 +8,7 @@
 
 - **Версія:** 0.4.0 — злито в main, тег `v0.4.0-sprint04-push-arch`
 - **Активний спринт:** Sprint 04 — майже завершено
-- **Активна гілка:** `feature/per-item-geo-visibility` (коміт `5a81371` — global data browser + failover UX)
+- **Активна гілка:** `feature/per-item-geo-visibility` (коміт `526430b` — table alignment + world panel + pool bar fixes)
 - **Plugin гілка:** `feature/push-plugin-v2` (активна, без remote)
 - **Наступний крок:** мерж `feature/per-item-geo-visibility` → main + Plugin GitHub remote
 
@@ -78,6 +78,10 @@
 | Overview "Всі дані" tab (перед "Весь світ") — всі записи з status badges | feature/per-item-geo-visibility | ✅ |
 | Прибрати зелений "Конфліктів не виявлено"; відновити favorites star button | feature/per-item-geo-visibility | ✅ |
 | Obsidian документація `02-Модулі/failover_pool.md` | vault | ✅ |
+| Overview: таблиці "Всі дані" — table-layout:fixed + colgroup, виправлено "Всш" (обрізання гео-тексту) | feature/per-item-geo-visibility | ✅ |
+| Overview: "Весь світ" → 2-col grid як PL/UA (ліво: картки, право: всі поля з ✓/✗) | feature/per-item-geo-visibility | ✅ |
+| data/index: pool bar + action bar overlap fix (updateActionBarBottom динамічно) | feature/per-item-geo-visibility | ✅ |
+| data/index: прибрати поле "Країна ISO" з edit drawer для phones | feature/per-item-geo-visibility | ✅ |
 
 ## 🔲 Залишилось (Sprint 04)
 
