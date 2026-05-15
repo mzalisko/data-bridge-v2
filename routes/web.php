@@ -95,13 +95,16 @@ Route::middleware('auth')->group(function () {
     Route::post(  'sites/{site}/failover/{log}/rollback', [SiteFailoverController::class, 'rollback'])->name('sites.failover.rollback');
     Route::delete('sites/{site}/failover/history',        [SiteFailoverController::class, 'clearHistory'])->name('sites.failover.history.clear');
 
-    // Bulk data operations (multi-site) — UI planned, controller scaffolded
-    Route::post('bulk/phones',     [BulkDataController::class, 'addPhone'])->name('bulk.phones');
-    Route::post('bulk/prices',     [BulkDataController::class, 'addPrice'])->name('bulk.prices');
-    Route::post('bulk/addresses',  [BulkDataController::class, 'addAddress'])->name('bulk.addresses');
-    Route::post('bulk/socials',    [BulkDataController::class, 'addSocial'])->name('bulk.socials');
-    Route::post('bulk/geos',       [BulkDataController::class, 'addGeo'])->name('bulk.geos');
-    Route::post('bulk/delete',     [BulkDataController::class, 'deleteMatching'])->name('bulk.delete');
+    // Bulk data operations (multi-site) — admin-only (writes across many sites,
+    // no per-site Policy layer yet; destructive on the plugin side via push).
+    Route::middleware('admin')->group(function () {
+        Route::post('bulk/phones',     [BulkDataController::class, 'addPhone'])->name('bulk.phones');
+        Route::post('bulk/prices',     [BulkDataController::class, 'addPrice'])->name('bulk.prices');
+        Route::post('bulk/addresses',  [BulkDataController::class, 'addAddress'])->name('bulk.addresses');
+        Route::post('bulk/socials',    [BulkDataController::class, 'addSocial'])->name('bulk.socials');
+        Route::post('bulk/geos',       [BulkDataController::class, 'addGeo'])->name('bulk.geos');
+        Route::post('bulk/delete',     [BulkDataController::class, 'deleteMatching'])->name('bulk.delete');
+    });
 
     Route::resource('users', UserController::class)
         ->only(['index', 'store', 'update', 'destroy']);
@@ -114,12 +117,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/logs/sync',     [LogController::class, 'sync'])->name('logs.sync');
     Route::get('/logs/activity', [LogController::class, 'activity'])->name('logs.activity');
 
-    // Data Browser
+    // Data Browser — read for everyone, destructive ops admin-only
     Route::post('custom-platforms',  [CustomPlatformController::class, 'store'])->name('custom-platforms.store');
     Route::get( 'data',             [DataBrowserController::class, 'index'])->name('data.index');
-    Route::post('data/bulk-delete', [DataBrowserController::class, 'bulkDelete'])->name('data.bulk-delete');
-    Route::post('data/bulk-edit',   [DataBrowserController::class, 'bulkEdit'])->name('data.bulk-edit');
-    Route::post('data/bulk-copy',   [DataBrowserController::class, 'bulkCopy'])->name('data.bulk-copy');
+    Route::middleware('admin')->group(function () {
+        Route::post('data/bulk-delete', [DataBrowserController::class, 'bulkDelete'])->name('data.bulk-delete');
+        Route::post('data/bulk-edit',   [DataBrowserController::class, 'bulkEdit'])->name('data.bulk-edit');
+        Route::post('data/bulk-copy',   [DataBrowserController::class, 'bulkCopy'])->name('data.bulk-copy');
+    });
 
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
