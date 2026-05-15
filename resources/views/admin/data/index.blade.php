@@ -81,7 +81,7 @@ tr.in-pool td { background: rgba(99,179,237,.05) !important; }
 <div class="page-head">
     <div class="page-head__info">
         <h1 class="page-head__title">Глобальні дані</h1>
-        <p class="page-head__subtitle">Пошук, пул і масові операції по всіх сайтах</p>
+    
     </div>
     <div class="page-head__actions">
         <button class="btn btn--primary btn--md" onclick="openDrawer('drawer-bulk-add')">
@@ -214,12 +214,16 @@ tr.in-pool td { background: rgba(99,179,237,.05) !important; }
             // Build display string for pool chip
             if ($type === 'phones') {
                 $display = $row->number;
+                $rowFields = ['number' => $row->number, 'label' => $row->label ?? ''];
             } elseif ($type === 'messengers' || $type === 'socials') {
                 $display = ucfirst($row->platform) . ' · ' . ($row->handle ?: $row->url);
+                $rowFields = ['handle' => $row->handle ?? '', 'url' => $row->url ?? '', 'platform' => $row->platform ?? ''];
             } elseif ($type === 'prices') {
                 $display = $row->label . ' ' . number_format($row->amount, 2) . ' ' . $row->currency;
+                $rowFields = ['amount' => (string)($row->amount ?? ''), 'currency' => $row->currency ?? 'UAH', 'label' => $row->label ?? ''];
             } else {
                 $display = $row->city . ($row->country_iso ? ' ('.$row->country_iso.')' : '');
+                $rowFields = ['city' => $row->city ?? '', 'street' => $row->street ?? '', 'label' => $row->label ?? ''];
             }
         @endphp
         <tr data-id="{{ $row->id }}"
@@ -227,6 +231,7 @@ tr.in-pool td { background: rgba(99,179,237,.05) !important; }
             data-site-id="{{ $row->site_id }}"
             data-site-name="{{ $row->site?->name }}"
             data-site-color="{{ $grpColor }}"
+            data-fields='@json($rowFields)'
             style="border-bottom:1px solid var(--border-2);transition:background .1s;"
             onmouseover="this.style.background='var(--panel-2)'" onmouseout="this.style.background=gdbIsSelected({{ $row->id }})?'rgba(99,179,237,.07)':''">
             <td style="padding:8px 10px 8px 14px;">
@@ -882,6 +887,18 @@ function gdbOpenEdit() {
     document.getElementById('gdb-edit-info').textContent = ids.length + ' записів будуть змінені';
     document.getElementById('gdb-edit-result-log').style.display = 'none';
     document.getElementById('gdb-edit-result-rows').innerHTML = '';
+    _editOps = [];
+    if (ids.length === 1) {
+        var tr = document.querySelector('tr[data-id="'+ids[0]+'"]');
+        var fields = {};
+        try { fields = JSON.parse(tr ? (tr.dataset.fields || '{}') : '{}'); } catch(e) {}
+        var editFields = _editFields[_editType] || [];
+        editFields.forEach(function(f) {
+            if (Object.prototype.hasOwnProperty.call(fields, f.v)) {
+                _editOps.push({field: f.v, value: fields[f.v] !== null ? String(fields[f.v]) : ''});
+            }
+        });
+    }
     if (_editOps.length === 0) addEditOp();
     renderEditOps();
     updateEditSubmitLabel();
@@ -958,6 +975,11 @@ function renderEditOps() {
             + '<button type="button" onclick="removeEditOp('+idx+')" title="Видалити" style="width:26px;height:26px;border:none;background:none;cursor:pointer;color:var(--text-3);display:flex;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0;transition:background .12s,color .12s;" onmouseover="this.style.background=\'rgba(245,101,101,.12)\';this.style.color=\'var(--danger)\'" onmouseout="this.style.background=\'none\';this.style.color=\'var(--text-3)\'">'
             + '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
         list.appendChild(div);
+        // Inject pre-filled value into the widget
+        if (op.value !== '' && op.value !== undefined) {
+            var el = div.querySelector('.eop-val-el');
+            if (el) el.value = op.value;
+        }
     });
     var addBtn = document.getElementById('gdb-add-op-btn');
     if (addBtn) addBtn.style.display = (_editOps.length >= fields.length) ? 'none' : 'flex';

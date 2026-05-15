@@ -366,12 +366,14 @@
                         @php
                             $wTdS    = 'padding:6px 12px;font-size:13px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
                             $wVKey   = \App\Models\CustomPlatform::messengerSlugs();
-                            $wAllPhs = $site->phones->filter(fn($p)=>!$p->standby_for_id)->sortBy('sort_order');
+                            $wIsVis  = fn($item) => ($item->is_visible ?? true) && in_array($item->geo_mode ?? 'all', ['all', 'exclude']);
+                            $wTier   = fn($item) => $item->standby_for_id ? 2 : ($wIsVis($item) ? 0 : 1);
+                            $wSort   = fn($a,$b) use ($wTier) { $d=$wTier($a)-$wTier($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
+                            $wAllPhs = $site->phones->sort($wSort)->values();
                             $wAllPrs = $site->prices->sortBy('sort_order');
                             $wAllAds = $site->addresses->sortBy('sort_order');
-                            $wAllMsgr= $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$wVKey))->sortBy('sort_order');
-                            $wAllSocN= $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$wVKey))->sortBy('sort_order');
-                            $wIsVis  = fn($item) => ($item->is_visible ?? true) && in_array($item->geo_mode ?? 'all', ['all', 'exclude']);
+                            $wAllMsgr= $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$wVKey))->sort($wSort)->values();
+                            $wAllSocN= $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$wVKey))->sort($wSort)->values();
                             $wShRow  = 'background:var(--panel-2);';
                             $wShCell = 'padding:8px 12px;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-top:2px solid var(--border-2);border-bottom:1px solid var(--border-2);';
                             $wShBadge= 'display:inline-block;font-size:10px;font-family:var(--font-mono);color:var(--text-3);background:var(--border-2);border-radius:3px;padding:0 5px;margin-left:6px;';
@@ -395,7 +397,7 @@
                                 <tbody>
                                 @foreach($wAllPhs as $p)
                                 @php $pV=$wIsVis($p);$pg=$p->geo_mode??'all';$pgT=$pg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pg]??$pg);if($pg!=='all'&&$p->geo_countries)$pgT.=' '.implode(',', (array)$p->geo_countries); @endphp
-                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                <tr style="{{ $p->standby_for_id?'background:rgba(237,137,54,.18);':($pV?'background:rgba(52,211,153,.18);':'opacity:.25;') }}">
                                     <td style="{{ $wTdS }}font-family:var(--font-mono);font-weight:600;color:var(--text);">{{ $p->number }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:11px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
                                     <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $pgT }}</td>
                                     <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
@@ -411,7 +413,7 @@
                                 <tbody>
                                 @foreach($wAllMsgr as $s)
                                 @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries); @endphp
-                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                <tr style="{{ $s->standby_for_id?'background:rgba(237,137,54,.18);':($pV?'background:rgba(52,211,153,.18);':'opacity:.25;') }}">
                                     <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
                                     <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
                                     <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
@@ -443,7 +445,7 @@
                                 <tbody>
                                 @foreach($wAllSocN as $s)
                                 @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries); @endphp
-                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                <tr style="{{ $s->standby_for_id?'background:rgba(237,137,54,.18);':($pV?'background:rgba(52,211,153,.18);':'opacity:.25;') }}">
                                     <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
                                     <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
                                     <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
@@ -520,7 +522,7 @@
                             <tbody>
                             @foreach($rPhs as $p)
                             @php $pGeo=$p->geo_mode??'all';$pGeoTxt=$pGeo==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pGeo]??$pGeo);if($pGeo!=='all'&&$p->geo_countries)$pGeoTxt.=' '.implode(',', (array)$p->geo_countries); @endphp
-                            <tr style="{{ !($p->is_visible??true)?'opacity:.45;':'' }}">
+                            <tr style="{{ $p->standby_for_id?'background:rgba(237,137,54,.12);':(!($p->is_visible??true)?'opacity:.45;':'') }}">
                                 <td style="{{ $tdU }}">@if($p->is_blocked)<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(245,101,101,.12);color:var(--danger);font-weight:600;">Блок</span>@elseif($p->standby_for_id)<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(99,179,237,.12);color:#63b3ed;font-weight:600;">Резерв</span>@else<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(72,187,120,.1);color:#48bb78;font-weight:600;">Осн.</span>@endif</td>
                                 <td style="{{ $tdU }}font-family:var(--font-mono);font-weight:600;color:var(--text);{{ $p->is_blocked?'text-decoration:line-through;':'' }}">{{ $p->number }}</td>
                                 <td style="{{ $tdU }}color:var(--text-3);">{{ $p->label ?: '—' }}</td>
@@ -539,7 +541,7 @@
                             <tbody>
                             @foreach($rMsgr as $s)
                             @php $sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sgTxt=($s->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$s->geo_mode]??'');if(($s->geo_mode??'all')!=='all'&&$s->geo_countries)$sgTxt.=' '.implode(',', (array)$s->geo_countries); @endphp
-                            <tr style="{{ !($s->is_visible??true)?'opacity:.45;':'' }}">
+                            <tr style="{{ $s->standby_for_id?'background:rgba(237,137,54,.12);':(!($s->is_visible??true)?'opacity:.45;':'') }}">
                                 <td style="{{ $tdU }}"><span style="display:inline-flex;align-items:center;gap:5px;"><span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span></span></td>
                                 <td style="{{ $tdU }}color:var(--text-2);">{{ $s->handle ?: '—' }}</td>
                                 <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">—</td>
@@ -577,7 +579,7 @@
                             <tbody>
                             @foreach($rSocN as $s)
                             @php $sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sgTxt=($s->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$s->geo_mode]??'');if(($s->geo_mode??'all')!=='all'&&$s->geo_countries)$sgTxt.=' '.implode(',', (array)$s->geo_countries); @endphp
-                            <tr style="{{ !($s->is_visible??true)?'opacity:.45;':'' }}">
+                            <tr style="{{ $s->standby_for_id?'background:rgba(237,137,54,.12);':(!($s->is_visible??true)?'opacity:.45;':'') }}">
                                 <td style="{{ $tdU }}"><span style="display:inline-flex;align-items:center;gap:5px;"><span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span></span></td>
                                 <td style="{{ $tdU }}color:var(--text-2);">{{ $s->handle ?: '—' }}</td>
                                 <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">—</td>
@@ -719,11 +721,15 @@
                                 $mThS = 'padding:5px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border-2);white-space:nowrap;overflow:hidden;';
                                 $mTdS    = 'padding:6px 12px;font-size:13px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
                                 $mVKey   = \App\Models\CustomPlatform::messengerSlugs();
-                                $mAllPhs = $site->phones->filter(fn($p)=>!$p->standby_for_id)->sortBy('sort_order');
+                                $mTierPh = fn($p) => $p->standby_for_id ? 2 : ((($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso)) ? 0 : 1);
+                                $mTierSo = fn($s) => $s->standby_for_id ? 2 : ((($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso)) ? 0 : 1);
+                                $mSortPh = fn($a,$b) use ($mTierPh) { $d=$mTierPh($a)-$mTierPh($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
+                                $mSortSo = fn($a,$b) use ($mTierSo) { $d=$mTierSo($a)-$mTierSo($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
+                                $mAllPhs = $site->phones->sort($mSortPh)->values();
                                 $mAllPrs = $site->prices->sortBy('sort_order');
                                 $mAllAds = $site->addresses->sortBy('sort_order');
-                                $mAllMsgr= $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$mVKey))->sortBy('sort_order');
-                                $mAllSocN= $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$mVKey))->sortBy('sort_order');
+                                $mAllMsgr= $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$mVKey))->sort($mSortSo)->values();
+                                $mAllSocN= $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$mVKey))->sort($mSortSo)->values();
                                 $mShRow  = 'background:var(--panel-2);';
                                 $mShCell = 'padding:8px 12px;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-top:2px solid var(--border-2);border-bottom:1px solid var(--border-2);';
                                 $mShBadge= 'display:inline-block;font-size:10px;font-family:var(--font-mono);color:var(--text-3);background:var(--border-2);border-radius:3px;padding:0 5px;margin-left:6px;';
@@ -746,7 +752,7 @@
                                     <tbody>
                                     @foreach($mAllPhs as $p)
                                     @php $pV=($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso);$pg=$p->geo_mode??'all';$pgT=$pg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pg]??$pg);if($pg!=='all'&&$p->geo_countries)$pgT.=' '.implode(',', (array)$p->geo_countries); @endphp
-                                    <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                    <tr style="{{ $p->standby_for_id?'background:rgba(237,137,54,.18);':($pV?'background:rgba(52,211,153,.18);':'opacity:.25;') }}">
                                         <td style="{{ $mTdS }}font-family:var(--font-mono);font-weight:600;color:var(--text);">{{ $p->number }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:11px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
                                         <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $pgT }}</td>
                                         <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
@@ -762,7 +768,7 @@
                                     <tbody>
                                     @foreach($mAllMsgr as $s)
                                     @php $pV=($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries); @endphp
-                                    <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                    <tr style="{{ $s->standby_for_id?'background:rgba(237,137,54,.18);':($pV?'background:rgba(52,211,153,.18);':'opacity:.25;') }}">
                                         <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
                                         <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
                                         <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
@@ -794,7 +800,7 @@
                                     <tbody>
                                     @foreach($mAllSocN as $s)
                                     @php $pV=($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries); @endphp
-                                    <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                    <tr style="{{ $s->standby_for_id?'background:rgba(237,137,54,.18);':($pV?'background:rgba(52,211,153,.18);':'opacity:.25;') }}">
                                         <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
                                         <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
                                         <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
