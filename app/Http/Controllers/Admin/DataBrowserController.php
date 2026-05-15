@@ -163,12 +163,12 @@ class DataBrowserController extends Controller
         $model     = $this->modelForType($type);
         $records   = $model::whereIn('id', $data['ids'])->get();
         $targetIds = $data['target_ids'];
+        $whitelist = $this->copyableFields($type);
         $copied    = 0;
 
         foreach ($targetIds as $siteId) {
             foreach ($records as $record) {
-                $attrs = $record->toArray();
-                unset($attrs['id']);
+                $attrs = array_intersect_key($record->toArray(), array_flip($whitelist));
                 $attrs['site_id'] = $siteId;
                 $model::create($attrs);
                 $copied++;
@@ -198,6 +198,23 @@ class DataBrowserController extends Controller
             'prices'     => ['amount', 'currency', 'label', 'period'],
             'addresses'  => ['country_iso', 'city', 'street', 'building', 'postal_code', 'label'],
             'socials'    => ['platform', 'url', 'handle'],
+        };
+    }
+
+    /**
+     * Fields safe to carry over when copying a record to other sites.
+     * Excludes: id, site_id, timestamps, and failover state
+     * (is_blocked, is_standby, standby_for_id, blocked_reason) which
+     * are per-site relationships and must never cross site boundaries.
+     */
+    private function copyableFields(string $type): array
+    {
+        $shared = ['is_visible', 'sort_order', 'geo_mode', 'geo_countries'];
+        return match($type) {
+            'phones'    => array_merge(['number', 'label', 'country_iso', 'dial_code', 'is_primary'], $shared),
+            'prices'    => array_merge(['label', 'amount', 'currency', 'period'], $shared),
+            'addresses' => array_merge(['city', 'street', 'building', 'postal_code', 'country_iso', 'label'], $shared),
+            'socials'   => array_merge(['platform', 'handle', 'url'], $shared),
         };
     }
 }
