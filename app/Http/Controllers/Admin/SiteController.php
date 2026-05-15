@@ -11,6 +11,7 @@ use App\Models\Site;
 use App\Models\SiteGroup;
 use App\Models\SiteFailoverLog;
 use App\Models\SyncLog;
+use App\Rules\PublicHttpUrl;
 use App\Services\ActivityService;
 use App\Services\SyncPushService;
 use Illuminate\Http\JsonResponse;
@@ -190,7 +191,7 @@ class SiteController extends Controller
     public function updatePushSettings(Request $request, Site $site): RedirectResponse
     {
         $data = $request->validate([
-            'push_url'          => ['nullable', 'url', 'max:500'],
+            'push_url'          => ['nullable', 'url', 'max:500', new PublicHttpUrl()],
             'push_key'          => ['nullable', 'string', 'size:64'],
             'allow_plugin_edit' => ['nullable', 'boolean'],
         ]);
