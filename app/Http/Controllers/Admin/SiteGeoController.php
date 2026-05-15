@@ -117,9 +117,15 @@ class SiteGeoController extends Controller
         ];
         if (!isset($map[$type])) abort(404);
 
-        $row = $map[$type]::where('site_id', $site->id)->findOrFail($id);
+        $row    = $map[$type]::where('site_id', $site->id)->findOrFail($id);
+        $before = $row->toArray();
         $row->is_visible = !($row->is_visible ?? true);
         $row->save();
+
+        $typeKeys = ['phones'=>'phone','prices'=>'price','addresses'=>'address','socials'=>'social'];
+        $entityType = $typeKeys[$type] ?? $type;
+        $visibility = $row->is_visible ? 'показано' : 'приховано';
+        ActivityService::log($entityType, 'update', $row, "Видимість: {$visibility}", $site, $before);
         SyncPushService::push($site);
 
         return back();

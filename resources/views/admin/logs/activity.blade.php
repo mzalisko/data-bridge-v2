@@ -11,8 +11,9 @@
         'social'  => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
         'field'   => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>',
         'geo'     => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+        'site'    => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
     ];
-    $actLabels  = ['phone'=>'Телефон','price'=>'Ціна','address'=>'Адреса','social'=>'Соцмережа','field'=>'Поле','geo'=>'Гео'];
+    $actLabels  = ['phone'=>'Телефон','price'=>'Ціна','address'=>'Адреса','social'=>'Соцмережа','field'=>'Поле','geo'=>'Гео','site'=>'Сайт'];
     $actionLabel= ['create'=>'додано','update'=>'оновлено','delete'=>'видалено'];
     $fieldLabels= ['number'=>'Номер','label'=>'Мітка','geo_mode'=>'Гео-правило','geo_countries'=>'Країни','is_primary'=>'Основний','is_visible'=>'Видимий','amount'=>'Сума','currency'=>'Валюта','city'=>'Місто','street'=>'Вулиця','region'=>'Регіон','country_iso'=>'Країна','platform'=>'Платформа','handle'=>'Handle','url'=>'URL','field_key'=>'Ключ','field_value'=>'Значення','dial_code'=>'Код'];
     $skipFields = ['id','site_id','group_id','created_at','updated_at','sort_order'];
@@ -86,9 +87,10 @@
                 <div class="cselect__menu">
                     <div class="cselect__option {{ !request('source') ? 'is-active' : '' }}" onclick="csSelect('cs-source','','Всі джерела')">Всі джерела</div>
                     <div class="cselect__divider"></div>
-                    <div class="cselect__option {{ request('source') === 'crm'  ? 'is-active' : '' }}" onclick="csSelect('cs-source','crm','CRM')">CRM</div>
-                    <div class="cselect__option {{ request('source') === 'api'  ? 'is-active' : '' }}" onclick="csSelect('cs-source','api','API')">API</div>
-                    <div class="cselect__option {{ request('source') === 'bulk' ? 'is-active' : '' }}" onclick="csSelect('cs-source','bulk','Bulk')">Bulk</div>
+                    <div class="cselect__option {{ request('source') === 'crm'    ? 'is-active' : '' }}" onclick="csSelect('cs-source','crm','CRM')">CRM</div>
+                    <div class="cselect__option {{ request('source') === 'api'    ? 'is-active' : '' }}" onclick="csSelect('cs-source','api','API')">API</div>
+                    <div class="cselect__option {{ request('source') === 'bulk'   ? 'is-active' : '' }}" onclick="csSelect('cs-source','bulk','Bulk')">Bulk</div>
+                    <div class="cselect__option {{ request('source') === 'plugin' ? 'is-active' : '' }}" onclick="csSelect('cs-source','plugin','Plugin')">Plugin</div>
                 </div>
                 <input type="hidden" name="source" value="{{ request('source','') }}">
             </div>
@@ -156,7 +158,7 @@
                 <span class="act-row__when" title="{{ $log->created_at->format('d.m.Y H:i:s') }}">{{ $log->created_at->diffForHumans() }}</span>
                 <span class="act-badge act-badge--{{ $log->entity_type }}">{{ $actLabels[$log->entity_type] ?? $log->entity_type }}</span>
                 @if(!in_array($log->source, ['crm', null, '']))
-                    <span class="act-badge act-badge--src-{{ $log->source }}">{{ strtoupper($log->source) }}</span>
+                    <span class="act-badge act-badge--src-{{ $log->source }}">{{ ['api'=>'API','bulk'=>'BULK','plugin'=>'PLUGIN'][$log->source] ?? strtoupper($log->source) }}</span>
                 @endif
                 @if($isDelete && $log->snapshot)
                     <form method="POST" action="{{ route('sites.activity.restore', [$log->site_id, $log]) }}" style="margin:0;" onsubmit="event.stopPropagation();return confirm('Відновити запис?')">
@@ -178,9 +180,30 @@
                         <div class="act-diff__hdr">Було</div>
                         <div class="act-diff__hdr">Стало</div>
                         @foreach($log->snapshot['diff'] as $field => $change)
+                            @if($field === 'geo_countries' && isset($log->snapshot['diff']['geo_mode']))
+                                @continue
+                            @endif
+                            @php
+                                $hasBothGeo = $field === 'geo_mode';
+                                $geoOnlyCountries = $field === 'geo_countries' && !isset($log->snapshot['diff']['geo_mode']);
+                                if ($hasBothGeo) {
+                                    $bc = (array) ($log->snapshot['before']['geo_countries'] ?? []);
+                                    $ac = (array) ($log->snapshot['after']['geo_countries']  ?? []);
+                                    $bv = $tv($change['before']) . ($bc ? ' ' . implode(', ', $bc) : '');
+                                    $av = $tv($change['after'])  . ($ac ? ' ' . implode(', ', $ac) : '');
+                                } elseif ($geoOnlyCountries) {
+                                    $mode = $log->snapshot['after']['geo_mode'] ?? null;
+                                    $modeStr = $mode ? (($geoModes[$mode] ?? $mode) . ' ') : '';
+                                    $bv = $modeStr . $tv($change['before']);
+                                    $av = $modeStr . $tv($change['after']);
+                                } else {
+                                    $bv = $tv($change['before']);
+                                    $av = $tv($change['after']);
+                                }
+                            @endphp
                             <div class="act-diff__key">{{ $fieldLabels[$field] ?? $field }}</div>
-                            <div class="act-diff__old">{{ $tv($change['before']) }}</div>
-                            <div class="act-diff__new">{{ $tv($change['after']) }}</div>
+                            <div class="act-diff__old">{{ $bv }}</div>
+                            <div class="act-diff__new">{{ $av }}</div>
                         @endforeach
                     </div>
                 @elseif($isDelete && $beforeData)

@@ -8,8 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class ActivityService
 {
-    // Fields to skip when building diffs (internal/meta columns)
-    private const SKIP_FIELDS = ['created_at', 'updated_at', 'site_id', 'group_id'];
+    // Fields to skip when building diffs (internal/meta, sensitive, or handled separately)
+    private const SKIP_FIELDS = [
+        'created_at', 'updated_at', 'site_id', 'group_id',
+        'push_key', 'plugin_edit_token',   // sensitive credentials
+        'active_geos', 'geo_rules',         // tracked separately via logGeo()
+    ];
 
     public static function log(
         string $entityType,
@@ -75,7 +79,7 @@ class ActivityService
         foreach ($after as $key => $newVal) {
             if (in_array($key, $skip)) continue;
             $oldVal = $before[$key] ?? null;
-            if ($oldVal != $newVal) {
+            if (json_encode($oldVal) !== json_encode($newVal)) {
                 $changes[$key] = ['before' => $oldVal, 'after' => $newVal];
             }
         }

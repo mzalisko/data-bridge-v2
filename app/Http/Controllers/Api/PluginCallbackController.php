@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Site;
+use App\Services\ActivityService;
 use App\Services\SyncPushService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,14 @@ class PluginCallbackController extends Controller
         'addresses'     => \App\Models\SiteAddress::class,
         'socials'       => \App\Models\SiteSocial::class,
         'custom_fields' => \App\Models\SiteCustomField::class,
+    ];
+
+    private const ENTITY_TYPES = [
+        'phones'        => 'phone',
+        'prices'        => 'price',
+        'addresses'     => 'address',
+        'socials'       => 'social',
+        'custom_fields' => 'field',
     ];
 
     public function handle(Request $request, string $token): JsonResponse
@@ -68,7 +77,10 @@ class PluginCallbackController extends Controller
         );
 
         if (!empty($update)) {
+            $before = $record->toArray();
             $record->update($update);
+            $entityType = self::ENTITY_TYPES[$type];
+            ActivityService::log($entityType, 'update', $record, "Plugin: {$entityType} оновлено", $site, $before, 'plugin');
         }
 
         SyncPushService::push($site);

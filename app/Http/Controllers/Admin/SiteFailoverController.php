@@ -7,6 +7,7 @@ use App\Models\Site;
 use App\Models\SiteFailoverLog;
 use App\Models\SitePhone;
 use App\Models\SiteSocial;
+use App\Services\ActivityService;
 use App\Services\FailoverService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -41,10 +42,14 @@ class SiteFailoverController extends Controller
             }
         }
 
+        $before = $record->toArray();
         $record->update([
             'is_standby'     => $newStandby,
             'standby_for_id' => $newStandby ? ($data['standby_for_id'] ?? null) : null,
         ]);
+
+        $label = $newStandby ? 'Позначено як резервний' : 'Знято з резерву';
+        ActivityService::log($data['type'], 'update', $record, $label, $site, $before);
 
         if ($request->wantsJson()) {
             return response()->json(['ok' => true, 'is_standby' => $newStandby]);
@@ -88,9 +93,12 @@ class SiteFailoverController extends Controller
             'standby_for_id' => ['nullable', 'integer'],
         ]);
 
-        $model = $data['type'] === 'phone' ? SitePhone::class : SiteSocial::class;
+        $model  = $data['type'] === 'phone' ? SitePhone::class : SiteSocial::class;
         $record = $model::where('site_id', $site->id)->where('is_standby', true)->findOrFail($data['id']);
+
+        $before = $record->toArray();
         $record->update(['standby_for_id' => $data['standby_for_id'] ?: null]);
+        ActivityService::log($data['type'], 'update', $record, "Прив'язку резерву оновлено", $site, $before);
 
         if ($request->wantsJson()) {
             return response()->json(['ok' => true]);

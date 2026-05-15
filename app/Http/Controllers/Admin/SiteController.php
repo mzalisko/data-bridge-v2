@@ -11,6 +11,7 @@ use App\Models\Site;
 use App\Models\SiteGroup;
 use App\Models\SiteFailoverLog;
 use App\Models\SyncLog;
+use App\Services\ActivityService;
 use App\Services\SyncPushService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -55,7 +56,7 @@ class SiteController extends Controller
 
         $sites  = $query->paginate(20)->withQueryString();
         $groups = SiteGroup::withCount('sites')->orderBy('name')->get();
-        
+
         $favoriteIds = auth()->user()
             ->favoriteSites()
             ->pluck('site_id')
@@ -157,7 +158,8 @@ class SiteController extends Controller
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active', true);
 
-        Site::create($data);
+        $site = Site::create($data);
+        ActivityService::log('site', 'create', $site, "Сайт «{$site->name}» додано", $site);
 
         return redirect()->route('sites.index')
             ->with('success', 'Сайт додано');
@@ -168,7 +170,9 @@ class SiteController extends Controller
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
 
+        $before = $site->toArray();
         $site->update($data);
+        ActivityService::log('site', 'update', $site, "Сайт «{$site->name}» оновлено", $site, $before);
 
         return redirect()->route('sites.index')
             ->with('success', 'Сайт оновлено');
@@ -176,6 +180,7 @@ class SiteController extends Controller
 
     public function destroy(Site $site): RedirectResponse
     {
+        ActivityService::log('site', 'delete', $site, "Сайт «{$site->name}» видалено", $site);
         $site->delete();
 
         return redirect()->route('sites.index')
@@ -200,7 +205,9 @@ class SiteController extends Controller
             $update['plugin_edit_token'] = bin2hex(random_bytes(32));
         }
 
+        $before = $site->toArray();
         $site->update($update);
+        ActivityService::log('site', 'update', $site, "Налаштування плагіна оновлено", $site, $before);
 
         return redirect()->back()->with('success', 'Налаштування збережено');
     }
