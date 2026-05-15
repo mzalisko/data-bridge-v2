@@ -147,7 +147,10 @@ class SiteController extends Controller
         // snapshot is {before: {...}, after: {...}} for update/delete
         $raw  = $log->snapshot;
         $data = $raw['before'] ?? $raw; // fallback: old format was flat array
-        $data = collect($data)->except(['id', 'created_at', 'updated_at'])->all();
+        // Drop identity + tenancy keys from snapshot; force site_id from URL
+        // (defense against snapshots that contain a different site_id).
+        $data = collect($data)->except(['id', 'site_id', 'created_at', 'updated_at'])->all();
+        $data['site_id'] = $site->id;
 
         $modelClass::create($data);
 
