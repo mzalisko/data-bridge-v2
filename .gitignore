@@ -24,3 +24,6 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /.superpowers/
+
+# Windows null-device artifact
+/nul
