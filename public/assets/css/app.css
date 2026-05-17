@@ -1268,3 +1268,26 @@ body.bulk-mode .site-card:has(.bulk-checkbox:checked) {
   /* Simulator rows: smaller text */
   .sim-row-num { font-size: 11px !important; }
 }
+
+/* ── Reserve (standby) popover badge — Overview tab ──────────── */
+.rsv-wrap { position: relative; display: inline-block; }
+.rsv-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 10px; font-weight: 600; line-height: 1.4;
+  color: #63b3ed; background: rgba(99,179,237,.12);
+  border: none; border-radius: 3px; padding: 1px 6px; margin-left: 6px;
+  cursor: pointer; font-family: inherit; vertical-align: middle;
+}
+.rsv-badge:hover { background: rgba(99,179,237,.22); }
+.rsv-pop {
+  display: none; position: absolute; top: 100%; left: 0; z-index: 60;
+  min-width: 170px; margin-top: 5px; padding: 7px 0;
+  background: var(--bg-card, var(--panel)); border: 1px solid var(--border-2);
+  border-radius: 9px; box-shadow: 0 10px 28px rgba(0,0,0,.20);
+}
+.rsv-pop.is-open { display: block; }
+.rsv-pop__item {
+  padding: 5px 12px; font-size: 12px; color: var(--text-2);
+  white-space: nowrap; font-family: var(--font-mono);
+}
+.rsv-pop__item + .rsv-pop__item { border-top: 1px solid var(--border-2); }

@@ -227,6 +227,35 @@
                     }
                 }
             }
+
+            // ── Reserve (standby) split + badge helpers (shared by all 3 panels) ──
+            // Splits a collection into [primaries, reservesByParentId, pool].
+            // primary  = no standby_for_id AND not is_standby
+            // byParent = standby_for_id pointing at a known primary (grouped)
+            // pool     = orphan standbys (unknown parent) OR is_standby with no parent
+            $rsvSplit = function ($coll) {
+                $primaries  = $coll->filter(fn($x) => !$x->standby_for_id && !($x->is_standby ?? false));
+                $primaryIds = $primaries->pluck('id')->all();
+                $byParent   = $coll->filter(fn($x) => $x->standby_for_id && in_array($x->standby_for_id, $primaryIds))
+                                    ->sortBy('sort_order')->groupBy('standby_for_id');
+                $pool       = $coll->filter(fn($x) => ($x->standby_for_id && !in_array($x->standby_for_id, $primaryIds))
+                                                      || (!$x->standby_for_id && ($x->is_standby ?? false)))
+                                    ->sortBy('sort_order')->values();
+                return [$primaries, $byParent, $pool];
+            };
+            // Renders a clickable badge + hidden popover listing the given reserves.
+            // $labelFn(item) -> plain string shown per reserve row.
+            $rsvBadge = function ($uid, $reserves, $labelFn) {
+                if ($reserves->isEmpty()) return '';
+                $rows = $reserves->map(fn($r) => '<div class="rsv-pop__item">'.e($labelFn($r)).'</div>')->implode('');
+                return '<span class="rsv-wrap">'
+                     . '<button type="button" class="rsv-badge" onclick="toggleRsvPop(event,\''.$uid.'\')">'
+                     . '&#x2B22; '.$reserves->count().' резерв</button>'
+                     . '<div class="rsv-pop" id="'.$uid.'" onclick="event.stopPropagation()">'.$rows.'</div>'
+                     . '</span>';
+            };
+            $rsvPhoneLbl = fn($r) => $r->number . ($r->label ? ' · '.$r->label : '');
+            $rsvSocLbl   = fn($r) => ucfirst($r->platform) . ($r->handle ? ': '.$r->handle : '');
         @endphp
 
             {{-- Info + Sync row --}}
@@ -367,13 +396,18 @@
                             $wTdS    = 'padding:6px 12px;font-size:13px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
                             $wVKey   = \App\Models\CustomPlatform::messengerSlugs();
                             $wIsVis  = fn($item) => ($item->is_visible ?? true) && in_array($item->geo_mode ?? 'all', ['all', 'exclude']);
-                            $wTier   = fn($item) => $item->standby_for_id ? 2 : ($wIsVis($item) ? 0 : 1);
+                            $wTier   = fn($item) => $wIsVis($item) ? 0 : 1;
                             $wSort   = function($a,$b) use ($wTier) { $d=$wTier($a)-$wTier($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
-                            $wAllPhs = $site->phones->sort($wSort)->values();
+                            [$wPhP,  $wPhBy,  $wPhPool ] = $rsvSplit($site->phones);
+                            $wMsgrAll= $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$wVKey));
+                            $wSocNAll= $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$wVKey));
+                            [$wMsgP, $wMsgBy, $wMsgPool] = $rsvSplit($wMsgrAll);
+                            [$wSocP, $wSocBy, $wSocPool] = $rsvSplit($wSocNAll);
+                            $wAllPhs = $wPhP->sort($wSort)->values();
                             $wAllPrs = $site->prices->sortBy('sort_order');
                             $wAllAds = $site->addresses->sortBy('sort_order');
-                            $wAllMsgr= $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$wVKey))->sort($wSort)->values();
-                            $wAllSocN= $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$wVKey))->sort($wSort)->values();
+                            $wAllMsgr= $wMsgP->sort($wSort)->values();
+                            $wAllSocN= $wSocP->sort($wSort)->values();
                             $wShRow  = 'background:var(--panel-2);';
                             $wShCell = 'padding:8px 12px;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-top:2px solid var(--border-2);border-bottom:1px solid var(--border-2);';
                             $wShBadge= 'display:inline-block;font-size:10px;font-family:var(--font-mono);color:var(--text-3);background:var(--border-2);border-radius:3px;padding:0 5px;margin-left:6px;';
@@ -391,14 +425,14 @@
                                 <colgroup><col><col style="width:90px"><col style="width:46px"></colgroup>
                                 @if($wAllPhs->count())
                                 <thead>
-                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Телефони<span style="{{ $wShBadge }}">{{ $wAllPhs->count() }}</span></td></tr>
+                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Телефони<span style="{{ $wShBadge }}">{{ $wAllPhs->count() }}</span>{!! $rsvBadge('rsv-all-phpool', $wPhPool, $rsvPhoneLbl) !!}</td></tr>
                                     <tr><th style="{{ $wThS }}">Номер</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}text-align:center;">Видно</th></tr>
                                 </thead>
                                 <tbody>
                                 @foreach($wAllPhs as $p)
-                                @php $pV=$wIsVis($p);$pg=$p->geo_mode??'all';$pgT=$pg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pg]??$pg);if($pg!=='all'&&$p->geo_countries)$pgT.=' '.implode(',', (array)$p->geo_countries); @endphp
-                                <tr style="{{ $p->standby_for_id?'background:rgba(237,137,54,.18);':($pV?'background:rgba(52,211,153,.18);':'opacity:.25;') }}">
-                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-weight:600;color:var(--text);">{{ $p->number }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:11px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
+                                @php $pV=$wIsVis($p);$pg=$p->geo_mode??'all';$pgT=$pg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pg]??$pg);if($pg!=='all'&&$p->geo_countries)$pgT.=' '.implode(',', (array)$p->geo_countries);$pRsv=$wPhBy->get($p->id, collect()); @endphp
+                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-weight:600;color:var(--text);">{{ $p->number }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:11px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif{!! $rsvBadge('rsv-all-ph-'.$p->id, $pRsv, $rsvPhoneLbl) !!}</td>
                                     <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $pgT }}</td>
                                     <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
                                 </tr>
@@ -407,46 +441,14 @@
                                 @endif
                                 @if($wAllMsgr->count())
                                 <thead>
-                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Месенджери<span style="{{ $wShBadge }}">{{ $wAllMsgr->count() }}</span></td></tr>
+                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Месенджери<span style="{{ $wShBadge }}">{{ $wAllMsgr->count() }}</span>{!! $rsvBadge('rsv-all-msgpool', $wMsgPool, $rsvSocLbl) !!}</td></tr>
                                     <tr><th style="{{ $wThS }}">Платформа</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}text-align:center;">Видно</th></tr>
                                 </thead>
                                 <tbody>
                                 @foreach($wAllMsgr as $s)
-                                @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries); @endphp
-                                <tr style="{{ $s->standby_for_id?'background:rgba(237,137,54,.18);':($pV?'background:rgba(52,211,153,.18);':'opacity:.25;') }}">
-                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
-                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
-                                    <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
-                                </tr>
-                                @endforeach
-                                </tbody>
-                                @endif
-                                @if($wAllAds->count())
-                                <thead>
-                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Адреси<span style="{{ $wShBadge }}">{{ $wAllAds->count() }}</span></td></tr>
-                                    <tr><th style="{{ $wThS }}">Адреса</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}text-align:center;">Видно</th></tr>
-                                </thead>
-                                <tbody>
-                                @foreach($wAllAds as $a)
-                                @php $pV=$wIsVis($a);$ag=$a->geo_mode??'all';$agT=$ag==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$ag]??$ag);if($ag!=='all'&&$a->geo_countries)$agT.=' '.implode(',', (array)$a->geo_countries); @endphp
+                                @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries);$sRsv=$wMsgBy->get($s->id, collect()); @endphp
                                 <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
-                                    <td style="{{ $wTdS }}color:var(--text-2);">{{ trim(($a->city??'').' '.($a->street??'')) ?: '—' }}</td>
-                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $agT }}</td>
-                                    <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
-                                </tr>
-                                @endforeach
-                                </tbody>
-                                @endif
-                                @if($wAllSocN->count())
-                                <thead>
-                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Соцмережі<span style="{{ $wShBadge }}">{{ $wAllSocN->count() }}</span></td></tr>
-                                    <tr><th style="{{ $wThS }}">Платформа</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}text-align:center;">Видно</th></tr>
-                                </thead>
-                                <tbody>
-                                @foreach($wAllSocN as $s)
-                                @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries); @endphp
-                                <tr style="{{ $s->standby_for_id?'background:rgba(237,137,54,.18);':($pV?'background:rgba(52,211,153,.18);':'opacity:.25;') }}">
-                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
+                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif{!! $rsvBadge('rsv-all-msg-'.$s->id, $sRsv, $rsvSocLbl) !!}</span></td>
                                     <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
                                     <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
                                 </tr>
@@ -469,6 +471,38 @@
                                 @endforeach
                                 </tbody>
                                 @endif
+                                @if($wAllSocN->count())
+                                <thead>
+                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Соцмережі<span style="{{ $wShBadge }}">{{ $wAllSocN->count() }}</span>{!! $rsvBadge('rsv-all-socpool', $wSocPool, $rsvSocLbl) !!}</td></tr>
+                                    <tr><th style="{{ $wThS }}">Платформа</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}text-align:center;">Видно</th></tr>
+                                </thead>
+                                <tbody>
+                                @foreach($wAllSocN as $s)
+                                @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries);$sRsv=$wSocBy->get($s->id, collect()); @endphp
+                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif{!! $rsvBadge('rsv-all-soc-'.$s->id, $sRsv, $rsvSocLbl) !!}</span></td>
+                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
+                                    <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                                @endif
+                                @if($wAllAds->count())
+                                <thead>
+                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Адреси<span style="{{ $wShBadge }}">{{ $wAllAds->count() }}</span></td></tr>
+                                    <tr><th style="{{ $wThS }}">Адреса</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}text-align:center;">Видно</th></tr>
+                                </thead>
+                                <tbody>
+                                @foreach($wAllAds as $a)
+                                @php $pV=$wIsVis($a);$ag=$a->geo_mode??'all';$agT=$ag==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$ag]??$ag);if($ag!=='all'&&$a->geo_countries)$agT.=' '.implode(',', (array)$a->geo_countries); @endphp
+                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                    <td style="{{ $wTdS }}color:var(--text-2);">{{ trim(($a->city??'').' '.($a->street??'')) ?: '—' }}</td>
+                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $agT }}</td>
+                                    <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                                @endif
                             </table>
                             @endif
                         </div>
@@ -479,12 +513,19 @@
                 <div id="vis-panel-_raw" style="display:none;overflow-x:auto;">
                     @php
                         $rMsgrK = \App\Models\CustomPlatform::messengerSlugs();
-                        $rPhs   = $site->phones->sortBy('sort_order');
+                        [$rPhsP,  $rPhsBy,  $rPhsPool ] = $rsvSplit($site->phones);
+                        $rMsgrAll = $site->socials->filter(fn($s)=> in_array(strtolower($s->platform??''),$rMsgrK));
+                        $rSocNAll = $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$rMsgrK));
+                        [$rMsgrP, $rMsgrBy, $rMsgrPool] = $rsvSplit($rMsgrAll);
+                        [$rSocNP, $rSocNBy, $rSocNPool] = $rsvSplit($rSocNAll);
+                        $rTier  = fn($x) => (($x->is_visible ?? true) && !($x->is_blocked ?? false)) ? 0 : 1;
+                        $rSort  = function($a,$b) use ($rTier){ $d=$rTier($a)-$rTier($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
+                        $rPhs   = $rPhsP->sort($rSort)->values();
+                        $rMsgr  = $rMsgrP->sort($rSort)->values();
+                        $rSocN  = $rSocNP->sort($rSort)->values();
                         $rPrs   = $site->prices->sortBy('sort_order');
                         $rAds   = $site->addresses->sortBy('sort_order');
-                        $rSocN  = $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$rMsgrK))->sortBy('sort_order');
-                        $rMsgr  = $site->socials->filter(fn($s)=> in_array(strtolower($s->platform??''),$rMsgrK))->sortBy('sort_order');
-                        $rTot   = $rPhs->count()+$rPrs->count()+$rAds->count()+$site->socials->count();
+                        $rTot   = $site->phones->count()+$site->prices->count()+$site->addresses->count()+$site->socials->count();
                         $thR = 'padding:5px 8px;text-align:left;font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border-2);white-space:nowrap;overflow:hidden;';
                         $tdR = 'padding:5px 8px;font-size:12px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
                     @endphp
@@ -516,15 +557,15 @@
 
                             @if($rPhs->count())
                             <thead>
-                                <tr style="{{ $shRow }}"><td colspan="5" style="{{ $shCell }}">Телефони<span style="{{ $shBadge }}">{{ $rPhs->count() }}</span></td></tr>
+                                <tr style="{{ $shRow }}"><td colspan="5" style="{{ $shCell }}">Телефони<span style="{{ $shBadge }}">{{ $rPhs->count() }}</span>{!! $rsvBadge('rsv-raw-phpool', $rPhsPool, $rsvPhoneLbl) !!}</td></tr>
                                 <tr><th style="{{ $thU }}">Статус</th><th style="{{ $thU }}">Номер</th><th style="{{ $thU }}">Мітка</th><th style="{{ $thU }}">Гео</th><th style="{{ $thU }}text-align:center;">Видно</th></tr>
                             </thead>
                             <tbody>
                             @foreach($rPhs as $p)
-                            @php $pGeo=$p->geo_mode??'all';$pGeoTxt=$pGeo==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pGeo]??$pGeo);if($pGeo!=='all'&&$p->geo_countries)$pGeoTxt.=' '.implode(',', (array)$p->geo_countries); @endphp
-                            <tr style="{{ $p->standby_for_id?'background:rgba(237,137,54,.12);':(!($p->is_visible??true)?'opacity:.45;':'') }}">
-                                <td style="{{ $tdU }}">@if($p->is_blocked)<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(245,101,101,.12);color:var(--danger);font-weight:600;">Блок</span>@elseif($p->standby_for_id)<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(99,179,237,.12);color:#63b3ed;font-weight:600;">Резерв</span>@else<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(72,187,120,.1);color:#48bb78;font-weight:600;">Осн.</span>@endif</td>
-                                <td style="{{ $tdU }}font-family:var(--font-mono);font-weight:600;color:var(--text);{{ $p->is_blocked?'text-decoration:line-through;':'' }}">{{ $p->number }}</td>
+                            @php $pGeo=$p->geo_mode??'all';$pGeoTxt=$pGeo==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pGeo]??$pGeo);if($pGeo!=='all'&&$p->geo_countries)$pGeoTxt.=' '.implode(',', (array)$p->geo_countries);$pRsv=$rPhsBy->get($p->id, collect()); @endphp
+                            <tr style="{{ !($p->is_visible??true)?'opacity:.45;':'' }}">
+                                <td style="{{ $tdU }}">@if($p->is_blocked)<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(245,101,101,.12);color:var(--danger);font-weight:600;">Блок</span>@else<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(72,187,120,.1);color:#48bb78;font-weight:600;">Осн.</span>@endif</td>
+                                <td style="{{ $tdU }}font-family:var(--font-mono);font-weight:600;color:var(--text);{{ $p->is_blocked?'text-decoration:line-through;':'' }}">{{ $p->number }}{!! $rsvBadge('rsv-raw-ph-'.$p->id, $pRsv, $rsvPhoneLbl) !!}</td>
                                 <td style="{{ $tdU }}color:var(--text-3);">{{ $p->label ?: '—' }}</td>
                                 <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">{{ $pGeoTxt }}</td>
                                 <td style="{{ $tdU }}text-align:center;">{!! ($p->is_visible??true) ? $eyeOn : $eyeOff !!}</td>
@@ -535,52 +576,14 @@
 
                             @if($rMsgr->count())
                             <thead>
-                                <tr style="{{ $shRow }}"><td colspan="5" style="{{ $shCell }}">Месенджери<span style="{{ $shBadge }}">{{ $rMsgr->count() }}</span></td></tr>
+                                <tr style="{{ $shRow }}"><td colspan="5" style="{{ $shCell }}">Месенджери<span style="{{ $shBadge }}">{{ $rMsgr->count() }}</span>{!! $rsvBadge('rsv-raw-msgpool', $rMsgrPool, $rsvSocLbl) !!}</td></tr>
                                 <tr><th style="{{ $thU }}">Платформа</th><th style="{{ $thU }}">Handle</th><th style="{{ $thU }}">—</th><th style="{{ $thU }}">Гео</th><th style="{{ $thU }}text-align:center;">Видно</th></tr>
                             </thead>
                             <tbody>
                             @foreach($rMsgr as $s)
-                            @php $sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sgTxt=($s->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$s->geo_mode]??'');if(($s->geo_mode??'all')!=='all'&&$s->geo_countries)$sgTxt.=' '.implode(',', (array)$s->geo_countries); @endphp
-                            <tr style="{{ $s->standby_for_id?'background:rgba(237,137,54,.12);':(!($s->is_visible??true)?'opacity:.45;':'') }}">
-                                <td style="{{ $tdU }}"><span style="display:inline-flex;align-items:center;gap:5px;"><span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span></span></td>
-                                <td style="{{ $tdU }}color:var(--text-2);">{{ $s->handle ?: '—' }}</td>
-                                <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">—</td>
-                                <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">{{ $sgTxt }}</td>
-                                <td style="{{ $tdU }}text-align:center;">{!! ($s->is_visible??true) ? $eyeOn : $eyeOff !!}</td>
-                            </tr>
-                            @endforeach
-                            </tbody>
-                            @endif
-
-                            @if($rAds->count())
-                            <thead>
-                                <tr style="{{ $shRow }}"><td colspan="5" style="{{ $shCell }}">Адреси<span style="{{ $shBadge }}">{{ $rAds->count() }}</span></td></tr>
-                                <tr><th style="{{ $thU }}">Місто</th><th style="{{ $thU }}">Вулиця</th><th style="{{ $thU }}">Мітка</th><th style="{{ $thU }}">Гео</th><th style="{{ $thU }}text-align:center;">Видно</th></tr>
-                            </thead>
-                            <tbody>
-                            @foreach($rAds as $a)
-                            @php $agTxt=($a->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$a->geo_mode]??'');if(($a->geo_mode??'all')!=='all'&&$a->geo_countries)$agTxt.=' '.implode(',', (array)$a->geo_countries); @endphp
-                            <tr style="{{ !($a->is_visible??true)?'opacity:.45;':'' }}">
-                                <td style="{{ $tdU }}font-weight:600;color:var(--text);">{{ $a->city ?: '—' }}</td>
-                                <td style="{{ $tdU }}color:var(--text-3);">{{ $a->street ?: '—' }}</td>
-                                <td style="{{ $tdU }}color:var(--text-3);">{{ $a->label ?: '—' }}</td>
-                                <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">{{ $agTxt }}</td>
-                                <td style="{{ $tdU }}text-align:center;">{!! ($a->is_visible??true) ? $eyeOn : $eyeOff !!}</td>
-                            </tr>
-                            @endforeach
-                            </tbody>
-                            @endif
-
-                            @if($rSocN->count())
-                            <thead>
-                                <tr style="{{ $shRow }}"><td colspan="5" style="{{ $shCell }}">Соцмережі<span style="{{ $shBadge }}">{{ $rSocN->count() }}</span></td></tr>
-                                <tr><th style="{{ $thU }}">Платформа</th><th style="{{ $thU }}">Handle</th><th style="{{ $thU }}">—</th><th style="{{ $thU }}">Гео</th><th style="{{ $thU }}text-align:center;">Видно</th></tr>
-                            </thead>
-                            <tbody>
-                            @foreach($rSocN as $s)
-                            @php $sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sgTxt=($s->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$s->geo_mode]??'');if(($s->geo_mode??'all')!=='all'&&$s->geo_countries)$sgTxt.=' '.implode(',', (array)$s->geo_countries); @endphp
-                            <tr style="{{ $s->standby_for_id?'background:rgba(237,137,54,.12);':(!($s->is_visible??true)?'opacity:.45;':'') }}">
-                                <td style="{{ $tdU }}"><span style="display:inline-flex;align-items:center;gap:5px;"><span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span></span></td>
+                            @php $sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sgTxt=($s->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$s->geo_mode]??'');if(($s->geo_mode??'all')!=='all'&&$s->geo_countries)$sgTxt.=' '.implode(',', (array)$s->geo_countries);$sRsv=$rMsgrBy->get($s->id, collect()); @endphp
+                            <tr style="{{ !($s->is_visible??true)?'opacity:.45;':'' }}">
+                                <td style="{{ $tdU }}"><span style="display:inline-flex;align-items:center;gap:5px;"><span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span>{!! $rsvBadge('rsv-raw-msg-'.$s->id, $sRsv, $rsvSocLbl) !!}</span></td>
                                 <td style="{{ $tdU }}color:var(--text-2);">{{ $s->handle ?: '—' }}</td>
                                 <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">—</td>
                                 <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">{{ $sgTxt }}</td>
@@ -604,6 +607,44 @@
                                 <td style="{{ $tdU }}font-family:var(--font-mono);color:var(--text-3);">{{ $p->currency }}</td>
                                 <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">{{ $pgTxt }}</td>
                                 <td style="{{ $tdU }}"></td>
+                            </tr>
+                            @endforeach
+                            </tbody>
+                            @endif
+
+                            @if($rSocN->count())
+                            <thead>
+                                <tr style="{{ $shRow }}"><td colspan="5" style="{{ $shCell }}">Соцмережі<span style="{{ $shBadge }}">{{ $rSocN->count() }}</span>{!! $rsvBadge('rsv-raw-socpool', $rSocNPool, $rsvSocLbl) !!}</td></tr>
+                                <tr><th style="{{ $thU }}">Платформа</th><th style="{{ $thU }}">Handle</th><th style="{{ $thU }}">—</th><th style="{{ $thU }}">Гео</th><th style="{{ $thU }}text-align:center;">Видно</th></tr>
+                            </thead>
+                            <tbody>
+                            @foreach($rSocN as $s)
+                            @php $sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sgTxt=($s->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$s->geo_mode]??'');if(($s->geo_mode??'all')!=='all'&&$s->geo_countries)$sgTxt.=' '.implode(',', (array)$s->geo_countries);$sRsv=$rSocNBy->get($s->id, collect()); @endphp
+                            <tr style="{{ !($s->is_visible??true)?'opacity:.45;':'' }}">
+                                <td style="{{ $tdU }}"><span style="display:inline-flex;align-items:center;gap:5px;"><span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span>{!! $rsvBadge('rsv-raw-soc-'.$s->id, $sRsv, $rsvSocLbl) !!}</span></td>
+                                <td style="{{ $tdU }}color:var(--text-2);">{{ $s->handle ?: '—' }}</td>
+                                <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">—</td>
+                                <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">{{ $sgTxt }}</td>
+                                <td style="{{ $tdU }}text-align:center;">{!! ($s->is_visible??true) ? $eyeOn : $eyeOff !!}</td>
+                            </tr>
+                            @endforeach
+                            </tbody>
+                            @endif
+
+                            @if($rAds->count())
+                            <thead>
+                                <tr style="{{ $shRow }}"><td colspan="5" style="{{ $shCell }}">Адреси<span style="{{ $shBadge }}">{{ $rAds->count() }}</span></td></tr>
+                                <tr><th style="{{ $thU }}">Місто</th><th style="{{ $thU }}">Вулиця</th><th style="{{ $thU }}">Мітка</th><th style="{{ $thU }}">Гео</th><th style="{{ $thU }}text-align:center;">Видно</th></tr>
+                            </thead>
+                            <tbody>
+                            @foreach($rAds as $a)
+                            @php $agTxt=($a->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$a->geo_mode]??'');if(($a->geo_mode??'all')!=='all'&&$a->geo_countries)$agTxt.=' '.implode(',', (array)$a->geo_countries); @endphp
+                            <tr style="{{ !($a->is_visible??true)?'opacity:.45;':'' }}">
+                                <td style="{{ $tdU }}font-weight:600;color:var(--text);">{{ $a->city ?: '—' }}</td>
+                                <td style="{{ $tdU }}color:var(--text-3);">{{ $a->street ?: '—' }}</td>
+                                <td style="{{ $tdU }}color:var(--text-3);">{{ $a->label ?: '—' }}</td>
+                                <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">{{ $agTxt }}</td>
+                                <td style="{{ $tdU }}text-align:center;">{!! ($a->is_visible??true) ? $eyeOn : $eyeOff !!}</td>
                             </tr>
                             @endforeach
                             </tbody>
@@ -721,15 +762,20 @@
                                 $mThS = 'padding:5px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border-2);white-space:nowrap;overflow:hidden;';
                                 $mTdS    = 'padding:6px 12px;font-size:13px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
                                 $mVKey   = \App\Models\CustomPlatform::messengerSlugs();
-                                $mTierPh = fn($p) => $p->standby_for_id ? 2 : ((($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso)) ? 0 : 1);
-                                $mTierSo = fn($s) => $s->standby_for_id ? 2 : ((($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso)) ? 0 : 1);
+                                $mTierPh = fn($p) => (($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso)) ? 0 : 1;
+                                $mTierSo = fn($s) => (($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso)) ? 0 : 1;
                                 $mSortPh = function($a,$b) use ($mTierPh) { $d=$mTierPh($a)-$mTierPh($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
                                 $mSortSo = function($a,$b) use ($mTierSo) { $d=$mTierSo($a)-$mTierSo($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
-                                $mAllPhs = $site->phones->sort($mSortPh)->values();
+                                [$mPhP,  $mPhBy,  $mPhPool ] = $rsvSplit($site->phones);
+                                $mMsgrAll= $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$mVKey));
+                                $mSocNAll= $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$mVKey));
+                                [$mMsgP, $mMsgBy, $mMsgPool] = $rsvSplit($mMsgrAll);
+                                [$mSocP, $mSocBy, $mSocPool] = $rsvSplit($mSocNAll);
+                                $mAllPhs = $mPhP->sort($mSortPh)->values();
                                 $mAllPrs = $site->prices->sortBy('sort_order');
                                 $mAllAds = $site->addresses->sortBy('sort_order');
-                                $mAllMsgr= $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$mVKey))->sort($mSortSo)->values();
-                                $mAllSocN= $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$mVKey))->sort($mSortSo)->values();
+                                $mAllMsgr= $mMsgP->sort($mSortSo)->values();
+                                $mAllSocN= $mSocP->sort($mSortSo)->values();
                                 $mShRow  = 'background:var(--panel-2);';
                                 $mShCell = 'padding:8px 12px;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-top:2px solid var(--border-2);border-bottom:1px solid var(--border-2);';
                                 $mShBadge= 'display:inline-block;font-size:10px;font-family:var(--font-mono);color:var(--text-3);background:var(--border-2);border-radius:3px;padding:0 5px;margin-left:6px;';
@@ -746,14 +792,14 @@
                                     <colgroup><col><col style="width:90px"><col style="width:46px"></colgroup>
                                     @if($mAllPhs->count())
                                     <thead>
-                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Телефони<span style="{{ $mShBadge }}">{{ $mAllPhs->count() }}</span></td></tr>
+                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Телефони<span style="{{ $mShBadge }}">{{ $mAllPhs->count() }}</span>{!! $rsvBadge('rsv-'.$visIso.'-phpool', $mPhPool, $rsvPhoneLbl) !!}</td></tr>
                                         <tr><th style="{{ $mThS }}">Номер</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}text-align:center;">Видно</th></tr>
                                     </thead>
                                     <tbody>
                                     @foreach($mAllPhs as $p)
-                                    @php $pV=($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso);$pg=$p->geo_mode??'all';$pgT=$pg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pg]??$pg);if($pg!=='all'&&$p->geo_countries)$pgT.=' '.implode(',', (array)$p->geo_countries); @endphp
-                                    <tr style="{{ $p->standby_for_id?'background:rgba(237,137,54,.18);':($pV?'background:rgba(52,211,153,.18);':'opacity:.25;') }}">
-                                        <td style="{{ $mTdS }}font-family:var(--font-mono);font-weight:600;color:var(--text);">{{ $p->number }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:11px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
+                                    @php $pV=($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso);$pg=$p->geo_mode??'all';$pgT=$pg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pg]??$pg);if($pg!=='all'&&$p->geo_countries)$pgT.=' '.implode(',', (array)$p->geo_countries);$pRsv=$mPhBy->get($p->id, collect()); @endphp
+                                    <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                        <td style="{{ $mTdS }}font-family:var(--font-mono);font-weight:600;color:var(--text);">{{ $p->number }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:11px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif{!! $rsvBadge('rsv-'.$visIso.'-ph-'.$p->id, $pRsv, $rsvPhoneLbl) !!}</td>
                                         <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $pgT }}</td>
                                         <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
                                     </tr>
@@ -762,46 +808,14 @@
                                     @endif
                                     @if($mAllMsgr->count())
                                     <thead>
-                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Месенджери<span style="{{ $mShBadge }}">{{ $mAllMsgr->count() }}</span></td></tr>
+                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Месенджери<span style="{{ $mShBadge }}">{{ $mAllMsgr->count() }}</span>{!! $rsvBadge('rsv-'.$visIso.'-msgpool', $mMsgPool, $rsvSocLbl) !!}</td></tr>
                                         <tr><th style="{{ $mThS }}">Платформа</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}text-align:center;">Видно</th></tr>
                                     </thead>
                                     <tbody>
                                     @foreach($mAllMsgr as $s)
-                                    @php $pV=($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries); @endphp
-                                    <tr style="{{ $s->standby_for_id?'background:rgba(237,137,54,.18);':($pV?'background:rgba(52,211,153,.18);':'opacity:.25;') }}">
-                                        <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
-                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
-                                        <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
-                                    </tr>
-                                    @endforeach
-                                    </tbody>
-                                    @endif
-                                    @if($mAllAds->count())
-                                    <thead>
-                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Адреси<span style="{{ $mShBadge }}">{{ $mAllAds->count() }}</span></td></tr>
-                                        <tr><th style="{{ $mThS }}">Адреса</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}text-align:center;">Видно</th></tr>
-                                    </thead>
-                                    <tbody>
-                                    @foreach($mAllAds as $a)
-                                    @php $pV=($a->is_visible??true)&&$geoVis($a->geo_mode,$a->geo_countries,$visIso,$a->country_iso);$ag=$a->geo_mode??'all';$agT=$ag==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$ag]??$ag);if($ag!=='all'&&$a->geo_countries)$agT.=' '.implode(',', (array)$a->geo_countries); @endphp
+                                    @php $pV=($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries);$sRsv=$mMsgBy->get($s->id, collect()); @endphp
                                     <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
-                                        <td style="{{ $mTdS }}color:var(--text-2);">{{ trim(($a->city??'').' '.($a->street??'')) ?: '—' }}</td>
-                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $agT }}</td>
-                                        <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
-                                    </tr>
-                                    @endforeach
-                                    </tbody>
-                                    @endif
-                                    @if($mAllSocN->count())
-                                    <thead>
-                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Соцмережі<span style="{{ $mShBadge }}">{{ $mAllSocN->count() }}</span></td></tr>
-                                        <tr><th style="{{ $mThS }}">Платформа</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}text-align:center;">Видно</th></tr>
-                                    </thead>
-                                    <tbody>
-                                    @foreach($mAllSocN as $s)
-                                    @php $pV=($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries); @endphp
-                                    <tr style="{{ $s->standby_for_id?'background:rgba(237,137,54,.18);':($pV?'background:rgba(52,211,153,.18);':'opacity:.25;') }}">
-                                        <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif</span></td>
+                                        <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif{!! $rsvBadge('rsv-'.$visIso.'-msg-'.$s->id, $sRsv, $rsvSocLbl) !!}</span></td>
                                         <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
                                         <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
                                     </tr>
@@ -824,6 +838,38 @@
                                     @endforeach
                                     </tbody>
                                     @endif
+                                    @if($mAllSocN->count())
+                                    <thead>
+                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Соцмережі<span style="{{ $mShBadge }}">{{ $mAllSocN->count() }}</span>{!! $rsvBadge('rsv-'.$visIso.'-socpool', $mSocPool, $rsvSocLbl) !!}</td></tr>
+                                        <tr><th style="{{ $mThS }}">Платформа</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}text-align:center;">Видно</th></tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($mAllSocN as $s)
+                                    @php $pV=($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries);$sRsv=$mSocBy->get($s->id, collect()); @endphp
+                                    <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                        <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif{!! $rsvBadge('rsv-'.$visIso.'-soc-'.$s->id, $sRsv, $rsvSocLbl) !!}</span></td>
+                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
+                                        <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
+                                    </tr>
+                                    @endforeach
+                                    </tbody>
+                                    @endif
+                                    @if($mAllAds->count())
+                                    <thead>
+                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Адреси<span style="{{ $mShBadge }}">{{ $mAllAds->count() }}</span></td></tr>
+                                        <tr><th style="{{ $mThS }}">Адреса</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}text-align:center;">Видно</th></tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($mAllAds as $a)
+                                    @php $pV=($a->is_visible??true)&&$geoVis($a->geo_mode,$a->geo_countries,$visIso,$a->country_iso);$ag=$a->geo_mode??'all';$agT=$ag==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$ag]??$ag);if($ag!=='all'&&$a->geo_countries)$agT.=' '.implode(',', (array)$a->geo_countries); @endphp
+                                    <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                        <td style="{{ $mTdS }}color:var(--text-2);">{{ trim(($a->city??'').' '.($a->street??'')) ?: '—' }}</td>
+                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $agT }}</td>
+                                        <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
+                                    </tr>
+                                    @endforeach
+                                    </tbody>
+                                    @endif
                                 </table>
                                 @endif
                             </div>
@@ -842,6 +888,20 @@
                     var btn = document.getElementById('vis-tab-' + iso);
                     if (btn) btn.className = btn.className.replace('btn--ghost','btn--primary');
                 })();
+                function toggleRsvPop(e, id){
+                    e.stopPropagation();
+                    var el = document.getElementById(id);
+                    if (!el) return;
+                    var wasOpen = el.classList.contains('is-open');
+                    document.querySelectorAll('.rsv-pop.is-open').forEach(function(p){ p.classList.remove('is-open'); });
+                    if (!wasOpen) el.classList.add('is-open');
+                }
+                document.addEventListener('click', function(){
+                    document.querySelectorAll('.rsv-pop.is-open').forEach(function(p){ p.classList.remove('is-open'); });
+                });
+                document.addEventListener('keydown', function(e){
+                    if (e.key === 'Escape') document.querySelectorAll('.rsv-pop.is-open').forEach(function(p){ p.classList.remove('is-open'); });
+                });
                 </script>
 
                 {{-- Conflicts — always visible so manager can verify setup --}}
