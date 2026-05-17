@@ -368,7 +368,7 @@
                             $wVKey   = \App\Models\CustomPlatform::messengerSlugs();
                             $wIsVis  = fn($item) => ($item->is_visible ?? true) && in_array($item->geo_mode ?? 'all', ['all', 'exclude']);
                             $wTier   = fn($item) => $item->standby_for_id ? 2 : ($wIsVis($item) ? 0 : 1);
-                            $wSort   = fn($a,$b) use ($wTier) { $d=$wTier($a)-$wTier($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
+                            $wSort   = function($a,$b) use ($wTier) { $d=$wTier($a)-$wTier($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
                             $wAllPhs = $site->phones->sort($wSort)->values();
                             $wAllPrs = $site->prices->sortBy('sort_order');
                             $wAllAds = $site->addresses->sortBy('sort_order');
@@ -723,8 +723,8 @@
                                 $mVKey   = \App\Models\CustomPlatform::messengerSlugs();
                                 $mTierPh = fn($p) => $p->standby_for_id ? 2 : ((($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso)) ? 0 : 1);
                                 $mTierSo = fn($s) => $s->standby_for_id ? 2 : ((($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso)) ? 0 : 1);
-                                $mSortPh = fn($a,$b) use ($mTierPh) { $d=$mTierPh($a)-$mTierPh($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
-                                $mSortSo = fn($a,$b) use ($mTierSo) { $d=$mTierSo($a)-$mTierSo($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
+                                $mSortPh = function($a,$b) use ($mTierPh) { $d=$mTierPh($a)-$mTierPh($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
+                                $mSortSo = function($a,$b) use ($mTierSo) { $d=$mTierSo($a)-$mTierSo($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
                                 $mAllPhs = $site->phones->sort($mSortPh)->values();
                                 $mAllPrs = $site->prices->sortBy('sort_order');
                                 $mAllAds = $site->addresses->sortBy('sort_order');
