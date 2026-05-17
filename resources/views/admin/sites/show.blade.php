@@ -894,8 +894,21 @@
                     if (!el) return;
                     var wasOpen = el.classList.contains('is-open');
                     document.querySelectorAll('.rsv-pop.is-open').forEach(function(p){ p.classList.remove('is-open'); });
-                    if (!wasOpen) el.classList.add('is-open');
+                    if (wasOpen) return;
+                    var btn = e.currentTarget || e.target;
+                    var r = btn.getBoundingClientRect();
+                    el.classList.add('is-open');
+                    var pw = el.offsetWidth, ph = el.offsetHeight;
+                    var left = r.left, top = r.bottom + 5;
+                    if (left + pw > window.innerWidth - 8)  left = window.innerWidth - pw - 8;
+                    if (left < 8) left = 8;
+                    if (top + ph > window.innerHeight - 8)  top = r.top - ph - 5;
+                    el.style.left = Math.round(left) + 'px';
+                    el.style.top  = Math.round(top) + 'px';
                 }
+                window.addEventListener('resize', function(){
+                    document.querySelectorAll('.rsv-pop.is-open').forEach(function(p){ p.classList.remove('is-open'); });
+                });
                 document.addEventListener('click', function(){
                     document.querySelectorAll('.rsv-pop.is-open').forEach(function(p){ p.classList.remove('is-open'); });
                 });

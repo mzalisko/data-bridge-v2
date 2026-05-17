@@ -1280,10 +1280,10 @@ body.bulk-mode .site-card:has(.bulk-checkbox:checked) {
 }
 .rsv-badge:hover { background: rgba(99,179,237,.22); }
 .rsv-pop {
-  display: none; position: absolute; top: 100%; left: 0; z-index: 60;
-  min-width: 170px; margin-top: 5px; padding: 7px 0;
+  display: none; position: fixed; z-index: 9999;
+  min-width: 170px; max-height: 260px; overflow-y: auto; padding: 7px 0;
   background: var(--bg-card, var(--panel)); border: 1px solid var(--border-2);
-  border-radius: 9px; box-shadow: 0 10px 28px rgba(0,0,0,.20);
+  border-radius: 9px; box-shadow: 0 10px 28px rgba(0,0,0,.28);
 }
 .rsv-pop.is-open { display: block; }
 .rsv-pop__item {
