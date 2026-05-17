@@ -8,8 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class ActivityService
 {
-    // Fields to skip when building diffs (internal/meta columns)
-    private const SKIP_FIELDS = ['created_at', 'updated_at', 'site_id', 'group_id'];
+    // Fields to skip when building diffs (internal/meta, sensitive, or handled separately)
+    private const SKIP_FIELDS = [
+        'created_at', 'updated_at', 'site_id', 'group_id',
+        'push_key', 'plugin_edit_token',   // sensitive credentials
+        'active_geos', 'geo_rules',         // tracked separately via logGeo()
+    ];
 
     public static function log(
         string $entityType,
@@ -18,6 +22,7 @@ class ActivityService
         string $summary,
         ?Site  $site = null,
         array  $before = [],
+        string $source = 'crm',
     ): void {
         $siteId  = $site?->id ?? ($entity->site_id ?? null);
         $groupId = $site?->group_id ?? null;
@@ -33,12 +38,32 @@ class ActivityService
             'site_id'     => $siteId,
             'group_id'    => $groupId,
             'user_id'     => auth()->id(),
-            'source'      => 'crm',
+            'source'      => $source,
             'entity_type' => $entityType,
             'entity_id'   => $entity->id,
             'action'      => $action,
             'summary'     => $summary,
             'snapshot'    => $snapshot,
+        ]);
+    }
+
+    public static function logGeo(
+        string $action,
+        Site   $site,
+        string $summary,
+        array  $snapshot = [],
+        string $source = 'crm',
+    ): void {
+        ActivityLog::create([
+            'site_id'     => $site->id,
+            'group_id'    => $site->group_id,
+            'user_id'     => auth()->id(),
+            'source'      => $source,
+            'entity_type' => 'geo',
+            'entity_id'   => $site->id,
+            'action'      => $action,
+            'summary'     => $summary,
+            'snapshot'    => $snapshot ?: null,
         ]);
     }
 
@@ -54,7 +79,7 @@ class ActivityService
         foreach ($after as $key => $newVal) {
             if (in_array($key, $skip)) continue;
             $oldVal = $before[$key] ?? null;
-            if ($oldVal != $newVal) {
+            if (json_encode($oldVal) !== json_encode($newVal)) {
                 $changes[$key] = ['before' => $oldVal, 'after' => $newVal];
             }
         }

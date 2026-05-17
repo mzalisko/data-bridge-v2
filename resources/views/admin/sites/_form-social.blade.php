@@ -5,7 +5,7 @@
 <div class="field">
     <label class="field__label" for="so-plat-{{ $sid }}">Платформа</label>
     <select id="so-plat-{{ $sid }}" name="platform" class="field__input" required>
-        @foreach(['instagram'=>'Instagram','facebook'=>'Facebook','telegram'=>'Telegram','linkedin'=>'LinkedIn','x'=>'X / Twitter','whatsapp'=>'WhatsApp','viber'=>'Viber','youtube'=>'YouTube'] as $val => $label)
+        @foreach(['telegram'=>'Telegram','whatsapp'=>'WhatsApp','viber'=>'Viber','signal'=>'Signal','discord'=>'Discord','skype'=>'Skype','wechat'=>'WeChat','line'=>'Line','instagram'=>'Instagram','facebook'=>'Facebook','youtube'=>'YouTube','tiktok'=>'TikTok','twitter'=>'Twitter / X','linkedin'=>'LinkedIn','pinterest'=>'Pinterest','threads'=>'Threads','reddit'=>'Reddit','vk'=>'ВКонтакте','twitch'=>'Twitch'] as $val => $label)
             <option value="{{ $val }}" {{ old('platform', $s?->platform) === $val ? 'selected' : '' }}>{{ $label }}</option>
         @endforeach
     </select>

@@ -9,16 +9,23 @@ use App\Models\SitePrice;
 use App\Models\SiteAddress;
 use App\Models\SiteSocial;
 use App\Models\Country;
+use App\Models\CustomPlatform;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class DataBrowserController extends Controller
 {
+    private static function messengerPlatforms(): array
+    {
+        return CustomPlatform::messengerSlugs();
+    }
+
     public function index(Request $request): View
     {
-        $type = $request->get('type', 'phones');
-        $q    = trim($request->get('q', ''));
+        $type = $request->query('type', 'phones');
+        $q    = trim($request->query('q', ''));
 
         $rows     = collect();
         $sites    = Site::orderBy('name')->get(['id', 'name', 'url']);
@@ -26,61 +33,67 @@ class DataBrowserController extends Controller
 
         switch ($type) {
             case 'phones':
-                $query = SitePhone::with('site')->orderBy('id');
-                if ($q) {
-                    $query->where(function ($w) use ($q) {
-                        $w->where('number', 'like', "%{$q}%")
-                          ->orWhere('label', 'like', "%{$q}%")
-                          ->orWhere('country_iso', 'like', "%{$q}%")
-                          ->orWhere('dial_code', 'like', "%{$q}%")
-                          ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%"));
-                    });
-                }
-                $rows = $query->get();
+                $query = SitePhone::with(['site.siteGroup'])->orderBy('site_id')->orderBy('sort_order');
+                if ($q) $query->where(fn($w) => $w
+                    ->where('number', 'like', "%{$q}%")
+                    ->orWhere('label', 'like', "%{$q}%")
+                    ->orWhere('country_iso', 'like', "%{$q}%")
+                    ->orWhere('dial_code', 'like', "%{$q}%")
+                    ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%")->orWhere('url', 'like', "%{$q}%")));
                 break;
-
+            case 'messengers':
+                $query = SiteSocial::with(['site.siteGroup'])
+                    ->whereIn('platform', self::messengerPlatforms())
+                    ->orderBy('site_id')->orderBy('sort_order');
+                if ($q) $query->where(fn($w) => $w
+                    ->where('handle', 'like', "%{$q}%")
+                    ->orWhere('platform', 'like', "%{$q}%")
+                    ->orWhere('url', 'like', "%{$q}%")
+                    ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%")));
+                break;
             case 'prices':
-                $query = SitePrice::with('site')->orderBy('id');
-                if ($q) {
-                    $query->where(function ($w) use ($q) {
-                        $w->where('label', 'like', "%{$q}%")
-                          ->orWhere('currency', 'like', "%{$q}%")
-                          ->orWhere('amount', 'like', "%{$q}%")
-                          ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%"));
-                    });
-                }
-                $rows = $query->get();
+                $query = SitePrice::with(['site.siteGroup'])->orderBy('site_id')->orderBy('sort_order');
+                if ($q) $query->where(fn($w) => $w
+                    ->where('label', 'like', "%{$q}%")
+                    ->orWhere('currency', 'like', "%{$q}%")
+                    ->orWhere('amount', 'like', "%{$q}%")
+                    ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%")));
                 break;
-
             case 'addresses':
-                $query = SiteAddress::with('site')->orderBy('id');
-                if ($q) {
-                    $query->where(function ($w) use ($q) {
-                        $w->where('city', 'like', "%{$q}%")
-                          ->orWhere('street', 'like', "%{$q}%")
-                          ->orWhere('country_iso', 'like', "%{$q}%")
-                          ->orWhere('label', 'like', "%{$q}%")
-                          ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%"));
-                    });
-                }
-                $rows = $query->get();
+                $query = SiteAddress::with(['site.siteGroup'])->orderBy('site_id')->orderBy('sort_order');
+                if ($q) $query->where(fn($w) => $w
+                    ->where('city', 'like', "%{$q}%")
+                    ->orWhere('street', 'like', "%{$q}%")
+                    ->orWhere('country_iso', 'like', "%{$q}%")
+                    ->orWhere('label', 'like', "%{$q}%")
+                    ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%")));
                 break;
-
-            case 'socials':
-                $query = SiteSocial::with('site')->orderBy('id');
-                if ($q) {
-                    $query->where(function ($w) use ($q) {
-                        $w->where('url', 'like', "%{$q}%")
-                          ->orWhere('platform', 'like', "%{$q}%")
-                          ->orWhere('handle', 'like', "%{$q}%")
-                          ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%"));
-                    });
-                }
-                $rows = $query->get();
+            default: // socials (non-messenger)
+                $type  = 'socials';
+                $query = SiteSocial::with(['site.siteGroup'])
+                    ->whereNotIn('platform', self::messengerPlatforms())
+                    ->orderBy('site_id')->orderBy('sort_order');
+                if ($q) $query->where(fn($w) => $w
+                    ->where('handle', 'like', "%{$q}%")
+                    ->orWhere('platform', 'like', "%{$q}%")
+                    ->orWhere('url', 'like', "%{$q}%")
+                    ->orWhereHas('site', fn($s) => $s->where('name', 'like', "%{$q}%")));
                 break;
         }
 
-        return view('admin.data.index', compact('type', 'q', 'rows', 'sites', 'countries'));
+        $rows = $query->paginate(50)->withQueryString();
+
+        $counts = [
+            'phones'     => SitePhone::count(),
+            'messengers' => SiteSocial::whereIn('platform', self::messengerPlatforms())->count(),
+            'prices'     => SitePrice::count(),
+            'addresses'  => SiteAddress::count(),
+            'socials'    => SiteSocial::whereNotIn('platform', self::messengerPlatforms())->count(),
+        ];
+
+        $customMessengers = CustomPlatform::messengerOptions();
+
+        return view('admin.data.index', compact('type', 'q', 'rows', 'sites', 'countries', 'counts', 'customMessengers'));
     }
 
     public function bulkDelete(Request $request): RedirectResponse
@@ -98,7 +111,7 @@ class DataBrowserController extends Controller
             ->with('success', "Видалено {$count} записів");
     }
 
-    public function bulkEdit(Request $request): RedirectResponse
+    public function bulkEdit(Request $request): RedirectResponse|JsonResponse
     {
         $data = $request->validate([
             'type'  => ['required', 'in:phones,prices,addresses,socials'],
@@ -115,10 +128,12 @@ class DataBrowserController extends Controller
         $allowed = $this->editableFields($type);
 
         if (! in_array($field, $allowed)) {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => 'Поле не дозволено'], 422);
+            }
             return back()->with('error', 'Поле не дозволено для редагування.');
         }
 
-        // Cast value for specific fields
         if ($field === 'country_iso') {
             $value = strtoupper($value);
         }
@@ -126,7 +141,11 @@ class DataBrowserController extends Controller
         $model = $this->modelForType($type);
         $count = $model::whereIn('id', $ids)->update([$field => $value]);
 
-        return redirect()->route('data.index', ['type' => $type, 'q' => $request->get('q')])
+        if ($request->wantsJson()) {
+            return response()->json(['ok' => $count, 'field' => $field]);
+        }
+
+        return redirect()->route('data.index', ['type' => $type, 'q' => $request->query('q')])
             ->with('success', "Оновлено {$count} записів → «{$field}»");
     }
 
@@ -144,12 +163,12 @@ class DataBrowserController extends Controller
         $model     = $this->modelForType($type);
         $records   = $model::whereIn('id', $data['ids'])->get();
         $targetIds = $data['target_ids'];
+        $whitelist = $this->copyableFields($type);
         $copied    = 0;
 
         foreach ($targetIds as $siteId) {
             foreach ($records as $record) {
-                $attrs = $record->toArray();
-                unset($attrs['id']);
+                $attrs = array_intersect_key($record->toArray(), array_flip($whitelist));
                 $attrs['site_id'] = $siteId;
                 $model::create($attrs);
                 $copied++;
@@ -163,20 +182,39 @@ class DataBrowserController extends Controller
     private function modelForType(string $type): string
     {
         return match($type) {
-            'phones'    => SitePhone::class,
-            'prices'    => SitePrice::class,
-            'addresses' => SiteAddress::class,
-            'socials'   => SiteSocial::class,
+            'phones'     => SitePhone::class,
+            'messengers' => SiteSocial::class,
+            'prices'     => SitePrice::class,
+            'addresses'  => SiteAddress::class,
+            'socials'    => SiteSocial::class,
         };
     }
 
     private function editableFields(string $type): array
     {
         return match($type) {
-            'phones'    => ['number', 'label', 'country_iso', 'dial_code', 'is_primary'],
-            'prices'    => ['amount', 'currency', 'label', 'period'],
-            'addresses' => ['country_iso', 'city', 'street', 'building', 'postal_code', 'label'],
-            'socials'   => ['platform', 'url', 'handle'],
+            'phones'     => ['number', 'label', 'country_iso', 'dial_code', 'is_primary'],
+            'messengers' => ['platform', 'handle', 'url'],
+            'prices'     => ['amount', 'currency', 'label', 'period'],
+            'addresses'  => ['country_iso', 'city', 'street', 'building', 'postal_code', 'label'],
+            'socials'    => ['platform', 'url', 'handle'],
+        };
+    }
+
+    /**
+     * Fields safe to carry over when copying a record to other sites.
+     * Excludes: id, site_id, timestamps, and failover state
+     * (is_blocked, is_standby, standby_for_id, blocked_reason) which
+     * are per-site relationships and must never cross site boundaries.
+     */
+    private function copyableFields(string $type): array
+    {
+        $shared = ['is_visible', 'sort_order', 'geo_mode', 'geo_countries'];
+        return match($type) {
+            'phones'    => array_merge(['number', 'label', 'country_iso', 'dial_code', 'is_primary'], $shared),
+            'prices'    => array_merge(['label', 'amount', 'currency', 'period'], $shared),
+            'addresses' => array_merge(['city', 'street', 'building', 'postal_code', 'country_iso', 'label'], $shared),
+            'socials'   => array_merge(['platform', 'handle', 'url'], $shared),
         };
     }
 }

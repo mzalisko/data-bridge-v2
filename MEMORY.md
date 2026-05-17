@@ -6,13 +6,11 @@
 
 ## 📍 Поточний стан
 
-- **Версія:** 0.3.0 (Laravel + Sync API, merged to main)
-- **Активний спринт:** Sprint 04 — WP Plugin + CRM Blade redesign V2
-- **Активна гілка:** `feature/crm-redesign` — vibeB Blade redesign V2 (full 1:1 match React archive)
-- **Останній комміт:** `477495c` — feat(geo+phone): active_geos with names, phone form simplified, drawer scroll fix
-- **CRM logic гілка:** `feature/task-plugin-rework` (не злита)
-- **Plugin гілка:** `feature/plugin-redesign-3pages`
-- **Наступний крок:** мерж `feature/crm-redesign` → main + мерж `feature/task-plugin-rework` → main
+- **Версія:** 0.4.0 — злито в main, тег `v0.4.0-sprint04-push-arch`
+- **Активний спринт:** Sprint 04 — майже завершено
+- **Активна гілка:** `feature/per-item-geo-visibility` (коміт `526430b` — table alignment + world panel + pool bar fixes)
+- **Plugin гілка:** `feature/push-plugin-v2` (активна, без remote)
+- **Наступний крок:** мерж `feature/per-item-geo-visibility` → main + Plugin GitHub remote
 
 ---
 
@@ -63,24 +61,45 @@
 | CRM site groups show: повний rewrite (видалені .page-toolbar/.role-badge класи) | feature/crm-redesign | ✅ |
 | CRM i18n: повний переклад всіх Blade views на українську (всі сторінки + drawers + confirm dialogs) | feature/crm-redesign | ✅ |
 
+## ✅ Failover Pool (Sprint 04)
+
+| Задача | Гілка | Статус |
+|---|---|---|
+| `is_standby/is_blocked/blocked_reason` колонки + `site_failover_logs` таблиця | feature/per-item-geo-visibility | ✅ |
+| `FailoverService::trigger()` + `rollback()` (транзакції, snapshot, push WP) | feature/per-item-geo-visibility | ✅ |
+| API: `POST /api/v1/failover` + `/rollback` (зовнішній тригер) | feature/per-item-geo-visibility | ✅ |
+| Admin: standby toggle, ручний modal, відкат у Data tab | feature/per-item-geo-visibility | ✅ |
+| Failover журнал у Data tab | feature/per-item-geo-visibility | ✅ |
+| Failover UX: ієрархія за standby_for_id (не is_standby), пагінація 10/стор, очистка в Settings | feature/per-item-geo-visibility | ✅ |
+| Failover: прибрати кнопки standby toggle з Data tab (тільки swipe) | feature/per-item-geo-visibility | ✅ |
+| Глобальні дані: /data sidebar item, пошук, tabs, bulk edit/copy/delete, Add-to-sites drawer | feature/per-item-geo-visibility | ✅ |
+| BulkDataController: /bulk/phones|prices|socials|geos|delete AJAX endpoints | feature/per-item-geo-visibility | ✅ |
+| DataBrowserController: paginate(50) + counts в controller | feature/per-item-geo-visibility | ✅ |
+| Overview "Всі дані" tab (перед "Весь світ") — всі записи з status badges | feature/per-item-geo-visibility | ✅ |
+| Прибрати зелений "Конфліктів не виявлено"; відновити favorites star button | feature/per-item-geo-visibility | ✅ |
+| Obsidian документація `02-Модулі/failover_pool.md` | vault | ✅ |
+| Overview: таблиці "Всі дані" — table-layout:fixed + colgroup, виправлено "Всш" (обрізання гео-тексту) | feature/per-item-geo-visibility | ✅ |
+| Overview: "Весь світ" → 2-col grid як PL/UA (ліво: картки, право: всі поля з ✓/✗) | feature/per-item-geo-visibility | ✅ |
+| data/index: pool bar + action bar overlap fix (updateActionBarBottom динамічно) | feature/per-item-geo-visibility | ✅ |
+| data/index: прибрати поле "Країна ISO" з edit drawer для phones | feature/per-item-geo-visibility | ✅ |
+
 ## 🔲 Залишилось (Sprint 04)
 
-1. **Мерж** `feature/task-plugin-rework` → main (CRM)
-2. **Мерж** plugin гілок → master (plugin repo)
-3. **Plugin git remote** — GitHub repo
-4. **wp-test/** — docker env з реальним WordPress (візуальна перевірка)
-5. **Conflict resolution** — логіка пріоритету CRM
+1. **Мерж** `feature/per-item-geo-visibility` → main
+2. **Plugin git remote** — GitHub repo (поки локальний)
+3. **Перевірка WP плагіна** — `dbp_wordpress` Docker вже є, перевірити shortcodes
+4. **Conflict resolution** — логіка пріоритету CRM (гео-правила для плагіна)
+5. **/bulk/addresses** endpoint — поки відсутній, показує alert
 
 ---
 
 ## 🌿 Git стан
 
 - **CRM remote:** `git@github.com:mzalisko/data-bridge-v2.git`
-- **CRM активна гілка:** `feature/crm-redesign` (Blade redesign V2 + standalone React reference)
-- **Plugin repo:** `M:\Projects\CC\data-bridge-v2-plugin\` (git init, remote потрібно)
-- **Plugin активна гілка:** `feature/plugin-redesign-3pages`
-- **Теги повернення:** `v0.3.0-sprint03-complete`, `v0.2.0-sprint02-complete`, `v0.1-vanilla-php-foundation`
-- **Stash:** `feature/crm-design-refresh` — стешовані зміни Blade UI
+- **CRM main:** `v0.4.0-sprint04-push-arch` (злито feature/per-item-geo-visibility)
+- **Plugin repo:** `M:\Projects\CC\data-bridge-v2-plugin\` (git local, remote потрібно)
+- **Plugin активна гілка:** `feature/push-plugin-v2`
+- **Теги повернення:** `v0.4.0-sprint04-push-arch`, `v0.3.0-sprint03-complete`, `v0.2.0-sprint02-complete`
 
 ---
 
@@ -102,14 +121,21 @@
 | Design system V2 | Single `public/assets/css/app.css` (~530 рядків) — vibeB tokens 1:1 з `src/styles/crm-theme.css` |
 | Geo system V2 | `sites.active_geos` (JSON ISO array) + `sites.geo_rules` (JSON map visitor→data). Old `geo_mode/geo_countries` збережені для backward-compat з плагіном |
 | Eye-toggle | `is_visible` BOOL DEFAULT 1 на site_phones, site_addresses, site_socials. POST /visibility/{type}/{id} |
-| Plugin sync | CRM→Plugin: pull на page load (>60s) + optional webhook ping |
-| Plugin DB | DATABRIDGE_DB_VERSION='1.2.0'; dbDelta на plugins_loaded prio 5 |
+| Plugin sync | CRM→Plugin: one-way PUSH (SyncPushService) — автоматично після кожного CRUD та geo-зміни |
+| Plugin sync key | 64-hex; зберігається в WP option `dbp_sync_key`; CRM зберігає в `sites.push_key` |
+| Plugin push URL | `sites.push_url` = `https://site.com/wp-json/dbp/v1/sync`; в dev — `host.docker.internal:8090` |
+| Plugin DB | DBP_DB_VERSION='2.0.0'; dbDelta на plugins_loaded prio 5 |
 | Plugin geo | geo_mode/geo_countries у phones/prices/addresses/socials; fail-open |
 | Plugin tabs | Cookie server-side (zero-flash); JS записує cookie при кліку |
 | socials | Немає колонки label — тільки platform/handle/url/sort_order/geo |
 | custom_fields | Немає label/is_visible — тільки field_key/field_value/field_type/sort_order |
 | site sticky | overflow:clip на .site-show + position:sticky на sidebar |
 | Group FK | nullOnDelete (не cascade) — sites.group_id nullable |
+| Failover pool | `is_standby/is_blocked/blocked_reason` на phones+socials; `site_failover_logs` зберігає snapshot; `FailoverService::trigger/rollback()`; API POST /api/v1/failover. Ієрархія: standby_for_id (не is_standby) — promoted залишається child |
+| Failover UX | Swipe-only для standby toggle (без кнопок). Журнал: 10/стор, paginator "failover_page". Очистка: DELETE /sites/{site}/failover/history |
+| Глобальні дані | /data → DataBrowserController (paginate 50) + BulkDataController AJAX (/bulk/phones|prices|socials|geos|delete). Sidebar: "Глобальні дані" з cylinder icon |
+| Bulk add drawer | Type picker + type-specific fields + geo rules + multi-site picker. Addresses поки без AJAX endpoint |
+| Plugin edit callback | CRM надсилає `edit_callback.url+key` у push payload; plugin POST-ить зміни назад; callback URL = `/api/plugin-callback/{64-hex-token}` |
 
 ---
 

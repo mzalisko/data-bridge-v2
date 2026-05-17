@@ -14,14 +14,23 @@ class SyncPushService
 
         $site->loadMissing(['phones', 'prices', 'addresses', 'socials', 'customFields']);
 
-        $payload = json_encode([
+        $body = [
             'timestamp'     => now()->timestamp,
             'phones'        => $site->phones->toArray(),
             'prices'        => $site->prices->toArray(),
             'addresses'     => $site->addresses->toArray(),
             'socials'       => $site->socials->toArray(),
             'custom_fields' => $site->customFields->toArray(),
-        ]);
+        ];
+
+        if ($site->allow_plugin_edit && $site->plugin_edit_token) {
+            $body['edit_callback'] = [
+                'url' => config('app.url') . '/api/plugin-callback/' . $site->plugin_edit_token,
+                'key' => $site->push_key,
+            ];
+        }
+
+        $payload = json_encode($body);
 
         $sig = 'sha256=' . hash_hmac('sha256', $payload, $site->push_key);
 

@@ -9,7 +9,10 @@ use App\Models\ActivityLog;
 use App\Models\Country;
 use App\Models\Site;
 use App\Models\SiteGroup;
+use App\Models\SiteFailoverLog;
 use App\Models\SyncLog;
+use App\Rules\PublicHttpUrl;
+use App\Services\ActivityService;
 use App\Services\SyncPushService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -54,7 +57,7 @@ class SiteController extends Controller
 
         $sites  = $query->paginate(20)->withQueryString();
         $groups = SiteGroup::withCount('sites')->orderBy('name')->get();
-        
+
         $favoriteIds = auth()->user()
             ->favoriteSites()
             ->pluck('site_id')
@@ -85,9 +88,15 @@ class SiteController extends Controller
             ->limit(20)
             ->get();
 
+        $failoverLogs = SiteFailoverLog::where('site_id', $site->id)
+            ->orderByDesc('created_at')
+            ->paginate(10, ['*'], 'failover_page');
+
+        $isFavorite = auth()->user()->favoriteSites()->where('site_id', $site->id)->exists();
+
         return view('admin.sites.show', compact(
             'site', 'groups', 'tab', 'countries', 'presenceOthers',
-            'activityLogs', 'siteSyncs',
+            'activityLogs', 'siteSyncs', 'failoverLogs', 'isFavorite',
         ));
     }
 
@@ -138,7 +147,10 @@ class SiteController extends Controller
         // snapshot is {before: {...}, after: {...}} for update/delete
         $raw  = $log->snapshot;
         $data = $raw['before'] ?? $raw; // fallback: old format was flat array
-        $data = collect($data)->except(['id', 'created_at', 'updated_at'])->all();
+        // Drop identity + tenancy keys from snapshot; force site_id from URL
+        // (defense against snapshots that contain a different site_id).
+        $data = collect($data)->except(['id', 'site_id', 'created_at', 'updated_at'])->all();
+        $data['site_id'] = $site->id;
 
         $modelClass::create($data);
 
@@ -150,7 +162,8 @@ class SiteController extends Controller
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active', true);
 
-        Site::create($data);
+        $site = Site::create($data);
+        ActivityService::log('site', 'create', $site, "Сайт «{$site->name}» додано", $site);
 
         return redirect()->route('sites.index')
             ->with('success', 'Сайт додано');
@@ -161,7 +174,9 @@ class SiteController extends Controller
         $data = $request->validated();
         $data['is_active'] = $request->boolean('is_active');
 
+        $before = $site->toArray();
         $site->update($data);
+        ActivityService::log('site', 'update', $site, "Сайт «{$site->name}» оновлено", $site, $before);
 
         return redirect()->route('sites.index')
             ->with('success', 'Сайт оновлено');
@@ -169,6 +184,7 @@ class SiteController extends Controller
 
     public function destroy(Site $site): RedirectResponse
     {
+        ActivityService::log('site', 'delete', $site, "Сайт «{$site->name}» видалено", $site);
         $site->delete();
 
         return redirect()->route('sites.index')
@@ -178,25 +194,35 @@ class SiteController extends Controller
     public function updatePushSettings(Request $request, Site $site): RedirectResponse
     {
         $data = $request->validate([
-            'push_url' => ['nullable', 'url', 'max:500'],
-            'push_key' => ['nullable', 'string', 'size:64'],
+            'push_url'          => ['nullable', 'url', 'max:500', new PublicHttpUrl()],
+            'push_key'          => ['nullable', 'string', 'size:64'],
+            'allow_plugin_edit' => ['nullable', 'boolean'],
         ]);
 
-        $site->update([
-            'push_url' => $data['push_url'] ?: null,
-            'push_key' => $data['push_key'] ?: null,
-        ]);
+        $update = [
+            'push_url'          => $data['push_url'] ?: null,
+            'push_key'          => $data['push_key'] ?: null,
+            'allow_plugin_edit' => (bool) ($data['allow_plugin_edit'] ?? false),
+        ];
+
+        if ($update['allow_plugin_edit'] && !$site->plugin_edit_token) {
+            $update['plugin_edit_token'] = bin2hex(random_bytes(32));
+        }
+
+        $before = $site->toArray();
+        $site->update($update);
+        ActivityService::log('site', 'update', $site, "Налаштування плагіна оновлено", $site, $before);
 
         return redirect()->back()->with('success', 'Налаштування збережено');
     }
 
-    public function testPush(Site $site): RedirectResponse
+    public function syncPush(Site $site): RedirectResponse
     {
         $ok = SyncPushService::push($site);
 
         return redirect()->back()->with(
             $ok ? 'success' : 'error',
-            $ok ? 'Тест-пуш надіслано успішно' : 'Помилка надсилання — перевірте URL та ключ'
+            $ok ? 'Дані синхронізовано успішно' : 'Помилка синхронізації — перевірте URL та ключ'
         );
     }
 }

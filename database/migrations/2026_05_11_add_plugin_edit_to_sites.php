@@ -9,15 +9,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sites', function (Blueprint $table) {
-            $table->string('push_url')->nullable();
-            $table->string('push_key', 64)->nullable()->after('push_url');
+            $table->boolean('allow_plugin_edit')->default(false)->after('push_key');
+            $table->string('plugin_edit_token', 64)->nullable()->after('allow_plugin_edit');
         });
     }
 
     public function down(): void
     {
         Schema::table('sites', function (Blueprint $table) {
-            $table->dropColumn(['push_url', 'push_key']);
+            $table->dropColumn(['allow_plugin_edit', 'plugin_edit_token']);
         });
     }
 };

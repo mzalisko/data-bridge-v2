@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Site;
+use App\Services\ActivityService;
 use App\Services\SyncPushService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,6 +28,7 @@ class SiteGeoController extends Controller
             $geos[$iso] = $name ?: $iso;
             $site->active_geos = $geos;
             $site->save();
+            ActivityService::logGeo('create', $site, "Гео {$iso} додано", ['after' => ['iso' => $iso, 'name' => $name ?: $iso]]);
         }
 
         SyncPushService::push($site);
@@ -57,6 +59,7 @@ class SiteGeoController extends Controller
         $site->geo_rules = $rules;
         $site->save();
 
+        ActivityService::logGeo('delete', $site, "Гео {$iso} видалено", ['before' => ['iso' => $iso]]);
         SyncPushService::push($site);
         return back()->with('success', "Geo {$iso} removed");
     }
@@ -91,9 +94,11 @@ class SiteGeoController extends Controller
             ));
             $clean[$dataIso] = ['mode' => $mode, 'countries' => $countries];
         }
+        $beforeRules     = $site->geo_rules ?? [];
         $site->geo_rules = $clean;
         $site->save();
 
+        ActivityService::logGeo('update', $site, "Гео-правила оновлено", ['before' => $beforeRules, 'after' => $clean]);
         SyncPushService::push($site);
         return back()->with('success', 'Geo rules updated');
     }
@@ -112,9 +117,15 @@ class SiteGeoController extends Controller
         ];
         if (!isset($map[$type])) abort(404);
 
-        $row = $map[$type]::where('site_id', $site->id)->findOrFail($id);
+        $row    = $map[$type]::where('site_id', $site->id)->findOrFail($id);
+        $before = $row->toArray();
         $row->is_visible = !($row->is_visible ?? true);
         $row->save();
+
+        $typeKeys = ['phones'=>'phone','prices'=>'price','addresses'=>'address','socials'=>'social'];
+        $entityType = $typeKeys[$type] ?? $type;
+        $visibility = $row->is_visible ? 'показано' : 'приховано';
+        ActivityService::log($entityType, 'update', $row, "Видимість: {$visibility}", $site, $before);
         SyncPushService::push($site);
 
         return back();

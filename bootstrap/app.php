@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AdminOnly;
 use App\Http\Middleware\ApiKeyAuth;
 use App\Http\Middleware\CheckUserActive;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -33,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'api.key' => ApiKeyAuth::class,
+            'admin'   => AdminOnly::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

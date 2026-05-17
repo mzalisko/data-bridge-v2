@@ -38,8 +38,11 @@
 
 <div class="shell">
 
+    {{-- Mobile sidebar overlay --}}
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="sidebarClose()"></div>
+
     {{-- ============ SIDEBAR ============ --}}
-    <aside class="sidebar">
+    <aside class="sidebar" id="main-sidebar">
 
         {{-- Logo --}}
         <a href="{{ route('dashboard') }}" class="sidebar-logo">
@@ -95,6 +98,14 @@
                     <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
                 </svg>
                 <span>Журнал змін</span>
+            </a>
+            <a href="{{ route('data.index') }}"
+               class="sidebar-item {{ request()->routeIs('data.*') ? 'is-active' : '' }}">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                </svg>
+                <span>Глобальні дані</span>
             </a>
         </nav>
 
@@ -157,6 +168,9 @@
 
         {{-- Topbar --}}
         <header class="topbar">
+            <button class="topbar__hamburger" onclick="sidebarToggle()" aria-label="Меню">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
             <div class="topbar__status">
                 <span class="topbar__status-dot"></span>
                 Workspace healthy · {{ $onlineCount }} of {{ $sitesCount }} sites online
@@ -181,6 +195,20 @@
 </button>
 
 <script>
+function sidebarToggle() {
+    var sb = document.getElementById('main-sidebar');
+    var ov = document.getElementById('sidebar-overlay');
+    var open = sb.classList.toggle('is-open');
+    ov.classList.toggle('is-open', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+}
+function sidebarClose() {
+    var sb = document.getElementById('main-sidebar');
+    var ov = document.getElementById('sidebar-overlay');
+    sb.classList.remove('is-open');
+    ov.classList.remove('is-open');
+    document.body.style.overflow = '';
+}
 function toggleTheme() {
     var html = document.documentElement;
     var isDark = html.getAttribute('data-theme') === 'dark';
@@ -197,12 +225,14 @@ function openDrawer(id) {
     var dr = document.getElementById(id);
     if (ov) ov.classList.add('is-open');
     if (dr) dr.classList.add('is-open');
+    if (typeof updateActionBarBottom === 'function') updateActionBarBottom();
 }
 function closeDrawer(id) {
     var ov = document.getElementById(id + '-overlay');
     var dr = document.getElementById(id);
     if (ov) ov.classList.remove('is-open');
-    if (dr) dr.classList.remove('is-open');
+    if (dr) { dr.classList.remove('is-open'); dr.style.bottom = ''; }
+    if (typeof updateActionBarBottom === 'function') updateActionBarBottom();
 }
 // ── Activity diff toggle ─────────────────────────────────────
 function actToggle(row) {

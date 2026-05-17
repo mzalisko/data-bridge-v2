@@ -16,6 +16,10 @@ class SiteSocial extends Model
         'platform',
         'handle',
         'url',
+        'is_standby',
+        'standby_for_id',
+        'is_blocked',
+        'blocked_reason',
         'is_visible',
         'sort_order',
         'geo_mode',
@@ -25,6 +29,8 @@ class SiteSocial extends Model
     protected function casts(): array
     {
         return [
+            'is_standby'    => 'boolean',
+            'is_blocked'    => 'boolean',
             'is_visible'    => 'boolean',
             'geo_countries' => 'array',
         ];

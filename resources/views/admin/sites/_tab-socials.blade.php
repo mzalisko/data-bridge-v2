@@ -1,9 +1,18 @@
 {{-- Socials tab — variables: $site, $socials --}}
 @php
-$platformLabels = [
-    'instagram' => 'Instagram', 'facebook' => 'Facebook', 'telegram' => 'Telegram',
-    'youtube' => 'YouTube', 'tiktok' => 'TikTok', 'linkedin' => 'LinkedIn',
-    'twitter' => 'Twitter / X', 'viber' => 'Viber', 'whatsapp' => 'WhatsApp', 'other' => 'Інше',
+$customMessengers = \App\Models\CustomPlatform::messengerOptions();
+$platformLabels = $customMessengers + [
+    // Соцмережі
+    'instagram' => 'Instagram', 'facebook' => 'Facebook',  'youtube'   => 'YouTube',
+    'tiktok'    => 'TikTok',    'twitter'  => 'Twitter / X','linkedin'  => 'LinkedIn',
+    'pinterest' => 'Pinterest', 'threads'  => 'Threads',   'reddit'    => 'Reddit',
+    'vk'        => 'ВКонтакте', 'twitch'   => 'Twitch',    'other'     => 'Інше',
+];
+$socialNetPlatforms = [
+    'instagram' => 'Instagram', 'facebook' => 'Facebook',  'youtube'   => 'YouTube',
+    'tiktok'    => 'TikTok',    'twitter'  => 'Twitter / X','linkedin'  => 'LinkedIn',
+    'pinterest' => 'Pinterest', 'threads'  => 'Threads',   'reddit'    => 'Reddit',
+    'vk'        => 'ВКонтакте', 'twitch'   => 'Twitch',    'other'     => 'Інше',
 ];
 @endphp
 
@@ -25,15 +34,12 @@ $platformLabels = [
     <ul class="data-list">
         @foreach($socials as $social)
         <li class="data-row">
-            {{-- Col 1: platform badge --}}
             <div class="data-row__indicator">
                 <span class="data-badge data-badge--platform">{{ $platformLabels[$social->platform] ?? $social->platform }}</span>
             </div>
-            {{-- Col 2: handle --}}
             <div class="data-row__main">
                 <span class="data-row__val">{{ $social->handle ?: $social->url }}</span>
             </div>
-            {{-- Col 3: url link + geo --}}
             <div class="data-row__secondary">
                 <a href="{{ $social->url }}" target="_blank" class="data-row__link" title="Відкрити">↗ посилання</a>
                 @if($social->geo_mode === null || $social->geo_mode === '')
@@ -71,15 +77,29 @@ $platformLabels = [
         <button class="btn-icon" onclick="closeDrawer('drawer-social-create')">✕</button>
     </div>
     <div class="drawer__body">
-        <form method="POST" action="{{ route('socials.store', $site) }}" class="form-stack" id="form-social-create">
+        <form method="POST" action="{{ route('socials.store', $site) }}" class="form-stack" id="form-social-create"
+              onsubmit="return socialFormSubmit(this, event)">
             @csrf
             <div class="form-group">
                 <label class="form-label">Платформа</label>
-                <select name="platform" class="form-input form-select" required>
-                    @foreach($platformLabels as $val => $lbl)
-                    <option value="{{ $val }}">{{ $lbl }}</option>
-                    @endforeach
+                <select name="platform" class="form-input form-select" required
+                        onchange="onSocialPlatformChange(this)">
+                    <optgroup label="Месенджери">
+                        @foreach($customMessengers as $val => $lbl)
+                        <option value="{{ $val }}">{{ $lbl }}</option>
+                        @endforeach
+                        <option value="__new_messenger__">➕ Інший месенджер...</option>
+                    </optgroup>
+                    <optgroup label="Соцмережі">
+                        @foreach($socialNetPlatforms as $val => $lbl)
+                        <option value="{{ $val }}">{{ $lbl }}</option>
+                        @endforeach
+                        <option value="__new_social__">➕ Інша соцмережа...</option>
+                    </optgroup>
                 </select>
+                <input type="text" name="platform_custom" class="form-input soc-platform-custom"
+                       placeholder="Назва платформи" maxlength="50"
+                       style="display:none;margin-top:6px;">
             </div>
             <div class="form-group">
                 <label class="form-label">Хендл / нікнейм</label>
@@ -113,15 +133,33 @@ $platformLabels = [
             <span style="color:var(--border-color)">·</span>
             <span>{{ $social->handle }}</span>
         </div>
-        <form method="POST" action="{{ route('socials.update', [$site, $social]) }}" class="form-stack" id="form-social-{{ $social->id }}">
+        <form method="POST" action="{{ route('socials.update', [$site, $social]) }}" class="form-stack" id="form-social-{{ $social->id }}"
+              onsubmit="return socialFormSubmit(this, event)">
             @csrf @method('PUT')
             <div class="form-group">
                 <label class="form-label">Платформа</label>
-                <select name="platform" class="form-input form-select">
-                    @foreach($platformLabels as $val => $lbl)
-                    <option value="{{ $val }}" {{ old('platform', $social->platform) === $val ? 'selected' : '' }}>{{ $lbl }}</option>
-                    @endforeach
+                <select name="platform" class="form-input form-select"
+                        onchange="onSocialPlatformChange(this)">
+                    <optgroup label="Месенджери">
+                        @foreach($customMessengers as $val => $lbl)
+                        <option value="{{ $val }}" {{ old('platform', $social->platform) === $val ? 'selected' : '' }}>{{ $lbl }}</option>
+                        @endforeach
+                        {{-- show current value if not in known list --}}
+                        @if(!array_key_exists($social->platform, $platformLabels))
+                        <option value="{{ $social->platform }}" selected>{{ $social->platform }}</option>
+                        @endif
+                        <option value="__new_messenger__">➕ Інший месенджер...</option>
+                    </optgroup>
+                    <optgroup label="Соцмережі">
+                        @foreach($socialNetPlatforms as $val => $lbl)
+                        <option value="{{ $val }}" {{ old('platform', $social->platform) === $val ? 'selected' : '' }}>{{ $lbl }}</option>
+                        @endforeach
+                        <option value="__new_social__">➕ Інша соцмережа...</option>
+                    </optgroup>
                 </select>
+                <input type="text" name="platform_custom" class="form-input soc-platform-custom"
+                       placeholder="Назва платформи" maxlength="50"
+                       style="display:none;margin-top:6px;">
             </div>
             <div class="form-group">
                 <label class="form-label">Хендл</label>
@@ -141,3 +179,50 @@ $platformLabels = [
     </div>
 </div>
 @endforeach
+
+<script>
+function onSocialPlatformChange(sel) {
+    var customInput = sel.closest('.form-group').querySelector('.soc-platform-custom');
+    var isNew = sel.value === '__new_messenger__' || sel.value === '__new_social__';
+    customInput.style.display = isNew ? '' : 'none';
+    customInput.required = isNew;
+}
+
+function socialFormSubmit(form, e) {
+    var sel = form.querySelector('select[name="platform"]');
+    if (sel.value !== '__new_messenger__' && sel.value !== '__new_social__') return true;
+
+    e.preventDefault();
+    var customInput = form.querySelector('.soc-platform-custom');
+    var label = customInput.value.trim();
+    if (!label) { customInput.focus(); return false; }
+
+    var category = sel.value === '__new_messenger__' ? 'messenger' : 'social';
+    var csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+    fetch('{{ route("custom-platforms.store") }}', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+        body: JSON.stringify({label: label, category: category})
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+        // Add new option to ALL messenger selects on page and select it
+        document.querySelectorAll('select[name="platform"]').forEach(function(s) {
+            var og = s.querySelector('optgroup[label="Месенджери"]');
+            if (!og) return;
+            if (!og.querySelector('option[value="'+data.slug+'"]')) {
+                var opt = document.createElement('option');
+                opt.value = data.slug;
+                opt.textContent = data.label;
+                og.insertBefore(opt, og.querySelector('option[value="__new_messenger__"]'));
+            }
+        });
+        sel.value = data.slug;
+        customInput.style.display = 'none';
+        customInput.required = false;
+        form.submit();
+    });
+    return false;
+}
+</script>

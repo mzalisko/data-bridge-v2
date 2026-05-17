@@ -84,7 +84,7 @@
     $filterByGeo = function ($collection) use ($country) {
         if ($country === 'all') return $collection;
         return $collection->filter(function ($item) use ($country) {
-            $iso = $item->country_iso ?? null;
+            $iso = $item->country_iso ?: null;
             return $iso === null || $iso === $country;
         })->values();
     };
@@ -108,7 +108,18 @@
         'twitter'   => ['c' => 'var(--text)', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M17.5 3h3l-6.6 7.6L21.5 21h-6l-4.4-5.8L6 21H3l7-8.1L2.5 3h6.1l4 5.4L17.5 3z"/></svg>'],
         'whatsapp'  => ['c' => '#25d366', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 20.5 4.8 16A8 8 0 1 1 8 19.4l-4.5 1.1z"/></svg>'],
         'viber'     => ['c' => '#7360f2', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4h11a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3h-2l-3 3v-3H7a2 2 0 0 1-2-2V4z"/></svg>'],
+        'signal'    => ['c' => '#3a76f0', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12a4 4 0 0 1 8 0"/></svg>'],
+        'discord'   => ['c' => '#5865f2', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M20.3 4.4A19.7 19.7 0 0 0 15.5 3c-.2.4-.5.9-.7 1.3a18.3 18.3 0 0 0-5.6 0A12.7 12.7 0 0 0 8.5 3a19.7 19.7 0 0 0-4.8 1.4C.5 9.3-.3 14 .1 18.7A20 20 0 0 0 6 21.3c.5-.7 1-1.4 1.4-2.2a13 13 0 0 1-2.1-1l.5-.4A14.2 14.2 0 0 0 12 19c2.1 0 4.2-.5 6.2-1.3l.5.4a13 13 0 0 1-2.1 1 12.5 12.5 0 0 0 1.4 2.2A19.9 19.9 0 0 0 23.9 18.7c.4-5.4-1-10-3.6-14.3zM8 15.5a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm8 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>'],
+        'skype'     => ['c' => '#00aff0', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M22 12a10 10 0 1 0-10 10c.8 0 1.6-.1 2.4-.2a5.5 5.5 0 0 0 7.4-7.4c.1-.8.2-1.6.2-2.4zm-7.7 4.5c-1.8.9-5 .7-5.9-1.5-.2-.5 0-1 .4-1.2.5-.2 1 0 1.2.5.5 1.3 3 1.3 3.5.3.3-.5 0-1.2-1.6-1.6-2.7-.6-4.3-1.5-4.3-3.3 0-1.9 1.8-3 3.6-3 1.6 0 3.2.6 4 1.8.3.4.2 1-.2 1.3-.4.3-1 .2-1.3-.2-.5-.8-1.5-1.2-2.5-1.2-.9 0-1.9.4-1.9 1.1 0 1.5 4.8 1.1 5.9 3.3.7 1.5.2 3-1 3.7z"/></svg>'],
+        'wechat'    => ['c' => '#07c160', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 11c0-3.3 3.1-6 7-6 3.9 0 7 2.7 7 6s-3.1 6-7 6c-.5 0-1-.1-1.5-.1L11 19l1-3A5.9 5.9 0 0 1 9 11z"/><path d="M2 8.5C2 5.5 4.7 3 8 3a6 6 0 0 1 3.5 1"/></svg>'],
+        'line'      => ['c' => '#00b900', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 2C6.5 2 2 5.9 2 10.6c0 3.5 2.3 6.5 5.7 8.2l-.7 2.6 3-1.8c.6.1 1.3.2 2 .2 5.5 0 10-3.9 10-8.6S17.5 2 12 2zm-2 12H8V8h2v6zm5 0h-2l-2-3v3h-1V8h2l2 3V8h1v6z"/></svg>'],
         'youtube'   => ['c' => '#ff0000', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2C2 8.8 2 12 2 12s0 3.2.4 4.8a2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8C22 15.2 22 12 22 12s0-3.2-.4-4.8zM10 15V9l5 3-5 3z"/></svg>'],
+        'tiktok'    => ['c' => '#010101', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M19.6 8.5A5.7 5.7 0 0 1 16 7.4V16a6 6 0 1 1-5.1-5.9v3.2a2.8 2.8 0 1 0 2 2.7V3h3.2a5.7 5.7 0 0 0 3.5 5.5z"/></svg>'],
+        'pinterest' => ['c' => '#e60023', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 2a10 10 0 0 0-4 19.2c0-.8.1-2 .4-2.9l1.5-6.2s-.4-.8-.4-1.9c0-1.8 1-3.1 2.3-3.1 1.1 0 1.6.8 1.6 1.8 0 1.1-.7 2.8-1.1 4.3-.3 1.3.6 2.3 1.9 2.3 2.2 0 3.7-2.9 3.7-6.3 0-2.6-1.8-4.5-4.5-4.5-3.2 0-5 2.4-5 4.8 0 .9.4 1.9.8 2.4.1.1.1.3.1.4l-.3 1.3c-.1.3-.3.4-.6.2-1.6-.8-2.6-3.2-2.6-5.1 0-4.2 3-8 8.8-8 4.6 0 8.2 3.3 8.2 7.7 0 4.6-2.9 8.3-7 8.3-1.4 0-2.7-.7-3.1-1.5l-.8 3.1c-.3 1.1-1.1 2.6-1.7 3.5A10 10 0 1 0 12 2z"/></svg>'],
+        'reddit'    => ['c' => '#ff4500', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><circle cx="12" cy="12" r="10"/><path fill="#fff" d="M18.5 12c0-.8-.7-1.5-1.5-1.5-.4 0-.7.1-1 .4-1-.7-2.3-1.1-3.8-1.2l.6-3 2.1.4c0 .6.5 1.1 1.1 1.1.6 0 1.1-.5 1.1-1.1s-.5-1.1-1.1-1.1c-.4 0-.8.3-1 .7l-2.4-.5c-.2 0-.3.1-.3.2l-.7 3.3c-1.5.1-2.8.5-3.8 1.2-.3-.2-.7-.4-1.1-.4-.8 0-1.5.7-1.5 1.5 0 .6.4 1.2.9 1.4 0 .2-.1.4-.1.6 0 2.1 2.4 3.7 5.5 3.7s5.5-1.6 5.5-3.7c0-.2 0-.4-.1-.6.5-.2.9-.7.9-1.4zM9 13c0-.6.4-1 1-1s1 .4 1 1-.4 1-1 1-1-.4-1-1zm5.5 2.7c-.7.7-1.8 1-3 1s-2.3-.3-3-1c-.2-.2-.2-.4 0-.5.2-.2.4-.2.5 0 .5.5 1.4.8 2.4.8s2-.3 2.4-.8c.2-.2.4-.2.5 0 .3.1.3.4.2.5zm-.5-1.7c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1z"/></svg>'],
+        'vk'        => ['c' => '#4680c2', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm5.5 13.5H16c-.3 0-.5-.2-1.4-1.1-.7-.8-1-1.2-1.3-1.2-.2 0-.2.1-.2.5v1.1c0 .4-.1.7-.9.7-1.2 0-2.6-.7-3.6-2.1C7.3 11.9 6.6 10 6.6 9.9c0-.2.1-.3.3-.3h1.5c.2 0 .4.2.5.4.8 2 2 3.6 2.5 3.6.1 0 .2-.1.2-.5v-1.8c0-.9-.5-.9-.5-1.2 0-.1.1-.3.3-.3h2.4c.2 0 .3.1.3.4v2.4c0 .2.1.3.3.3.2 0 .4-.1.7-.5 1-1.3 1.7-3.2 1.7-3.2.1-.2.2-.4.5-.4h1.5c.4 0 .5.2.4.5-.3 1.3-1.8 3.3-1.8 3.3-.1.2-.2.3 0 .5.2.2.7.6 1.1 1 .4.4.7.8.8 1 .1.4-.1.5-.3.5z"/></svg>'],
+        'twitch'    => ['c' => '#9146ff', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M4.3 2L3 5.6V20h5v2h3l2-2h3l4-4V2H4.3zM19 13.5l-3 3h-4l-2 2v-2H6V4h13v9.5zm-3-6.5v5h-2V7h2zm-5 0v5H9V7h2z"/></svg>'],
+        'threads'   => ['c' => '#000000', 'svg' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12.2 2c-5.5 0-8.2 3-8.2 7 0 2.4 1 4 3 5-1.5.8-2.5 2.2-2.5 4 0 3.2 2.7 4 5.5 4 3 0 5.5-1.2 5.5-4 0-1.6-.8-2.8-2-3.5 1.5-1 2-2.8 2-4.5 0-4-2.5-8-3.3-8zm0 2c1.2 2 2.3 4.8 2.3 6 0 1.5-.4 2.5-1 3.2-.7-.4-1.5-.7-2.5-.8 1 .2 1.8 1 1.8 2.1 0 1.8-1.5 2.5-3.8 2.5-2 0-3.5-.7-3.5-2.5 0-1.5 1-2.5 2.5-2.5.5 0 1 0 1.5.2-.3-.7-.7-1.5-1.2-2.2-2 .3-3.3 1.2-3.3 2.5v.5C5.5 13 5 11.8 5 11c0-3.3 2-5 7.2-5V4z"/></svg>'],
     ];
 @endphp
 
@@ -134,6 +145,15 @@
             <p class="page-head__subtitle" style="font-family:var(--font-mono);">{{ $site->url }}</p>
         </div>
         <div class="page-head__actions">
+            @if($site->push_url && $site->push_key)
+            <form id="form-head-sync" method="POST" action="{{ route('sites.sync', $site) }}" style="display:none;">@csrf</form>
+            @endif
+            <button id="fav-btn" onclick="toggleFavorite()" class="btn btn--secondary btn--md" title="{{ $isFavorite ? 'Прибрати з улюблених' : 'Додати до улюблених' }}"
+                    style="color:{{ $isFavorite ? '#f6ad55' : 'var(--text-3)' }};">
+                <svg id="fav-icon" viewBox="0 0 24 24" width="14" height="14" fill="{{ $isFavorite ? '#f6ad55' : 'none' }}" stroke="{{ $isFavorite ? '#f6ad55' : 'currentColor' }}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+            </button>
             @if($site->url)
                 <a href="{{ $site->url }}" target="_blank" class="btn btn--secondary btn--md">
                     <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
@@ -143,13 +163,12 @@
                     Відкрити
                 </a>
             @endif
-            <button class="btn btn--secondary btn--md">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 4v4h-4"/>
-                    <path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 20v-4h4"/>
-                </svg>
+            @if($site->push_url && $site->push_key)
+            <button type="submit" form="form-head-sync" class="btn btn--secondary btn--md">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                 Синхронізувати
             </button>
+            @endif
             <button class="btn btn--primary btn--md" onclick="openDrawer('drawer-site-edit')">Оновити дані</button>
         </div>
     </div>
@@ -162,42 +181,6 @@
                 {{ collect($presenceOthers)->pluck('name')->join(', ') }} зараз тут — редагування може конфліктувати
             @endif
         </span>
-    </div>
-
-    {{-- ========= SITE INFO BAR ========= --}}
-    @php $totalRecords = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count(); @endphp
-    <div class="card site-info-bar">
-        <div class="site-info-bar__item">
-            <span class="site-info-bar__label">Статус</span>
-            <div><x-status-pill :status="$statusName"/></div>
-        </div>
-        <div class="site-info-bar__sep"></div>
-        <div class="site-info-bar__item">
-            <span class="site-info-bar__label">Група</span>
-            @if($site->siteGroup)
-                <span class="group-chip" style="font-size:13px;">
-                    <span class="group-chip__dot" style="background:{{ $site->siteGroup->color ?? '#71717a' }}"></span>
-                    {{ $site->siteGroup->name }}
-                </span>
-            @else
-                <span class="site-info-bar__val" style="color:var(--text-3);">—</span>
-            @endif
-        </div>
-        <div class="site-info-bar__sep"></div>
-        <div class="site-info-bar__item">
-            <span class="site-info-bar__label">Записів</span>
-            <span class="site-info-bar__val">{{ $totalRecords }}</span>
-        </div>
-        <div class="site-info-bar__sep"></div>
-        <div class="site-info-bar__item">
-            <span class="site-info-bar__label">Додано</span>
-            <span class="site-info-bar__val">{{ $site->created_at->format('d M Y') }}</span>
-        </div>
-        <div class="site-info-bar__sep"></div>
-        <div class="site-info-bar__item">
-            <span class="site-info-bar__label">Остання синхр.</span>
-            <span class="site-info-bar__val" style="color:var(--text-2);">{{ $syncWhen }}</span>
-        </div>
     </div>
 
     {{-- ========= MAIN TAB CARD ========= --}}
@@ -223,7 +206,7 @@
             $hasAnyData = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count() > 0;
             $conflicts = [];
             foreach ([
-                ['Телефони',  $site->phones,    fn($p) => ($p->dial_code ? '+'.$p->dial_code.' ' : '') . $p->number],
+                ['Телефони',  $site->phones,    fn($p) => $p->number],
                 ['Ціни',      $site->prices,    fn($p) => $p->label . ' — ' . number_format($p->amount, 2) . ' ' . $p->currency],
                 ['Адреси',    $site->addresses, fn($a) => $a->city . ($a->street ? ', '.$a->street : '')],
                 ['Соцмережі', $site->socials,   fn($s) => ucfirst($s->platform).': '.$s->handle],
@@ -233,7 +216,7 @@
                     $ctries = (array)($item->geo_countries ?? []);
                     if ($mode === 'include' && count($ctries) === 0) {
                         $conflicts[] = ['type' => $typeName, 'label' => $labelFn($item), 'issue' => 'Правило «Тільки» без країн — ніколи не показується'];
-                    } elseif ($mode !== 'all' && count($allVisitorIsos) > 0) {
+                    } elseif ($mode === 'include' && count($allVisitorIsos) > 0) {
                         $visibleToAny = false;
                         foreach ($allVisitorIsos as $chkIso) {
                             if ($geoVis($mode, $ctries, $chkIso)) { $visibleToAny = true; break; }
@@ -244,6 +227,35 @@
                     }
                 }
             }
+
+            // ── Reserve (standby) split + badge helpers (shared by all 3 panels) ──
+            // Splits a collection into [primaries, reservesByParentId, pool].
+            // primary  = no standby_for_id AND not is_standby
+            // byParent = standby_for_id pointing at a known primary (grouped)
+            // pool     = orphan standbys (unknown parent) OR is_standby with no parent
+            $rsvSplit = function ($coll) {
+                $primaries  = $coll->filter(fn($x) => !$x->standby_for_id && !($x->is_standby ?? false));
+                $primaryIds = $primaries->pluck('id')->all();
+                $byParent   = $coll->filter(fn($x) => $x->standby_for_id && in_array($x->standby_for_id, $primaryIds))
+                                    ->sortBy('sort_order')->groupBy('standby_for_id');
+                $pool       = $coll->filter(fn($x) => ($x->standby_for_id && !in_array($x->standby_for_id, $primaryIds))
+                                                      || (!$x->standby_for_id && ($x->is_standby ?? false)))
+                                    ->sortBy('sort_order')->values();
+                return [$primaries, $byParent, $pool];
+            };
+            // Renders a clickable badge + hidden popover listing the given reserves.
+            // $labelFn(item) -> plain string shown per reserve row.
+            $rsvBadge = function ($uid, $reserves, $labelFn) {
+                if ($reserves->isEmpty()) return '';
+                $rows = $reserves->map(fn($r) => '<div class="rsv-pop__item">'.e($labelFn($r)).'</div>')->implode('');
+                return '<span class="rsv-wrap">'
+                     . '<button type="button" class="rsv-badge" onclick="toggleRsvPop(event,\''.$uid.'\')">'
+                     . '&#x2B22; '.$reserves->count().' резерв</button>'
+                     . '<div class="rsv-pop" id="'.$uid.'" onclick="event.stopPropagation()">'.$rows.'</div>'
+                     . '</span>';
+            };
+            $rsvPhoneLbl = fn($r) => $r->number . ($r->label ? ' · '.$r->label : '');
+            $rsvSocLbl   = fn($r) => ucfirst($r->platform) . ($r->handle ? ': '.$r->handle : '');
         @endphp
 
             {{-- Info + Sync row --}}
@@ -281,8 +293,14 @@
                 {{-- Country selector tabs --}}
                 <div style="border-top:1px solid var(--border-2);padding:10px 16px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--panel-2);">
                     <span style="font-size:11px;color:var(--text-3);font-weight:600;margin-right:4px;">Перегляд для:</span>
+                    <button onclick="showVisitorPanel('_raw')" id="vis-tab-_raw"
+                            class="btn btn--sm btn--ghost"
+                            style="font-weight:700;gap:5px;">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="5" rx="1"/><rect x="3" y="10" width="18" height="5" rx="1"/><rect x="3" y="17" width="18" height="4" rx="1"/></svg>
+                        Всі дані
+                    </button>
                     <button onclick="showVisitorPanel('_all')" id="vis-tab-_all"
-                            class="btn btn--sm btn--primary"
+                            class="btn btn--sm btn--ghost"
                             style="font-weight:700;gap:5px;">
                         <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                         Весь світ
@@ -306,14 +324,13 @@
                     $wTotal   = $wPhones->count() + $wPrices->count() + $wAddrs->count() + $wSocials->count();
                     $totalAll = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count();
                 @endphp
-                <div id="vis-panel-_all">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
-                        {{-- Left: what everyone sees --}}
-                        <div style="background:var(--panel);padding:20px;">
+                <div id="vis-panel-_all" style="display:none;">
+                    <div>
+                        {{-- LEFT: removed --}}
+                        <div style="display:none;">
                             <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
                                 <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                                 Що бачать усі відвідувачі
-                                <span style="font-family:var(--font-mono);font-weight:700;color:var(--text-2);">{{ $wTotal }}/{{ $totalAll }}</span>
                             </div>
                             @if($wTotal === 0)
                                 <div style="text-align:center;padding:20px;color:var(--text-3);font-size:12px;">Усі записи мають гео-обмеження</div>
@@ -374,46 +391,266 @@
                             @endif
                             @endif
                         </div>
-                        {{-- Right: matrix --}}
-                        <div style="background:var(--panel);padding:16px;">
-                            <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Видимість по країнах</div>
-                            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                        {{-- RIGHT: всі поля з гео-режимом --}}
+                        @php
+                            $wTdS    = 'padding:6px 12px;font-size:13px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+                            $wVKey   = \App\Models\CustomPlatform::messengerSlugs();
+                            $wIsVis  = fn($item) => ($item->is_visible ?? true) && in_array($item->geo_mode ?? 'all', ['all', 'exclude']);
+                            $wTier   = fn($item) => $wIsVis($item) ? 0 : 1;
+                            $wSort   = function($a,$b) use ($wTier) { $d=$wTier($a)-$wTier($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
+                            [$wPhP,  $wPhBy,  $wPhPool ] = $rsvSplit($site->phones);
+                            $wMsgrAll= $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$wVKey));
+                            $wSocNAll= $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$wVKey));
+                            [$wMsgP, $wMsgBy, $wMsgPool] = $rsvSplit($wMsgrAll);
+                            [$wSocP, $wSocBy, $wSocPool] = $rsvSplit($wSocNAll);
+                            $wAllPhs = $wPhP->sort($wSort)->values();
+                            $wAllPrs = $site->prices->sortBy('sort_order');
+                            $wAllAds = $site->addresses->sortBy('sort_order');
+                            $wAllMsgr= $wMsgP->sort($wSort)->values();
+                            $wAllSocN= $wSocP->sort($wSort)->values();
+                            $wShRow  = 'background:var(--panel-2);';
+                            $wShCell = 'padding:8px 12px;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-top:2px solid var(--border-2);border-bottom:1px solid var(--border-2);';
+                            $wShBadge= 'display:inline-block;font-size:10px;font-family:var(--font-mono);color:var(--text-3);background:var(--border-2);border-radius:3px;padding:0 5px;margin-left:6px;';
+                            $wThS    = 'padding:5px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border-2);white-space:nowrap;overflow:hidden;';
+                            $wEyeOn  = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+                            $wEyeOff = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+                        @endphp
+                        <div style="background:var(--panel);overflow-y:auto;">
+                            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;padding:10px 12px 8px;display:flex;justify-content:space-between;border-bottom:1px solid var(--border-2);">
+                                <span>Всі поля</span>
+                                <span style="font-family:var(--font-mono);color:{{ $wTotal===$totalAll?'#34d399':($wTotal>0?'var(--warning)':'#f87171') }};">{{ $wTotal }}/{{ $totalAll }}</span>
+                            </div>
+                            @if($wAllPhs->count()||$wAllMsgr->count()||$wAllAds->count()||$wAllSocN->count()||$wAllPrs->count())
+                            <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                                <colgroup><col><col style="width:90px"><col style="width:46px"></colgroup>
+                                @if($wAllPhs->count())
                                 <thead>
-                                    <tr>
-                                        <th style="text-align:left;padding:6px 8px;color:var(--text-3);font-weight:500;border-bottom:1px solid var(--border-2);font-size:11px;">Категорія</th>
-                                        @foreach($allVisitorIsos as $matIso)
-                                            <th style="text-align:center;padding:6px 8px;font-family:var(--font-mono);font-size:11px;font-weight:700;border-bottom:1px solid var(--border-2);color:var(--text-3);">{{ $matIso }}</th>
-                                        @endforeach
-                                    </tr>
+                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Телефони<span style="{{ $wShBadge }}">{{ $wAllPhs->count() }}</span>{!! $rsvBadge('rsv-all-phpool', $wPhPool, $rsvPhoneLbl) !!}</td></tr>
+                                    <tr><th style="{{ $wThS }}">Номер</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}text-align:center;">Видно</th></tr>
                                 </thead>
                                 <tbody>
-                                @foreach([
-                                    ['Телефони',   $site->phones, 'data-phones'],
-                                    ['Ціни',       $site->prices, 'data-prices'],
-                                    ['Адреси',     $site->addresses, 'data-addresses'],
-                                    ['Соц.мережі', $site->socials->filter(fn($s) => !in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber'])), 'data-socials'],
-                                    ['Месенджери', $site->socials->filter(fn($s) =>  in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber'])), 'data-messengers'],
-                                ] as [$catLabel, $catItems, $catAnchor])
-                                    @if($catItems->count())
-                                    <tr style="border-bottom:1px solid var(--border-2);">
-                                        <td style="padding:7px 8px;font-size:12px;font-weight:500;color:var(--text-2);cursor:pointer;white-space:nowrap;"
-                                            onclick="location='{{ $url(['tab'=>'data']) }}#{{ $catAnchor }}'">{{ $catLabel }} <span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);">{{ $catItems->count() }}</span></td>
-                                        @foreach($allVisitorIsos as $matIso)
-                                            @php
-                                                $catTotal = $catItems->count();
-                                                $catVis   = $catItems->filter(fn($i) => ($i->is_visible ?? true) && $geoVis($i->geo_mode, $i->geo_countries, $matIso, $i->country_iso))->count();
-                                                $matColor = $catVis === $catTotal ? '#34d399' : ($catVis > 0 ? 'var(--warning)' : '#f87171');
-                                            @endphp
-                                            <td style="text-align:center;padding:7px 8px;">
-                                                <span style="font-size:11px;font-weight:700;color:{{ $matColor }};font-family:var(--font-mono);">{{ $catVis }}/{{ $catTotal }}</span>
-                                            </td>
-                                        @endforeach
-                                    </tr>
-                                    @endif
+                                @foreach($wAllPhs as $p)
+                                @php $pV=$wIsVis($p);$pg=$p->geo_mode??'all';$pgT=$pg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pg]??$pg);if($pg!=='all'&&$p->geo_countries)$pgT.=' '.implode(',', (array)$p->geo_countries);$pRsv=$wPhBy->get($p->id, collect()); @endphp
+                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-weight:600;color:var(--text);">{{ $p->number }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:11px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif{!! $rsvBadge('rsv-all-ph-'.$p->id, $pRsv, $rsvPhoneLbl) !!}</td>
+                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $pgT }}</td>
+                                    <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
+                                </tr>
                                 @endforeach
                                 </tbody>
+                                @endif
+                                @if($wAllMsgr->count())
+                                <thead>
+                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Месенджери<span style="{{ $wShBadge }}">{{ $wAllMsgr->count() }}</span>{!! $rsvBadge('rsv-all-msgpool', $wMsgPool, $rsvSocLbl) !!}</td></tr>
+                                    <tr><th style="{{ $wThS }}">Платформа</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}text-align:center;">Видно</th></tr>
+                                </thead>
+                                <tbody>
+                                @foreach($wAllMsgr as $s)
+                                @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries);$sRsv=$wMsgBy->get($s->id, collect()); @endphp
+                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif{!! $rsvBadge('rsv-all-msg-'.$s->id, $sRsv, $rsvSocLbl) !!}</span></td>
+                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
+                                    <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                                @endif
+                                @if($wAllPrs->count())
+                                <thead>
+                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Ціни<span style="{{ $wShBadge }}">{{ $wAllPrs->count() }}</span></td></tr>
+                                    <tr><th style="{{ $wThS }}">Ціна</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}"></th></tr>
+                                </thead>
+                                <tbody>
+                                @foreach($wAllPrs as $p)
+                                @php $pV=$wIsVis($p);$pg=$p->geo_mode??'all';$pgT=$pg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pg]??$pg);if($pg!=='all'&&$p->geo_countries)$pgT.=' '.implode(',', (array)$p->geo_countries); @endphp
+                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                    <td style="{{ $wTdS }}font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }} {{ $p->currency }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:11px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
+                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $pgT }}</td>
+                                    <td style="{{ $wTdS }}"></td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                                @endif
+                                @if($wAllSocN->count())
+                                <thead>
+                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Соцмережі<span style="{{ $wShBadge }}">{{ $wAllSocN->count() }}</span>{!! $rsvBadge('rsv-all-socpool', $wSocPool, $rsvSocLbl) !!}</td></tr>
+                                    <tr><th style="{{ $wThS }}">Платформа</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}text-align:center;">Видно</th></tr>
+                                </thead>
+                                <tbody>
+                                @foreach($wAllSocN as $s)
+                                @php $pV=$wIsVis($s);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries);$sRsv=$wSocBy->get($s->id, collect()); @endphp
+                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                    <td style="{{ $wTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif{!! $rsvBadge('rsv-all-soc-'.$s->id, $sRsv, $rsvSocLbl) !!}</span></td>
+                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
+                                    <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                                @endif
+                                @if($wAllAds->count())
+                                <thead>
+                                    <tr style="{{ $wShRow }}"><td colspan="3" style="{{ $wShCell }}">Адреси<span style="{{ $wShBadge }}">{{ $wAllAds->count() }}</span></td></tr>
+                                    <tr><th style="{{ $wThS }}">Адреса</th><th style="{{ $wThS }}">Гео</th><th style="{{ $wThS }}text-align:center;">Видно</th></tr>
+                                </thead>
+                                <tbody>
+                                @foreach($wAllAds as $a)
+                                @php $pV=$wIsVis($a);$ag=$a->geo_mode??'all';$agT=$ag==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$ag]??$ag);if($ag!=='all'&&$a->geo_countries)$agT.=' '.implode(',', (array)$a->geo_countries); @endphp
+                                <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                    <td style="{{ $wTdS }}color:var(--text-2);">{{ trim(($a->city??'').' '.($a->street??'')) ?: '—' }}</td>
+                                    <td style="{{ $wTdS }}color:var(--text-3);font-size:11px;">{{ $agT }}</td>
+                                    <td style="{{ $wTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $wEyeOn : $wEyeOff !!}</td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                                @endif
                             </table>
+                            @endif
                         </div>
+                    </div>
+                </div>
+
+                {{-- "Всі дані" panel: every record, no geo filter, full site snapshot --}}
+                <div id="vis-panel-_raw" style="display:none;overflow-x:auto;">
+                    @php
+                        $rMsgrK = \App\Models\CustomPlatform::messengerSlugs();
+                        [$rPhsP,  $rPhsBy,  $rPhsPool ] = $rsvSplit($site->phones);
+                        $rMsgrAll = $site->socials->filter(fn($s)=> in_array(strtolower($s->platform??''),$rMsgrK));
+                        $rSocNAll = $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$rMsgrK));
+                        [$rMsgrP, $rMsgrBy, $rMsgrPool] = $rsvSplit($rMsgrAll);
+                        [$rSocNP, $rSocNBy, $rSocNPool] = $rsvSplit($rSocNAll);
+                        $rTier  = fn($x) => (($x->is_visible ?? true) && !($x->is_blocked ?? false)) ? 0 : 1;
+                        $rSort  = function($a,$b) use ($rTier){ $d=$rTier($a)-$rTier($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
+                        $rPhs   = $rPhsP->sort($rSort)->values();
+                        $rMsgr  = $rMsgrP->sort($rSort)->values();
+                        $rSocN  = $rSocNP->sort($rSort)->values();
+                        $rPrs   = $site->prices->sortBy('sort_order');
+                        $rAds   = $site->addresses->sortBy('sort_order');
+                        $rTot   = $site->phones->count()+$site->prices->count()+$site->addresses->count()+$site->socials->count();
+                        $thR = 'padding:5px 8px;text-align:left;font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border-2);white-space:nowrap;overflow:hidden;';
+                        $tdR = 'padding:5px 8px;font-size:12px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+                    @endphp
+                    @php
+                        $thU    = 'padding:5px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border-2);white-space:nowrap;overflow:hidden;';
+                        $tdU    = 'padding:7px 14px;font-size:13px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+                        $shRow  = 'background:var(--panel-2);';
+                        $shCell = 'padding:8px 14px;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-top:2px solid var(--border-2);border-bottom:1px solid var(--border-2);';
+                        $shBadge= 'display:inline-block;font-size:10px;font-family:var(--font-mono);color:var(--text-3);background:var(--border-2);border-radius:3px;padding:0 5px;margin-left:6px;';
+                        $eyeOn  = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+                        $eyeOff = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+                    @endphp
+                    <div style="background:var(--panel);">
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border-2);">
+                            <span style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;">Повна картина — всі записи</span>
+                            <span style="font-family:var(--font-mono);font-size:12px;color:var(--text-2);">{{ $rTot }}</span>
+                        </div>
+                        @if($rTot === 0)
+                        <div style="text-align:center;padding:28px;color:var(--text-3);font-size:12px;">Даних ще немає</div>
+                        @else
+                        <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                            <colgroup>
+                                <col style="width:96px">
+                                <col>
+                                <col style="width:140px">
+                                <col style="width:110px">
+                                <col style="width:70px">
+                            </colgroup>
+
+                            @if($rPhs->count())
+                            <thead>
+                                <tr style="{{ $shRow }}"><td colspan="5" style="{{ $shCell }}">Телефони<span style="{{ $shBadge }}">{{ $rPhs->count() }}</span>{!! $rsvBadge('rsv-raw-phpool', $rPhsPool, $rsvPhoneLbl) !!}</td></tr>
+                                <tr><th style="{{ $thU }}">Статус</th><th style="{{ $thU }}">Номер</th><th style="{{ $thU }}">Мітка</th><th style="{{ $thU }}">Гео</th><th style="{{ $thU }}text-align:center;">Видно</th></tr>
+                            </thead>
+                            <tbody>
+                            @foreach($rPhs as $p)
+                            @php $pGeo=$p->geo_mode??'all';$pGeoTxt=$pGeo==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pGeo]??$pGeo);if($pGeo!=='all'&&$p->geo_countries)$pGeoTxt.=' '.implode(',', (array)$p->geo_countries);$pRsv=$rPhsBy->get($p->id, collect()); @endphp
+                            <tr style="{{ !($p->is_visible??true)?'opacity:.45;':'' }}">
+                                <td style="{{ $tdU }}">@if($p->is_blocked)<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(245,101,101,.12);color:var(--danger);font-weight:600;">Блок</span>@else<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(72,187,120,.1);color:#48bb78;font-weight:600;">Осн.</span>@endif</td>
+                                <td style="{{ $tdU }}font-family:var(--font-mono);font-weight:600;color:var(--text);{{ $p->is_blocked?'text-decoration:line-through;':'' }}">{{ $p->number }}{!! $rsvBadge('rsv-raw-ph-'.$p->id, $pRsv, $rsvPhoneLbl) !!}</td>
+                                <td style="{{ $tdU }}color:var(--text-3);">{{ $p->label ?: '—' }}</td>
+                                <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">{{ $pGeoTxt }}</td>
+                                <td style="{{ $tdU }}text-align:center;">{!! ($p->is_visible??true) ? $eyeOn : $eyeOff !!}</td>
+                            </tr>
+                            @endforeach
+                            </tbody>
+                            @endif
+
+                            @if($rMsgr->count())
+                            <thead>
+                                <tr style="{{ $shRow }}"><td colspan="5" style="{{ $shCell }}">Месенджери<span style="{{ $shBadge }}">{{ $rMsgr->count() }}</span>{!! $rsvBadge('rsv-raw-msgpool', $rMsgrPool, $rsvSocLbl) !!}</td></tr>
+                                <tr><th style="{{ $thU }}">Платформа</th><th style="{{ $thU }}">Handle</th><th style="{{ $thU }}">—</th><th style="{{ $thU }}">Гео</th><th style="{{ $thU }}text-align:center;">Видно</th></tr>
+                            </thead>
+                            <tbody>
+                            @foreach($rMsgr as $s)
+                            @php $sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sgTxt=($s->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$s->geo_mode]??'');if(($s->geo_mode??'all')!=='all'&&$s->geo_countries)$sgTxt.=' '.implode(',', (array)$s->geo_countries);$sRsv=$rMsgrBy->get($s->id, collect()); @endphp
+                            <tr style="{{ !($s->is_visible??true)?'opacity:.45;':'' }}">
+                                <td style="{{ $tdU }}"><span style="display:inline-flex;align-items:center;gap:5px;"><span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span>{!! $rsvBadge('rsv-raw-msg-'.$s->id, $sRsv, $rsvSocLbl) !!}</span></td>
+                                <td style="{{ $tdU }}color:var(--text-2);">{{ $s->handle ?: '—' }}</td>
+                                <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">—</td>
+                                <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">{{ $sgTxt }}</td>
+                                <td style="{{ $tdU }}text-align:center;">{!! ($s->is_visible??true) ? $eyeOn : $eyeOff !!}</td>
+                            </tr>
+                            @endforeach
+                            </tbody>
+                            @endif
+
+                            @if($rPrs->count())
+                            <thead>
+                                <tr style="{{ $shRow }}"><td colspan="5" style="{{ $shCell }}">Ціни<span style="{{ $shBadge }}">{{ $rPrs->count() }}</span></td></tr>
+                                <tr><th style="{{ $thU }}">Сума</th><th style="{{ $thU }}">Мітка</th><th style="{{ $thU }}">Валюта</th><th style="{{ $thU }}">Гео</th><th style="{{ $thU }}"></th></tr>
+                            </thead>
+                            <tbody>
+                            @foreach($rPrs as $p)
+                            @php $pgTxt=($p->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$p->geo_mode]??'');if(($p->geo_mode??'all')!=='all'&&$p->geo_countries)$pgTxt.=' '.implode(',', (array)$p->geo_countries); @endphp
+                            <tr>
+                                <td style="{{ $tdU }}font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }}</td>
+                                <td style="{{ $tdU }}color:var(--text-2);">{{ $p->label ?: '—' }}</td>
+                                <td style="{{ $tdU }}font-family:var(--font-mono);color:var(--text-3);">{{ $p->currency }}</td>
+                                <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">{{ $pgTxt }}</td>
+                                <td style="{{ $tdU }}"></td>
+                            </tr>
+                            @endforeach
+                            </tbody>
+                            @endif
+
+                            @if($rSocN->count())
+                            <thead>
+                                <tr style="{{ $shRow }}"><td colspan="5" style="{{ $shCell }}">Соцмережі<span style="{{ $shBadge }}">{{ $rSocN->count() }}</span>{!! $rsvBadge('rsv-raw-socpool', $rSocNPool, $rsvSocLbl) !!}</td></tr>
+                                <tr><th style="{{ $thU }}">Платформа</th><th style="{{ $thU }}">Handle</th><th style="{{ $thU }}">—</th><th style="{{ $thU }}">Гео</th><th style="{{ $thU }}text-align:center;">Видно</th></tr>
+                            </thead>
+                            <tbody>
+                            @foreach($rSocN as $s)
+                            @php $sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sgTxt=($s->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$s->geo_mode]??'');if(($s->geo_mode??'all')!=='all'&&$s->geo_countries)$sgTxt.=' '.implode(',', (array)$s->geo_countries);$sRsv=$rSocNBy->get($s->id, collect()); @endphp
+                            <tr style="{{ !($s->is_visible??true)?'opacity:.45;':'' }}">
+                                <td style="{{ $tdU }}"><span style="display:inline-flex;align-items:center;gap:5px;"><span style="color:{{ $sic['c'] }};display:inline-flex;flex-shrink:0;">{!! $sic['svg'] !!}</span><span style="font-size:11px;color:var(--text-2);">{{ ucfirst($s->platform) }}</span>{!! $rsvBadge('rsv-raw-soc-'.$s->id, $sRsv, $rsvSocLbl) !!}</span></td>
+                                <td style="{{ $tdU }}color:var(--text-2);">{{ $s->handle ?: '—' }}</td>
+                                <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">—</td>
+                                <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">{{ $sgTxt }}</td>
+                                <td style="{{ $tdU }}text-align:center;">{!! ($s->is_visible??true) ? $eyeOn : $eyeOff !!}</td>
+                            </tr>
+                            @endforeach
+                            </tbody>
+                            @endif
+
+                            @if($rAds->count())
+                            <thead>
+                                <tr style="{{ $shRow }}"><td colspan="5" style="{{ $shCell }}">Адреси<span style="{{ $shBadge }}">{{ $rAds->count() }}</span></td></tr>
+                                <tr><th style="{{ $thU }}">Місто</th><th style="{{ $thU }}">Вулиця</th><th style="{{ $thU }}">Мітка</th><th style="{{ $thU }}">Гео</th><th style="{{ $thU }}text-align:center;">Видно</th></tr>
+                            </thead>
+                            <tbody>
+                            @foreach($rAds as $a)
+                            @php $agTxt=($a->geo_mode??'all')==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$a->geo_mode]??'');if(($a->geo_mode??'all')!=='all'&&$a->geo_countries)$agTxt.=' '.implode(',', (array)$a->geo_countries); @endphp
+                            <tr style="{{ !($a->is_visible??true)?'opacity:.45;':'' }}">
+                                <td style="{{ $tdU }}font-weight:600;color:var(--text);">{{ $a->city ?: '—' }}</td>
+                                <td style="{{ $tdU }}color:var(--text-3);">{{ $a->street ?: '—' }}</td>
+                                <td style="{{ $tdU }}color:var(--text-3);">{{ $a->label ?: '—' }}</td>
+                                <td style="{{ $tdU }}color:var(--text-3);font-size:11px;">{{ $agTxt }}</td>
+                                <td style="{{ $tdU }}text-align:center;">{!! ($a->is_visible??true) ? $eyeOn : $eyeOff !!}</td>
+                            </tr>
+                            @endforeach
+                            </tbody>
+                            @endif
+                        </table>
+                        @endif
                     </div>
                 </div>
 
@@ -430,14 +667,10 @@
                         $totalAll  = $site->phones->count() + $site->prices->count() + $site->addresses->count() + $site->socials->count();
                     @endphp
                     <div id="vis-panel-{{ $visIso }}" style="display:none;">
-                        <div class="vis-preview-bar" id="vis-bar-{{ $visIso }}">
-                            <span>Перегляд: відвідувач <strong>{{ $visIso }}</strong>{{ isset($allIsoCountries[$visIso]) ? ' — '.$allIsoCountries[$visIso] : '' }}</span>
-                            <button class="vis-preview-bar__exit" onclick="showVisitorPanel('_all')">✕ Вийти</button>
-                        </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-2);">
+                        <div>
 
-                            {{-- LEFT: Що бачить відвідувач --}}
-                            <div style="background:var(--panel);padding:20px;">
+                            {{-- LEFT: removed --}}
+                            <div style="display:none;">
                                 <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
                                     <span style="width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block;"></span>
                                     Що бачить відвідувач — {{ $visIso }}
@@ -524,67 +757,174 @@
                                 @endif {{-- /totalVis > 0 --}}
                             </div>
 
-                            {{-- RIGHT: Матриця видимості --}}
-                            <div style="background:var(--panel);padding:20px;overflow-x:auto;">
-                                <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
-                                    Матриця
-                                    <span style="font-family:var(--font-mono);font-weight:700;font-size:12px;color:{{ $totalVis === $totalAll ? '#34d399' : ($totalVis > 0 ? 'var(--warning)' : '#f87171') }};">{{ $totalVis }}/{{ $totalAll }}</span>
+                            {{-- RIGHT: Всі поля з видимістю для цього відвідувача --}}
+                            @php
+                                $mThS = 'padding:5px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border-2);white-space:nowrap;overflow:hidden;';
+                                $mTdS    = 'padding:6px 12px;font-size:13px;border-bottom:1px solid var(--border-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+                                $mVKey   = \App\Models\CustomPlatform::messengerSlugs();
+                                $mTierPh = fn($p) => (($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso)) ? 0 : 1;
+                                $mTierSo = fn($s) => (($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso)) ? 0 : 1;
+                                $mSortPh = function($a,$b) use ($mTierPh) { $d=$mTierPh($a)-$mTierPh($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
+                                $mSortSo = function($a,$b) use ($mTierSo) { $d=$mTierSo($a)-$mTierSo($b); return $d!==0?$d:(($a->sort_order??0)-($b->sort_order??0)); };
+                                [$mPhP,  $mPhBy,  $mPhPool ] = $rsvSplit($site->phones);
+                                $mMsgrAll= $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$mVKey));
+                                $mSocNAll= $site->socials->filter(fn($s)=>!in_array(strtolower($s->platform??''),$mVKey));
+                                [$mMsgP, $mMsgBy, $mMsgPool] = $rsvSplit($mMsgrAll);
+                                [$mSocP, $mSocBy, $mSocPool] = $rsvSplit($mSocNAll);
+                                $mAllPhs = $mPhP->sort($mSortPh)->values();
+                                $mAllPrs = $site->prices->sortBy('sort_order');
+                                $mAllAds = $site->addresses->sortBy('sort_order');
+                                $mAllMsgr= $mMsgP->sort($mSortSo)->values();
+                                $mAllSocN= $mSocP->sort($mSortSo)->values();
+                                $mShRow  = 'background:var(--panel-2);';
+                                $mShCell = 'padding:8px 12px;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;border-top:2px solid var(--border-2);border-bottom:1px solid var(--border-2);';
+                                $mShBadge= 'display:inline-block;font-size:10px;font-family:var(--font-mono);color:var(--text-3);background:var(--border-2);border-radius:3px;padding:0 5px;margin-left:6px;';
+                                $mEyeOn  = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+                                $mEyeOff = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+                            @endphp
+                            <div style="background:var(--panel);overflow-y:auto;">
+                                <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;padding:10px 12px 8px;display:flex;justify-content:space-between;border-bottom:1px solid var(--border-2);">
+                                    <span>Всі поля</span>
+                                    <span style="font-family:var(--font-mono);color:{{ $totalVis===$totalAll?'#34d399':($totalVis>0?'var(--warning)':'#f87171') }};">{{ $totalVis }}/{{ $totalAll }}</span>
                                 </div>
-                                @php
-                                    $matrixRows = [
-                                        ['Телефони',   $site->phones,    'data-phones'],
-                                        ['Ціни',       $site->prices,    'data-prices'],
-                                        ['Адреси',     $site->addresses, 'data-addresses'],
-                                        ['Соц.мережі', $site->socials->filter(fn($s) => !in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber'])), 'data-socials'],
-                                        ['Месенджери', $site->socials->filter(fn($s) =>  in_array(strtolower($s->platform ?? ''), ['telegram','whatsapp','viber'])), 'data-messengers'],
-                                    ];
-                                @endphp
-                                <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                                @if($mAllPhs->count()||$mAllMsgr->count()||$mAllAds->count()||$mAllSocN->count()||$mAllPrs->count())
+                                <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+                                    <colgroup><col><col style="width:90px"><col style="width:46px"></colgroup>
+                                    @if($mAllPhs->count())
                                     <thead>
-                                        <tr>
-                                            <th style="text-align:left;padding:6px 8px;color:var(--text-3);font-weight:500;border-bottom:1px solid var(--border-2);font-size:11px;">Категорія</th>
-                                            @foreach($allVisitorIsos as $matIso)
-                                                <th style="text-align:center;padding:6px 8px;font-family:var(--font-mono);font-size:11px;font-weight:700;border-bottom:1px solid var(--border-2);color:{{ $matIso === $visIso ? 'var(--accent)' : 'var(--text-3)' }};">{{ $matIso }}</th>
-                                            @endforeach
-                                        </tr>
+                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Телефони<span style="{{ $mShBadge }}">{{ $mAllPhs->count() }}</span>{!! $rsvBadge('rsv-'.$visIso.'-phpool', $mPhPool, $rsvPhoneLbl) !!}</td></tr>
+                                        <tr><th style="{{ $mThS }}">Номер</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}text-align:center;">Видно</th></tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($matrixRows as [$catLabel, $catItems, $catAnchor])
-                                            @if($catItems->count())
-                                            <tr style="border-bottom:1px solid var(--border-2);">
-                                                <td style="padding:7px 8px;font-size:12px;font-weight:500;color:var(--text-2);cursor:pointer;white-space:nowrap;"
-                                                    onclick="location='{{ $url(['tab'=>'data']) }}#{{ $catAnchor }}'">{{ $catLabel }} <span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);">{{ $catItems->count() }}</span></td>
-                                                @foreach($allVisitorIsos as $matIso)
-                                                    @php
-                                                        $catTotal = $catItems->count();
-                                                        $catVis   = $catItems->filter(fn($i) => ($i->is_visible ?? true) && $geoVis($i->geo_mode, $i->geo_countries, $matIso, $i->country_iso))->count();
-                                                        $matColor = $catVis === $catTotal ? '#34d399' : ($catVis > 0 ? 'var(--warning)' : '#f87171');
-                                                    @endphp
-                                                    <td style="text-align:center;padding:7px 8px;background:{{ $matIso === $visIso ? 'var(--accent-2)' : 'transparent' }};">
-                                                        <span style="font-family:var(--font-mono);font-weight:700;font-size:12px;color:{{ $matColor }};">{{ $catVis }}/{{ $catTotal }}</span>
-                                                    </td>
-                                                @endforeach
-                                            </tr>
-                                            @endif
-                                        @endforeach
+                                    @foreach($mAllPhs as $p)
+                                    @php $pV=($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso);$pg=$p->geo_mode??'all';$pgT=$pg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pg]??$pg);if($pg!=='all'&&$p->geo_countries)$pgT.=' '.implode(',', (array)$p->geo_countries);$pRsv=$mPhBy->get($p->id, collect()); @endphp
+                                    <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                        <td style="{{ $mTdS }}font-family:var(--font-mono);font-weight:600;color:var(--text);">{{ $p->number }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:11px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif{!! $rsvBadge('rsv-'.$visIso.'-ph-'.$p->id, $pRsv, $rsvPhoneLbl) !!}</td>
+                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $pgT }}</td>
+                                        <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
+                                    </tr>
+                                    @endforeach
                                     </tbody>
+                                    @endif
+                                    @if($mAllMsgr->count())
+                                    <thead>
+                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Месенджери<span style="{{ $mShBadge }}">{{ $mAllMsgr->count() }}</span>{!! $rsvBadge('rsv-'.$visIso.'-msgpool', $mMsgPool, $rsvSocLbl) !!}</td></tr>
+                                        <tr><th style="{{ $mThS }}">Платформа</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}text-align:center;">Видно</th></tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($mAllMsgr as $s)
+                                    @php $pV=($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries);$sRsv=$mMsgBy->get($s->id, collect()); @endphp
+                                    <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                        <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif{!! $rsvBadge('rsv-'.$visIso.'-msg-'.$s->id, $sRsv, $rsvSocLbl) !!}</span></td>
+                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
+                                        <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
+                                    </tr>
+                                    @endforeach
+                                    </tbody>
+                                    @endif
+                                    @if($mAllPrs->count())
+                                    <thead>
+                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Ціни<span style="{{ $mShBadge }}">{{ $mAllPrs->count() }}</span></td></tr>
+                                        <tr><th style="{{ $mThS }}">Ціна</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}"></th></tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($mAllPrs as $p)
+                                    @php $pV=($p->is_visible??true)&&$geoVis($p->geo_mode,$p->geo_countries,$visIso,$p->country_iso);$pg=$p->geo_mode??'all';$pgT=$pg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$pg]??$pg);if($pg!=='all'&&$p->geo_countries)$pgT.=' '.implode(',', (array)$p->geo_countries); @endphp
+                                    <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                        <td style="{{ $mTdS }}font-family:var(--font-mono);font-weight:700;color:#34d399;">{{ number_format($p->amount,2) }} {{ $p->currency }}@if($p->label)<span style="font-family:var(--font-sans,sans-serif);font-weight:400;font-size:11px;color:var(--text-3);margin-left:6px;">{{ $p->label }}</span>@endif</td>
+                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $pgT }}</td>
+                                        <td style="{{ $mTdS }}"></td>
+                                    </tr>
+                                    @endforeach
+                                    </tbody>
+                                    @endif
+                                    @if($mAllSocN->count())
+                                    <thead>
+                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Соцмережі<span style="{{ $mShBadge }}">{{ $mAllSocN->count() }}</span>{!! $rsvBadge('rsv-'.$visIso.'-socpool', $mSocPool, $rsvSocLbl) !!}</td></tr>
+                                        <tr><th style="{{ $mThS }}">Платформа</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}text-align:center;">Видно</th></tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($mAllSocN as $s)
+                                    @php $pV=($s->is_visible??true)&&$geoVis($s->geo_mode,$s->geo_countries,$visIso,$s->country_iso);$sk=strtolower($s->platform??'');$sic=$socialIcon[$sk]??['c'=>'var(--text-3)','svg'=>''];$sg=$s->geo_mode??'all';$sgT=$sg==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$sg]??$sg);if($sg!=='all'&&$s->geo_countries)$sgT.=' '.implode(',', (array)$s->geo_countries);$sRsv=$mSocBy->get($s->id, collect()); @endphp
+                                    <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                        <td style="{{ $mTdS }}"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="color:{{ $sic['c'] }};display:inline-flex;">{!! $sic['svg'] !!}</span><span style="color:var(--text-2);">{{ ucfirst($s->platform) }}</span>@if($s->handle)<span style="font-size:11px;color:var(--text-3);margin-left:4px;">{{ $s->handle }}</span>@endif{!! $rsvBadge('rsv-'.$visIso.'-soc-'.$s->id, $sRsv, $rsvSocLbl) !!}</span></td>
+                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $sgT }}</td>
+                                        <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
+                                    </tr>
+                                    @endforeach
+                                    </tbody>
+                                    @endif
+                                    @if($mAllAds->count())
+                                    <thead>
+                                        <tr style="{{ $mShRow }}"><td colspan="3" style="{{ $mShCell }}">Адреси<span style="{{ $mShBadge }}">{{ $mAllAds->count() }}</span></td></tr>
+                                        <tr><th style="{{ $mThS }}">Адреса</th><th style="{{ $mThS }}">Гео</th><th style="{{ $mThS }}text-align:center;">Видно</th></tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($mAllAds as $a)
+                                    @php $pV=($a->is_visible??true)&&$geoVis($a->geo_mode,$a->geo_countries,$visIso,$a->country_iso);$ag=$a->geo_mode??'all';$agT=$ag==='all'?'Всім':(['include'=>'Тільки','exclude'=>'Крім'][$ag]??$ag);if($ag!=='all'&&$a->geo_countries)$agT.=' '.implode(',', (array)$a->geo_countries); @endphp
+                                    <tr style="{{ $pV?'background:rgba(52,211,153,.18);':'opacity:.25;' }}">
+                                        <td style="{{ $mTdS }}color:var(--text-2);">{{ trim(($a->city??'').' '.($a->street??'')) ?: '—' }}</td>
+                                        <td style="{{ $mTdS }}color:var(--text-3);font-size:11px;">{{ $agT }}</td>
+                                        <td style="{{ $mTdS }}text-align:center;padding:4px 6px;">{!! $pV ? $mEyeOn : $mEyeOff !!}</td>
+                                    </tr>
+                                    @endforeach
+                                    </tbody>
+                                    @endif
                                 </table>
+                                @endif
                             </div>
                         </div>
                     </div>
                 @endforeach
+                <script>
+                (function(){
+                    var key = 'visPanel_{{ $site->id }}';
+                    var iso = '';
+                    try { iso = sessionStorage.getItem(key) || ''; } catch(e){}
+                    if (!iso) iso = '_raw';
+                    var panel = document.getElementById('vis-panel-' + iso);
+                    if (!panel) iso = '_raw', panel = document.getElementById('vis-panel-_raw');
+                    if (panel) panel.style.display = '';
+                    var btn = document.getElementById('vis-tab-' + iso);
+                    if (btn) btn.className = btn.className.replace('btn--ghost','btn--primary');
+                })();
+                function toggleRsvPop(e, id){
+                    e.stopPropagation();
+                    var el = document.getElementById(id);
+                    if (!el) return;
+                    var wasOpen = el.classList.contains('is-open');
+                    document.querySelectorAll('.rsv-pop.is-open').forEach(function(p){ p.classList.remove('is-open'); });
+                    if (wasOpen) return;
+                    var btn = e.currentTarget || e.target;
+                    var r = btn.getBoundingClientRect();
+                    el.classList.add('is-open');
+                    var pw = el.offsetWidth, ph = el.offsetHeight;
+                    var left = r.left, top = r.bottom + 5;
+                    if (left + pw > window.innerWidth - 8)  left = window.innerWidth - pw - 8;
+                    if (left < 8) left = 8;
+                    if (top + ph > window.innerHeight - 8)  top = r.top - ph - 5;
+                    el.style.left = Math.round(left) + 'px';
+                    el.style.top  = Math.round(top) + 'px';
+                }
+                window.addEventListener('resize', function(){
+                    document.querySelectorAll('.rsv-pop.is-open').forEach(function(p){ p.classList.remove('is-open'); });
+                });
+                document.addEventListener('click', function(){
+                    document.querySelectorAll('.rsv-pop.is-open').forEach(function(p){ p.classList.remove('is-open'); });
+                });
+                document.addEventListener('keydown', function(e){
+                    if (e.key === 'Escape') document.querySelectorAll('.rsv-pop.is-open').forEach(function(p){ p.classList.remove('is-open'); });
+                });
+                </script>
 
                 {{-- Conflicts — always visible so manager can verify setup --}}
                 <div style="border-top:1px solid var(--border-2);padding:12px 20px;">
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:{{ count($conflicts) ? '10px' : '0' }};">
-                        @if(count($conflicts) > 0)
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                            <span style="font-size:12px;font-weight:600;color:#f87171;text-transform:uppercase;letter-spacing:.05em;">Конфлікти ({{ count($conflicts) }})</span>
-                        @else
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                            <span style="font-size:12px;font-weight:600;color:#34d399;text-transform:uppercase;letter-spacing:.05em;">Конфліктів не виявлено</span>
-                        @endif
+                    @if(count($conflicts) > 0)
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <span style="font-size:12px;font-weight:600;color:#f87171;text-transform:uppercase;letter-spacing:.05em;">Конфлікти ({{ count($conflicts) }})</span>
                     </div>
+                    @endif
                     @if(count($conflicts) > 0)
                         <div style="display:flex;flex-direction:column;gap:5px;">
                             @foreach($conflicts as $cf)
@@ -617,8 +957,13 @@
                     'socials'    => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
                     'messengers' => '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
                 ];
-                $messengerPlatforms = ['telegram' => 'Telegram', 'whatsapp' => 'WhatsApp', 'viber' => 'Viber'];
-                $socialNetPlatforms = ['instagram' => 'Instagram', 'facebook' => 'Facebook', 'linkedin' => 'LinkedIn', 'x' => 'X / Twitter', 'youtube' => 'YouTube'];
+                $messengerPlatforms = \App\Models\CustomPlatform::messengerOptions();
+                $socialNetPlatforms = [
+                    'instagram' => 'Instagram', 'facebook' => 'Facebook',  'youtube'   => 'YouTube',
+                    'tiktok'    => 'TikTok',    'twitter'  => 'Twitter / X','linkedin'  => 'LinkedIn',
+                    'pinterest' => 'Pinterest', 'threads'  => 'Threads',    'reddit'    => 'Reddit',
+                    'vk'        => 'ВКонтакте', 'twitch'   => 'Twitch',
+                ];
                 $socialPlatforms    = $socialNetPlatforms + $messengerPlatforms;
                 $messengerKeys      = array_keys($messengerPlatforms);
                 $shownSocNetworks   = $shownSocials->filter(fn($s) => !in_array(strtolower($s->platform ?? ''), $messengerKeys))->values();
@@ -643,8 +988,22 @@
                 </button>
             </div>
 
-            <div class="dt-grid">
+            {{-- ═══ DATA SUB-TABS ══════════════════════════════════ --}}
+            <div class="dt-subtabs">
+                <button class="dt-subtab is-active" id="dst-contacts" onclick="dtSubTab('contacts')">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Контакти
+                    <span class="dt-subtab__count" id="dst-contacts-count"></span>
+                </button>
+                <button class="dt-subtab" id="dst-details" onclick="dtSubTab('details')">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+                    Деталі
+                    <span class="dt-subtab__count" id="dst-details-count"></span>
+                </button>
+            </div>
 
+            <div class="dt-grid">
+            <div id="dt-group-contacts" class="dt-group" style="display:none;">
             {{-- ═══ PHONES ═══════════════════════════════════════════ --}}
             <div class="dt-card" id="data-phones">
                 <div class="dt-card-head">
@@ -698,112 +1057,311 @@
                     </form>
                 </div>
 
-                <div class="dt-items">
-                    @forelse($shownPhones as $p)
-                    <div class="dt-item">
-                        <div class="dt-item-row" onclick="dtExpandItem('phone-{{ $p->id }}')">
-                            <span class="dt-item-icon">{!! $dtIcons['phones'] !!}</span>
-                            <div class="dt-item-main">
-                                <div class="dt-item-name" style="font-family:var(--font-mono);">
-                                    {{ $p->number }}
-                                </div>
-                                @if($p->label || $p->is_primary)
-                                    <div class="dt-item-sub">{{ $p->label }}{{ $p->is_primary ? ($p->label ? ' · ' : '').'основний' : '' }}</div>
-                                @endif
-                            </div>
-                            <div class="dt-vis">
-                                @if(count($usedIso)===0 || ($p->geo_mode??'all')==='all')
-                                    <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
-                                @elseif(($p->geo_mode??'all')==='include')
-                                    @forelse((array)($p->geo_countries??[]) as $iso)
-                                        <span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>
-                                    @empty
-                                        <span class="dt-vis-badge dt-vis-badge--no">—</span>
-                                    @endforelse
-                                @else
-                                    <span class="dt-vis-badge" style="font-size:9px;opacity:.6;letter-spacing:.02em;">Крім</span>
-                                    @forelse((array)($p->geo_countries??[]) as $iso)
-                                        <span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>
-                                    @empty
-                                        <span class="dt-vis-badge dt-vis-badge--all">Всі</span>
-                                    @endforelse
-                                @endif
-                            </div>
-                            <div class="dt-item-actions" onclick="event.stopPropagation()">
-                                <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'phones',$p->id]) }}" style="margin:0;">
-                                    @csrf
-                                    <button type="submit" class="icon-btn" title="{{ ($p->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($p->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
-                                        @if($p->is_visible??true)
-                                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                        @else
-                                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                                        @endif
-                                    </button>
-                                </form>
-                                <form method="POST" action="{{ route('phones.destroy',[$site,$p]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити">
-                                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
-                                    </button>
-                                </form>
-                                <button class="icon-btn" id="dt-expand-phone-{{ $p->id }}" title="Редагувати" onclick="dtExpandItem('phone-{{ $p->id }}')">
-                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg>
-                                </button>
-                            </div>
-                        </div>
-                        {{-- Edit panel --}}
-                        <div class="dt-panel" id="dt-edit-phone-{{ $p->id }}" style="display:none;">
-                            <form method="POST" action="{{ route('phones.update',[$site,$p]) }}">
-                                @csrf @method('PUT')
-                                <input type="hidden" name="sort_order" value="{{ $p->sort_order }}">
-                                <div class="dt-row dt-row--2">
-                                    <div>
-                                        <label class="dt-label">Номер *</label>
-                                        <input type="text" name="number" class="dt-input" value="{{ $p->number }}" required>
-                                    </div>
-                                    <div>
-                                        <label class="dt-label">Мітка</label>
-                                        <input type="text" name="label" class="dt-input" value="{{ $p->label }}" placeholder="Головний…">
-                                    </div>
-                                </div>
-                                <div class="dt-geo-row">
-                                    <span class="dt-geo-label">Видно:</span>
-                                    @php $em = $p->geo_mode ?? 'all'; @endphp
-                                    @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
-                                        <label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-ph{{ $p->id }}-{{ $mv }}">
-                                            <input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;"
-                                                   onchange="dtGeoMode('ph{{ $p->id }}','{{ $mv }}')">{{ $ml }}
-                                        </label>
-                                    @endforeach
-                                    @if(count($usedIso))
-                                    <span id="dtchips-ph{{ $p->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">
-                                        @foreach($usedIso as $iso)
-                                            <label class="dt-geo-chip {{ in_array($iso,(array)($p->geo_countries??[]))?'is-on':'' }}" id="dtchip-ph{{ $p->id }}-{{ $iso }}">
-                                                <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($p->geo_countries??[]))?'checked':'' }} style="display:none;"
-                                                       onchange="dtGeoChip('ph{{ $p->id }}','{{ $iso }}',this)">{{ $iso }}
-                                            </label>
-                                        @endforeach
-                                    </span>
+                <div class="dt-nav-list" data-type="phone">
+                @php
+                    // Roots = original primaries (no parent link, not in standby pool)
+                    $ordPrimariesPh = $shownPhones->filter(fn($p) => !$p->standby_for_id && !$p->is_standby)->sortBy('sort_order');
+                    $primaryIdsPh   = $ordPrimariesPh->pluck('id')->all();
+                    // Children = ANY phone with standby_for_id (includes promoted active replacements)
+                    $byParentPh     = $shownPhones->filter(fn($s) => $s->standby_for_id && in_array($s->standby_for_id, $primaryIdsPh))->groupBy('standby_for_id');
+                    // Pool = is_standby=true with no parent link (general pool)
+                    $poolPh         = $shownPhones->filter(fn($p) => !$p->standby_for_id && $p->is_standby)->sortBy('sort_order');
+                    // Orphans = standby_for_id set but parent not known
+                    $unlinkedPh     = $shownPhones->filter(fn($s) => $s->standby_for_id && !in_array($s->standby_for_id, $primaryIdsPh))->sortBy('sort_order');
+                    // Badge count = waiting standbys only (is_standby=true, not blocked)
+                    $sbCountsPh     = $byParentPh->map(fn($g) => $g->where('is_standby', true)->where('is_blocked', false)->count());
+                    $phonesByIdPh   = $shownPhones->keyBy('id');
+                    $allPhonesByIdPh= $site->phones->keyBy('id');
+                    $flatPhones     = collect();
+                    foreach ($ordPrimariesPh as $prPh) {
+                        $flatPhones->push(['item' => $prPh, 'depth' => 0]);
+                        foreach (($byParentPh->get($prPh->id, collect()))->sortBy('sort_order') as $sbPh) {
+                            $flatPhones->push(['item' => $sbPh, 'depth' => 1]);
+                        }
+                    }
+                    foreach ($poolPh as $sbPh) { $flatPhones->push(['item' => $sbPh, 'depth' => 0]); }
+                    foreach ($unlinkedPh as $sbPh) { $flatPhones->push(['item' => $sbPh, 'depth' => 1]); }
+                @endphp
+                @if($flatPhones->isEmpty())
+                    <div class="dt-empty">Телефонів немає</div>
+                @else
+                @foreach($flatPhones as $entry)
+                @php
+                    $ph = $entry['item']; $phDepth = $entry['depth']; $sbCount = $sbCountsPh->get($ph->id, 0);
+                    $parentPhItem   = $phDepth && $ph->standby_for_id ? $allPhonesByIdPh->get($ph->standby_for_id) : null;
+                    // Active replacement: child with is_standby=false (promoted by failover)
+                    $isActiveReplPh = $phDepth && !$ph->is_standby && !$ph->is_blocked;
+                @endphp
+                <div class="dt-item {{ $phDepth ? 'dt-item--child' : 'dt-item--root' }}"
+                     data-id="{{ $ph->id }}"
+                     data-is-standby="{{ $ph->is_standby ? 1 : 0 }}"
+                     data-parent-id="{{ $ph->standby_for_id ?? '' }}"
+                     data-has-standbys="{{ $sbCount > 0 ? '1' : '0' }}"
+                     data-sb-count="{{ $sbCount }}"
+                     data-type="phone">
+                    <div class="dt-item-row {{ !$phDepth ? 'dt-nav-primary' : '' }}" onclick="dtExpandItem('phone-{{ $ph->id }}')">
+                        <span class="dt-nav-grip" title="{{ (!$phDepth && $sbCount > 0) ? 'Має резервних — не можна зробити резервним' : 'Потягни вправо = резерв, вліво = основний' }}"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
+                        <span class="dt-item-icon">{!! $dtIcons['phones'] !!}</span>
+                        <div class="dt-item-main">
+                            <div class="dt-item-name" style="font-family:var(--font-mono);">{{ $ph->number }}</div>
+                            @if(!$phDepth)
+                                @if($ph->label || $ph->is_blocked)
+                                <div class="dt-item-sub">
+                                    @if($ph->label){{ $ph->label }}@endif
+                                    @if($ph->is_blocked)
+                                        @if($ph->label)&thinsp;·&thinsp;@endif
+                                        <span class="dt-badge dt-badge--blocked">✕ заблок.</span>
                                     @endif
                                 </div>
-                                <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
-                                    <input type="hidden" name="is_primary" value="0">
-                                    <input type="checkbox" name="is_primary" value="1" id="ph-prim-{{ $p->id }}" {{ $p->is_primary?'checked':'' }} style="accent-color:var(--accent);width:14px;height:14px;">
-                                    <label for="ph-prim-{{ $p->id }}" class="dt-label" style="margin:0;cursor:pointer;">Основний</label>
+                                @endif
+                            @else
+                                <div class="dt-item-sub">
+                                    @if($ph->label){{ $ph->label }}&thinsp;·&thinsp;@endif
+                                    @if($isActiveReplPh)
+                                        <span class="dt-badge dt-badge--replacing">⟳ активний</span>
+                                        @if($parentPhItem)<span class="dt-replacing-label">замість {{ $parentPhItem->number }}</span>@endif
+                                    @elseif($ph->is_blocked)
+                                        <span class="dt-badge dt-badge--blocked">✕ заблок.</span>
+                                    @else
+                                        <span class="dt-badge dt-badge--standby">⟳ резерв</span>
+                                    @endif
                                 </div>
-                                <div class="dt-panel__actions">
-                                    <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('phone-{{ $p->id }}')">Скасувати</button>
-                                    <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
-                                </div>
+                            @endif
+                        </div>
+                        @if(!$phDepth && $sbCount > 0)<span class="dt-nav-sb-badge">{{ $sbCount }}&thinsp;⟳</span>@endif
+                        <div class="dt-vis">
+                            @if(count($usedIso)===0||($ph->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                            @elseif(($ph->geo_mode??'all')==='include')@forelse((array)($ph->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
+                            @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($ph->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
+                        </div>
+                        <div class="dt-item-actions" onclick="event.stopPropagation()">
+                            <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'phones',$ph->id]) }}" style="margin:0;">@csrf
+                                <button type="submit" class="icon-btn" title="{{ ($ph->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($ph->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
+                                    @if($ph->is_visible??true)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif
+                                </button>
                             </form>
+                            <form method="POST" action="{{ route('phones.destroy',[$site,$ph]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
+                                <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
+                            </form>
+                            <button class="icon-btn" id="dt-expand-phone-{{ $ph->id }}" title="Редагувати" onclick="dtExpandItem('phone-{{ $ph->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
                         </div>
                     </div>
-                    @empty
-                        <div class="dt-empty">Телефонів немає</div>
-                    @endforelse
+                    <div class="dt-panel" id="dt-edit-phone-{{ $ph->id }}" style="display:none;">
+                        <form method="POST" action="{{ route('phones.update',[$site,$ph]) }}">@csrf @method('PUT')
+                            <input type="hidden" name="sort_order" value="{{ $ph->sort_order }}">
+                            <div class="dt-row dt-row--2">
+                                <div><label class="dt-label">Номер *</label><input type="text" name="number" class="dt-input" value="{{ $ph->number }}" required></div>
+                                <div><label class="dt-label">Мітка</label><input type="text" name="label" class="dt-input" value="{{ $ph->label }}" placeholder="Головний…"></div>
+                            </div>
+                            <div class="dt-geo-row"><span class="dt-geo-label">Видно:</span>
+                                @php $em=$ph->geo_mode??'all'; @endphp
+                                @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv=>$ml)<label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-ph{{ $ph->id }}-{{ $mv }}"><input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;" onchange="dtGeoMode('ph{{ $ph->id }}','{{ $mv }}')">{{ $ml }}</label>@endforeach
+                                @if(count($usedIso))<span id="dtchips-ph{{ $ph->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">@foreach($usedIso as $iso)<label class="dt-geo-chip {{ in_array($iso,(array)($ph->geo_countries??[]))?'is-on':'' }}" id="dtchip-ph{{ $ph->id }}-{{ $iso }}"><input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($ph->geo_countries??[]))?'checked':'' }} style="display:none;" onchange="dtGeoChip('ph{{ $ph->id }}','{{ $iso }}',this)">{{ $iso }}</label>@endforeach</span>@endif
+                            </div>
+                            <div class="dt-panel__actions">
+                                <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('phone-{{ $ph->id }}')">Скасувати</button>
+                                <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                @endforeach
+                @endif
                 </div>
             </div>
 
+            {{-- ═══ MESSENGERS ════════════════════════════════════════ --}}
+            <div class="dt-card" id="data-messengers">
+                <div class="dt-card-head">
+                    <span class="dt-card-head__icon">{!! $dtIcons['messengers'] !!}</span>
+                    <span class="dt-card-head__title">Месенджери</span>
+                    <span class="dt-card-head__count">{{ $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$messengerKeys))->count() }}</span>
+                    <button class="dt-add-btn" id="dt-add-btn-messengers" onclick="dtToggleAdd('messengers')">
+                        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Додати
+                    </button>
+                </div>
+
+                <div class="dt-panel" id="dt-add-messengers" style="display:none;">
+                    <div class="dt-panel__title">Новий месенджер</div>
+                    <form method="POST" action="{{ route('socials.store', $site) }}" data-ms-form>
+                        @csrf
+                        <input type="hidden" name="sort_order" value="{{ $site->socials->count() }}">
+                        <div class="dt-row dt-row--2">
+                            <div>
+                                <label class="dt-label">Платформа *</label>
+                                <select name="platform" class="dt-input show-ms-platform-sel" required
+                                        onchange="onShowMsPlatformChange(this)">
+                                    @foreach($messengerPlatforms as $val => $lbl)
+                                        <option value="{{ $val }}">{{ $lbl }}</option>
+                                    @endforeach
+                                    <option value="__new__">➕ Інший месенджер...</option>
+                                </select>
+                                <input type="text" name="platform_custom" class="dt-input show-ms-custom-inp"
+                                       placeholder="Назва месенджера" maxlength="50"
+                                       style="display:none;margin-top:6px;">
+                            </div>
+                            <div>
+                                <label class="dt-label">Нікнейм / номер</label>
+                                <input type="text" name="handle" class="dt-input" placeholder="@username або номер">
+                            </div>
+                        </div>
+                        <div class="dt-row" style="margin-bottom:8px;">
+                            <label class="dt-label">Посилання</label>
+                            <input type="url" name="url" class="dt-input" placeholder="https://t.me/…">
+                        </div>
+                        @if($site->phones->count())
+                        <div class="dt-row" style="margin-bottom:8px;">
+                            <label class="dt-label">Прив'язати до номеру</label>
+                            <select name="phone_id" class="dt-input">
+                                <option value="">— без прив'язки —</option>
+                                @foreach($site->phones as $ph)
+                                    <option value="{{ $ph->id }}">{{ $ph->number }}{{ $ph->label ? ' · '.$ph->label : '' }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
+                        <div class="dt-geo-row">
+                            <span class="dt-geo-label">Видно:</span>
+                            @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
+                                <label class="dt-geo-pill {{ $mv==='all'?'is-on':'' }}" id="dtpill-add-ms-{{ $mv }}">
+                                    <input type="radio" name="geo_mode" value="{{ $mv }}" {{ $mv==='all'?'checked':'' }} style="display:none;"
+                                           onchange="dtGeoMode('add-ms','{{ $mv }}')">{{ $ml }}
+                                </label>
+                            @endforeach
+                            <span id="dtchips-add-ms" class="dt-geo-chips" style="display:none;">
+                                @foreach($usedIso as $iso)
+                                    <label class="dt-geo-chip" id="dtchip-add-ms-{{ $iso }}">
+                                        <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
+                                               onchange="dtGeoChip('add-ms','{{ $iso }}',this)">{{ $iso }}
+                                    </label>
+                                @endforeach
+                            </span>
+                        </div>
+                        <div class="dt-panel__actions">
+                            <button type="button" class="btn btn--ghost btn--sm" onclick="dtToggleAdd('messengers')">Скасувати</button>
+                            <button type="submit" class="btn btn--primary btn--sm">Додати</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="dt-nav-list" data-type="social">
+                @php
+                    $ordPrimariesMs = $shownMessengers->filter(fn($p) => !$p->standby_for_id && !$p->is_standby)->sortBy('sort_order');
+                    $primaryIdsMs   = $ordPrimariesMs->pluck('id')->all();
+                    $byParentMs     = $shownMessengers->filter(fn($s) => $s->standby_for_id && in_array($s->standby_for_id, $primaryIdsMs))->groupBy('standby_for_id');
+                    $poolMs         = $shownMessengers->filter(fn($p) => !$p->standby_for_id && $p->is_standby)->sortBy('sort_order');
+                    $unlinkedMs     = $shownMessengers->filter(fn($s) => $s->standby_for_id && !in_array($s->standby_for_id, $primaryIdsMs))->sortBy('sort_order');
+                    $sbCountsMs     = $byParentMs->map(fn($g) => $g->where('is_standby', true)->where('is_blocked', false)->count());
+                    $socialsByIdMs   = $shownMessengers->keyBy('id');
+                    $allSocialsByIdMs= $site->socials->keyBy('id');
+                    $flatMessengers = collect();
+                    foreach ($ordPrimariesMs as $prMs) {
+                        $flatMessengers->push(['item' => $prMs, 'depth' => 0]);
+                        foreach (($byParentMs->get($prMs->id, collect()))->sortBy('sort_order') as $sbMs) {
+                            $flatMessengers->push(['item' => $sbMs, 'depth' => 1]);
+                        }
+                    }
+                    foreach ($poolMs as $sbMs) { $flatMessengers->push(['item' => $sbMs, 'depth' => 0]); }
+                    foreach ($unlinkedMs as $sbMs) { $flatMessengers->push(['item' => $sbMs, 'depth' => 1]); }
+                @endphp
+                @if($flatMessengers->isEmpty())
+                    <div class="dt-empty">Месенджерів немає</div>
+                @else
+                @foreach($flatMessengers as $entry)
+                @php
+                    $ms = $entry['item']; $msDepth = $entry['depth']; $msbCount = $sbCountsMs->get($ms->id, 0);
+                    $msk=strtolower($ms->platform??''); $msic=$socialIcon[$msk]??['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>'];
+                    $parentMsItem   = $msDepth && $ms->standby_for_id ? $allSocialsByIdMs->get($ms->standby_for_id) : null;
+                    $isActiveReplMs = $msDepth && !$ms->is_standby && !$ms->is_blocked;
+                @endphp
+                <div class="dt-item {{ $msDepth ? 'dt-item--child' : 'dt-item--root' }}"
+                     data-id="{{ $ms->id }}"
+                     data-is-standby="{{ $ms->is_standby ? 1 : 0 }}"
+                     data-parent-id="{{ $ms->standby_for_id ?? '' }}"
+                     data-has-standbys="{{ $msbCount > 0 ? '1' : '0' }}"
+                     data-sb-count="{{ $msbCount }}"
+                     data-type="social">
+                    <div class="dt-item-row {{ !$msDepth ? 'dt-nav-primary' : '' }}" onclick="dtExpandItem('social-{{ $ms->id }}')">
+                        <span class="dt-nav-grip" title="{{ (!$msDepth && $msbCount > 0) ? 'Має резервних — не можна зробити резервним' : 'Потягни вправо = резерв, вліво = основний' }}"><svg viewBox="0 0 8 14" width="8" height="14" fill="currentColor" style="opacity:.4;"><circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/><circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/><circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/></svg></span>
+                        <span class="dt-item-icon" style="color:{{ $msic['c'] }}">{!! $msic['svg'] !!}</span>
+                        <div class="dt-item-main">
+                            <div class="dt-item-name">{{ $ms->handle ?: ucfirst($ms->platform) }}</div>
+                            @if(!$msDepth)
+                                <div class="dt-item-sub">{{ ucfirst($ms->platform) }}
+                                    @if($ms->phone_id && ($linkedPh=$site->phones->find($ms->phone_id)))<span class="dt-link-badge"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 10a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.59a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.72 16z"/></svg>{{ $linkedPh->number }}</span>@endif
+                                    @if($ms->is_blocked)
+                                        <span class="dt-badge dt-badge--blocked">✕ заблок.</span>
+                                    @endif
+                                </div>
+                            @else
+                                <div class="dt-item-sub">
+                                    {{ ucfirst($ms->platform) }}&thinsp;·&thinsp;
+                                    @if($isActiveReplMs)
+                                        <span class="dt-badge dt-badge--replacing">⟳ активний</span>
+                                        @if($parentMsItem)<span class="dt-replacing-label">замість {{ $parentMsItem->handle ?: ucfirst($parentMsItem->platform) }}</span>@endif
+                                    @elseif($ms->is_blocked)
+                                        <span class="dt-badge dt-badge--blocked">✕ заблок.</span>
+                                    @else
+                                        <span class="dt-badge dt-badge--standby">⟳ резерв</span>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                        @if(!$msDepth && $msbCount > 0)<span class="dt-nav-sb-badge">{{ $msbCount }}&thinsp;⟳</span>@endif
+                        <div class="dt-vis">
+                            @if(count($usedIso)===0||($ms->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
+                            @elseif(($ms->geo_mode??'all')==='include')@forelse((array)($ms->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
+                            @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($ms->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse @endif
+                        </div>
+                        <div class="dt-item-actions" onclick="event.stopPropagation()">
+                            <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'socials',$ms->id]) }}" style="margin:0;">@csrf
+                                <button type="submit" class="icon-btn" title="{{ ($ms->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($ms->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
+                                    @if($ms->is_visible??true)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ route('socials.destroy',[$site,$ms]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
+                                <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
+                            </form>
+                            <button class="icon-btn" id="dt-expand-social-{{ $ms->id }}" title="Редагувати" onclick="dtExpandItem('social-{{ $ms->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
+                        </div>
+                    </div>
+                    <div class="dt-panel" id="dt-edit-social-{{ $ms->id }}" style="display:none;">
+                        <form method="POST" action="{{ route('socials.update',[$site,$ms]) }}" data-ms-form>@csrf @method('PUT')
+                            <input type="hidden" name="sort_order" value="{{ $ms->sort_order }}">
+                            <div class="dt-row dt-row--2">
+                                <div><label class="dt-label">Платформа *</label>
+                                    <select name="platform" class="dt-input show-ms-platform-sel" required onchange="onShowMsPlatformChange(this)">
+                                        @foreach($messengerPlatforms as $val=>$lbl)<option value="{{ $val }}" {{ $ms->platform===$val?'selected':'' }}>{{ $lbl }}</option>@endforeach
+                                        @if(!array_key_exists($ms->platform, $messengerPlatforms))<option value="{{ $ms->platform }}" selected>{{ $ms->platform }}</option>@endif
+                                        <option value="__new__">➕ Інший месенджер...</option>
+                                    </select>
+                                    <input type="text" name="platform_custom" class="dt-input show-ms-custom-inp" placeholder="Назва месенджера" maxlength="50" style="display:none;margin-top:6px;">
+                                </div>
+                                <div><label class="dt-label">Нікнейм / номер</label><input type="text" name="handle" class="dt-input" value="{{ $ms->handle }}"></div>
+                            </div>
+                            <div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">Посилання</label><input type="url" name="url" class="dt-input" value="{{ $ms->url }}"></div>
+                            @if($site->phones->count())<div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">Прив'язати до номеру</label><select name="phone_id" class="dt-input"><option value="">— без прив'язки —</option>@foreach($site->phones as $ph)<option value="{{ $ph->id }}" {{ $ms->phone_id==$ph->id?'selected':'' }}>{{ $ph->number }}{{ $ph->label?' · '.$ph->label:'' }}</option>@endforeach</select></div>@endif
+                            <div class="dt-geo-row"><span class="dt-geo-label">Видно:</span>
+                                @php $em=$ms->geo_mode??'all'; @endphp
+                                @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv=>$ml)<label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-so{{ $ms->id }}-{{ $mv }}"><input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;" onchange="dtGeoMode('so{{ $ms->id }}','{{ $mv }}')">{{ $ml }}</label>@endforeach
+                                @if(count($usedIso))<span id="dtchips-so{{ $ms->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">@foreach($usedIso as $iso)<label class="dt-geo-chip {{ in_array($iso,(array)($ms->geo_countries??[]))?'is-on':'' }}" id="dtchip-so{{ $ms->id }}-{{ $iso }}"><input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($ms->geo_countries??[]))?'checked':'' }} style="display:none;" onchange="dtGeoChip('so{{ $ms->id }}','{{ $iso }}',this)">{{ $iso }}</label>@endforeach</span>@endif
+                            </div>
+                            <div class="dt-panel__actions">
+                                <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('social-{{ $ms->id }}')">Скасувати</button>
+                                <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                @endforeach
+                @endif
+                </div>
+            </div>
+
+            </div>{{-- /dt-group-contacts --}}
+
+            <div id="dt-group-details" class="dt-group" style="display:none;">
             {{-- ═══ PRICES ═══════════════════════════════════════════ --}}
             <div class="dt-card" id="data-prices">
                 <div class="dt-card-head">
@@ -967,11 +1525,6 @@
                 </div>
             </div>
 
-            @php
-                // Macro for a social item row — used in both Socials and Messengers blocks
-                // (inline for Blade, no separate component needed)
-            @endphp
-
             {{-- ═══ SOCIAL NETWORKS ══════════════════════════════════ --}}
             <div class="dt-card" id="data-socials">
                 <div class="dt-card-head">
@@ -1089,155 +1642,6 @@
                     </div>
                     @empty
                         <div class="dt-empty">Соціальних мереж немає</div>
-                    @endforelse
-                </div>
-            </div>
-
-            {{-- ═══ MESSENGERS ════════════════════════════════════════ --}}
-            <div class="dt-card" id="data-messengers">
-                <div class="dt-card-head">
-                    <span class="dt-card-head__icon">{!! $dtIcons['messengers'] !!}</span>
-                    <span class="dt-card-head__title">Месенджери</span>
-                    <span class="dt-card-head__count">{{ $site->socials->filter(fn($s)=>in_array(strtolower($s->platform??''),$messengerKeys))->count() }}</span>
-                    <button class="dt-add-btn" id="dt-add-btn-messengers" onclick="dtToggleAdd('messengers')">
-                        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                        Додати
-                    </button>
-                </div>
-
-                <div class="dt-panel" id="dt-add-messengers" style="display:none;">
-                    <div class="dt-panel__title">Новий месенджер</div>
-                    <form method="POST" action="{{ route('socials.store', $site) }}">
-                        @csrf
-                        <input type="hidden" name="sort_order" value="{{ $site->socials->count() }}">
-                        <div class="dt-row dt-row--2">
-                            <div>
-                                <label class="dt-label">Платформа *</label>
-                                <select name="platform" class="dt-input" required>
-                                    @foreach($messengerPlatforms as $val => $lbl)
-                                        <option value="{{ $val }}">{{ $lbl }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="dt-label">Нікнейм / номер</label>
-                                <input type="text" name="handle" class="dt-input" placeholder="@username або номер">
-                            </div>
-                        </div>
-                        <div class="dt-row" style="margin-bottom:8px;">
-                            <label class="dt-label">Посилання</label>
-                            <input type="url" name="url" class="dt-input" placeholder="https://t.me/…">
-                        </div>
-                        @if($site->phones->count())
-                        <div class="dt-row" style="margin-bottom:8px;">
-                            <label class="dt-label">Прив'язати до номеру</label>
-                            <select name="phone_id" class="dt-input">
-                                <option value="">— без прив'язки —</option>
-                                @foreach($site->phones as $ph)
-                                    <option value="{{ $ph->id }}">{{ ($ph->dial_code ? '+'.$ph->dial_code.' ' : '').$ph->number }}{{ $ph->label ? ' · '.$ph->label : '' }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        @endif
-                        <div class="dt-geo-row">
-                            <span class="dt-geo-label">Видно:</span>
-                            @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
-                                <label class="dt-geo-pill {{ $mv==='all'?'is-on':'' }}" id="dtpill-add-ms-{{ $mv }}">
-                                    <input type="radio" name="geo_mode" value="{{ $mv }}" {{ $mv==='all'?'checked':'' }} style="display:none;"
-                                           onchange="dtGeoMode('add-ms','{{ $mv }}')">{{ $ml }}
-                                </label>
-                            @endforeach
-                            <span id="dtchips-add-ms" class="dt-geo-chips" style="display:none;">
-                                @foreach($usedIso as $iso)
-                                    <label class="dt-geo-chip" id="dtchip-add-ms-{{ $iso }}">
-                                        <input type="checkbox" name="geo_countries[]" value="{{ $iso }}" style="display:none;"
-                                               onchange="dtGeoChip('add-ms','{{ $iso }}',this)">{{ $iso }}
-                                    </label>
-                                @endforeach
-                            </span>
-                        </div>
-                        <div class="dt-panel__actions">
-                            <button type="button" class="btn btn--ghost btn--sm" onclick="dtToggleAdd('messengers')">Скасувати</button>
-                            <button type="submit" class="btn btn--primary btn--sm">Додати</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="dt-items">
-                    @forelse($shownMessengers as $s)
-                    @php $sk = strtolower($s->platform ?? ''); $sic = $socialIcon[$sk] ?? ['c'=>'var(--text-3)','svg'=>'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>']; @endphp
-                    <div class="dt-item">
-                        <div class="dt-item-row" onclick="dtExpandItem('social-{{ $s->id }}')">
-                            <span class="dt-item-icon" style="color:{{ $sic['c'] }}">{!! $sic['svg'] !!}</span>
-                            <div class="dt-item-main">
-                                <div class="dt-item-name">{{ $s->handle ?: ucfirst($s->platform) }}</div>
-                                <div class="dt-item-sub">
-                                    {{ ucfirst($s->platform) }}
-                                    @if($s->phone_id && ($linkedPh = $site->phones->find($s->phone_id)))
-                                        <span class="dt-link-badge">
-                                            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 10a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.59a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.72 16z"/></svg>
-                                            {{ $linkedPh->number }}
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="dt-vis">
-                                @if(count($usedIso)===0||($s->geo_mode??'all')==='all')<span class="dt-vis-badge dt-vis-badge--all">Всі</span>
-                                @elseif(($s->geo_mode??'all')==='include')@forelse((array)($s->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--ok">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--no">—</span>@endforelse
-                                @else<span class="dt-vis-badge" style="font-size:9px;opacity:.6;">Крім</span>@forelse((array)($s->geo_countries??[]) as $iso)<span class="dt-vis-badge dt-vis-badge--no">{{ $iso }}</span>@empty<span class="dt-vis-badge dt-vis-badge--all">Всі</span>@endforelse
-                                @endif
-                            </div>
-                            <div class="dt-item-actions" onclick="event.stopPropagation()">
-                                <form method="POST" action="{{ route('sites.visibility.toggle',[$site,'socials',$s->id]) }}" style="margin:0;">@csrf
-                                    <button type="submit" class="icon-btn" title="{{ ($s->is_visible??true)?'Приховати':'Показати' }}" style="color:{{ ($s->is_visible??true)?'var(--text-3)':'var(--warning)' }};">
-                                        @if($s->is_visible??true)<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>@else<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>@endif
-                                    </button>
-                                </form>
-                                <form method="POST" action="{{ route('socials.destroy',[$site,$s]) }}" style="margin:0;" onsubmit="return confirm('Видалити?')">@csrf @method('DELETE')
-                                    <button type="submit" class="icon-btn" style="color:var(--danger);" title="Видалити"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg></button>
-                                </form>
-                                <button class="icon-btn" id="dt-expand-social-{{ $s->id }}" title="Редагувати" onclick="dtExpandItem('social-{{ $s->id }}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;"><path d="M9 18l6-6-6-6"/></svg></button>
-                            </div>
-                        </div>
-                        <div class="dt-panel" id="dt-edit-social-{{ $s->id }}" style="display:none;">
-                            <form method="POST" action="{{ route('socials.update',[$site,$s]) }}">
-                                @csrf @method('PUT')
-                                <input type="hidden" name="sort_order" value="{{ $s->sort_order }}">
-                                <div class="dt-row dt-row--2">
-                                    <div><label class="dt-label">Платформа *</label>
-                                        <select name="platform" class="dt-input" required>
-                                            @foreach($messengerPlatforms as $val => $lbl)<option value="{{ $val }}" {{ $s->platform===$val?'selected':'' }}>{{ $lbl }}</option>@endforeach
-                                        </select>
-                                    </div>
-                                    <div><label class="dt-label">Нікнейм / номер</label><input type="text" name="handle" class="dt-input" value="{{ $s->handle }}"></div>
-                                </div>
-                                <div class="dt-row" style="margin-bottom:8px;"><label class="dt-label">Посилання</label><input type="url" name="url" class="dt-input" value="{{ $s->url }}"></div>
-                                @if($site->phones->count())
-                                <div class="dt-row" style="margin-bottom:8px;">
-                                    <label class="dt-label">Прив'язати до номеру</label>
-                                    <select name="phone_id" class="dt-input">
-                                        <option value="">— без прив'язки —</option>
-                                        @foreach($site->phones as $ph)<option value="{{ $ph->id }}" {{ $s->phone_id==$ph->id?'selected':'' }}>{{ ($ph->dial_code?'+'.$ph->dial_code.' ':'').$ph->number }}{{ $ph->label?' · '.$ph->label:'' }}</option>@endforeach
-                                    </select>
-                                </div>
-                                @endif
-                                <div class="dt-geo-row">
-                                    <span class="dt-geo-label">Видно:</span>
-                                    @php $em = $s->geo_mode ?? 'all'; @endphp
-                                    @foreach(['all'=>'Всім','include'=>'Тільки','exclude'=>'Крім'] as $mv => $ml)
-                                        <label class="dt-geo-pill {{ $em===$mv?'is-on':'' }}" id="dtpill-so{{ $s->id }}-{{ $mv }}"><input type="radio" name="geo_mode" value="{{ $mv }}" {{ $em===$mv?'checked':'' }} style="display:none;" onchange="dtGeoMode('so{{ $s->id }}','{{ $mv }}')">{{ $ml }}</label>
-                                    @endforeach
-                                    @if(count($usedIso))<span id="dtchips-so{{ $s->id }}" class="dt-geo-chips" style="display:{{ in_array($em,['include','exclude'])?'flex':'none' }};">@foreach($usedIso as $iso)<label class="dt-geo-chip {{ in_array($iso,(array)($s->geo_countries??[]))?'is-on':'' }}" id="dtchip-so{{ $s->id }}-{{ $iso }}"><input type="checkbox" name="geo_countries[]" value="{{ $iso }}" {{ in_array($iso,(array)($s->geo_countries??[]))?'checked':'' }} style="display:none;" onchange="dtGeoChip('so{{ $s->id }}','{{ $iso }}',this)">{{ $iso }}</label>@endforeach</span>@endif
-                                </div>
-                                <div class="dt-panel__actions">
-                                    <button type="button" class="btn btn--ghost btn--sm" onclick="dtExpandItem('social-{{ $s->id }}')">Скасувати</button>
-                                    <button type="submit" class="btn btn--primary btn--sm">Зберегти</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    @empty
-                        <div class="dt-empty">Месенджерів немає</div>
                     @endforelse
                 </div>
             </div>
@@ -1626,7 +2030,108 @@
                 </div>
             </div>
 
+            </div>{{-- /dt-group-details --}}
+            <script>
+            (function(){
+                var stored = '';
+                try { stored = sessionStorage.getItem('dtSubTab') || ''; } catch(e){}
+                var show = (stored === 'details') ? 'details' : 'contacts';
+                var showEl = document.getElementById('dt-group-' + show);
+                var hideEl = document.getElementById('dt-group-' + (show === 'details' ? 'contacts' : 'details'));
+                if (showEl) showEl.style.display = '';
+                if (hideEl) hideEl.style.display = 'none';
+                var showBtn = document.getElementById('dst-' + show);
+                var hideBtn = document.getElementById('dst-' + (show === 'details' ? 'contacts' : 'details'));
+                if (showBtn) showBtn.classList.add('is-active');
+                if (hideBtn) hideBtn.classList.remove('is-active');
+            })();
+            </script>
             </div>{{-- /dt-grid --}}
+
+            {{-- ═══ FAILOVER LOG ════════════════════════════════════ --}}
+            @if($failoverLogs->isNotEmpty())
+            <div class="dt-card" id="data-failover" style="margin-top:12px;">
+                <div class="dt-card-head">
+                    <span class="dt-card-head__icon">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    </span>
+                    <span class="dt-card-head__title">Failover журнал</span>
+                    <span class="dt-card-head__count">{{ $failoverLogs->total() }} записів</span>
+                </div>
+                <div class="dt-items">
+                    @foreach($failoverLogs as $fl)
+                    @php
+                        $flPrimary = $fl->type === 'phone'
+                            ? $site->phones->find($fl->primary_id)
+                            : $site->socials->find($fl->primary_id);
+                        $flStandby = $fl->type === 'phone'
+                            ? $site->phones->find($fl->standby_id)
+                            : $site->socials->find($fl->standby_id);
+                        $flPrimaryLabel = $flPrimary
+                            ? (($flPrimary->number ?? null) ? $flPrimary->number : ucfirst($flPrimary->platform ?? '').' '.$flPrimary->handle)
+                            : '#'.$fl->primary_id;
+                        $flStandbyLabel = $flStandby
+                            ? (($flStandby->number ?? null) ? $flStandby->number : ucfirst($flStandby->platform ?? '').' '.$flStandby->handle)
+                            : '#'.$fl->standby_id;
+                    @endphp
+                    <div class="dt-item" style="{{ $fl->rolled_back_at ? 'opacity:.55;' : '' }}">
+                        <div class="dt-item-row" style="cursor:default;">
+                            <span class="dt-item-icon" style="color:{{ $fl->rolled_back_at ? 'var(--text-3)' : 'var(--warning)' }};">
+                                @if($fl->rolled_back_at)
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                @else
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                @endif
+                            </span>
+                            <div class="dt-item-main">
+                                <div class="dt-item-name" style="font-size:12px;font-family:var(--font-mono);">
+                                    {{ $flPrimaryLabel }} → {{ $flStandbyLabel }}
+                                </div>
+                                <div class="dt-item-sub">
+                                    {{ $fl->trigger_reason }}
+                                    &thinsp;·&thinsp;{{ $fl->triggered_by === 'api' ? 'API' : 'вручну' }}
+                                    &thinsp;·&thinsp;{{ $fl->created_at->format('d.m H:i') }}
+                                    @if($fl->rolled_back_at)&thinsp;·&thinsp;відкат {{ $fl->rolled_back_at->format('d.m H:i') }}@endif
+                                </div>
+                            </div>
+                            @if(!$fl->rolled_back_at)
+                            <div class="dt-item-actions" onclick="event.stopPropagation()">
+                                <form method="POST" action="{{ route('sites.failover.rollback',[$site,$fl]) }}" style="margin:0;"
+                                      onsubmit="return confirm('Відновити первинний запис і повернути резерв у пул?')">
+                                    @csrf
+                                    <button type="submit" class="btn btn--secondary btn--sm" style="font-size:11px;padding:3px 10px;">Відкат</button>
+                                </form>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @if($failoverLogs->hasPages())
+                <div style="padding:10px 16px;border-top:1px solid var(--border-2);display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <span style="font-size:11px;color:var(--text-3);">{{ $failoverLogs->firstItem() }}–{{ $failoverLogs->lastItem() }} з {{ $failoverLogs->total() }}</span>
+                    <div style="display:flex;gap:4px;">
+                        @if($failoverLogs->onFirstPage())
+                            <span class="btn btn--ghost btn--sm" style="opacity:.4;pointer-events:none;">←</span>
+                        @else
+                            <a href="{{ $failoverLogs->appends(request()->query())->previousPageUrl() }}" class="btn btn--ghost btn--sm">←</a>
+                        @endif
+                        @foreach($failoverLogs->getUrlRange(1, $failoverLogs->lastPage()) as $page => $pageUrl)
+                            <a href="{{ $failoverLogs->appends(request()->query())->url($page) }}"
+                               class="btn btn--sm {{ $page === $failoverLogs->currentPage() ? 'btn--primary' : 'btn--ghost' }}"
+                               style="min-width:28px;justify-content:center;">{{ $page }}</a>
+                        @endforeach
+                        @if($failoverLogs->hasMorePages())
+                            <a href="{{ $failoverLogs->appends(request()->query())->nextPageUrl() }}" class="btn btn--ghost btn--sm">→</a>
+                        @else
+                            <span class="btn btn--ghost btn--sm" style="opacity:.4;pointer-events:none;">→</span>
+                        @endif
+                    </div>
+                </div>
+                @endif
+            </div>
+            @endif
+
         @endif
 
         {{-- ========= ACTIVITY ========= --}}
@@ -1729,7 +2234,7 @@
         @if($tab === 'settings')
 
             {{-- ===== Plugin Push Settings ===== --}}
-            {{-- Hidden forms (no inputs) placed outside main form to avoid nesting --}}
+            {{-- Hidden forms — siblings, not nested, to prevent _method bleed --}}
             <form id="form-push-settings" method="POST" action="{{ route('sites.push-settings.update', $site) }}" style="display:none;">
                 @csrf @method('PUT')
             </form>
@@ -1737,7 +2242,7 @@
                 @csrf @method('DELETE')
             </form>
             @if($site->push_url && $site->push_key)
-            <form id="form-push-test" method="POST" action="{{ route('sites.push-settings.test', $site) }}" style="display:none;">
+            <form id="form-site-sync" method="POST" action="{{ route('sites.sync', $site) }}" style="display:none;">
                 @csrf
             </form>
             @endif
@@ -1775,11 +2280,44 @@
                     </div>
                 </div>
 
+                {{-- Allow plugin edit toggle --}}
+                <div style="padding:14px 0;border-bottom:1px solid var(--border-2);display:flex;align-items:center;justify-content:space-between;gap:16px;">
+                    <div>
+                        <div style="font-size:13px;font-weight:600;color:var(--text);">Редагування з плагіна</div>
+                        <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Дозволити адміну WP редагувати дані локально або надсилати зміни назад</div>
+                    </div>
+                    <label style="position:relative;display:inline-flex;align-items:center;cursor:pointer;flex-shrink:0;">
+                        <input type="checkbox" name="allow_plugin_edit" value="1" form="form-push-settings"
+                               {{ $site->allow_plugin_edit ? 'checked' : '' }}
+                               style="position:absolute;opacity:0;width:0;height:0;"
+                               onchange="var tk=this.nextElementSibling;var th=tk.querySelector('span');if(this.checked){tk.style.background='var(--accent)';th.style.left='19px';}else{tk.style.background='var(--border)';th.style.left='3px';}">
+                        <span class="toggle-track" style="width:38px;height:22px;background:{{ $site->allow_plugin_edit ? 'var(--accent)' : 'var(--border)' }};border-radius:11px;transition:.2s;display:block;position:relative;">
+                            <span style="position:absolute;top:3px;left:{{ $site->allow_plugin_edit ? '19px' : '3px' }};width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s;"></span>
+                        </span>
+                    </label>
+                </div>
+
+                @if($site->allow_plugin_edit && $site->plugin_edit_token)
+                {{-- Callback URL info --}}
+                <div style="padding:14px 0;border-bottom:1px solid var(--border-2);">
+                    <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:6px;">Callback URL <span style="font-weight:400;color:var(--text-3);">— надсилається до плагіна автоматично</span></label>
+                    <div style="display:flex;align-items:center;gap:8px;max-width:580px;">
+                        <div class="input input--mono" style="flex:1;">
+                            <input type="text" readonly value="{{ config('app.url') }}/api/plugin-callback/{{ $site->plugin_edit_token }}" style="width:100%;color:var(--text-3);">
+                        </div>
+                        <button type="button" class="btn btn--secondary btn--sm"
+                                onclick="navigator.clipboard.writeText('{{ config('app.url') }}/api/plugin-callback/{{ $site->plugin_edit_token }}')">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                    </div>
+                </div>
+                @endif
+
                 {{-- Status --}}
                 <div style="padding:14px 0;border-bottom:1px solid var(--border-2);display:flex;align-items:center;gap:12px;">
                     @if($site->push_url && $site->push_key)
                         <span class="pill pill--success"><span class="dot dot--success"></span>Налаштовано</span>
-                        <span style="font-size:12px;color:var(--text-3);">Push активний — CRM надсилатиме дані автоматично при кожній зміні</span>
+                        <span style="font-size:12px;color:var(--text-3);">Push активний — дані оновлюються автоматично при кожній зміні</span>
                     @else
                         <span class="pill pill--neutral">Не налаштовано</span>
                         <span style="font-size:12px;color:var(--text-3);">Вставте Webhook URL і Sync Key з WP плагіна</span>
@@ -1788,20 +2326,149 @@
 
                 {{-- Footer --}}
                 <div style="padding-top:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-                    <button type="submit" form="form-site-delete" class="btn btn--danger btn--md">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
-                        Видалити сайт
-                    </button>
+                    <div style="display:flex;gap:8px;">
+                        <button type="submit" form="form-site-delete" class="btn btn--danger btn--md">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/></svg>
+                            Видалити сайт
+                        </button>
+                        @if($failoverLogs->total() > 0)
+                        <form method="POST" action="{{ route('sites.failover.history.clear', $site) }}"
+                              onsubmit="return confirm('Видалити весь журнал failover ({{ $failoverLogs->total() }} записів)?')" style="margin:0;">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn--md" style="background:rgba(245,101,101,.08);color:var(--danger);border:1px solid rgba(245,101,101,.25);">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/><line x1="18" y1="6" x2="23" y2="11"/><line x1="23" y1="6" x2="18" y2="11"/></svg>
+                                Очистити журнал
+                            </button>
+                        </form>
+                        @endif
+                    </div>
                     <div style="display:flex;gap:8px;">
                         @if($site->push_url && $site->push_key)
-                        <button type="submit" form="form-push-test" class="btn btn--secondary btn--md">
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9l20-7z"/></svg>
-                            Надіслати тест
+                        <button type="submit" form="form-site-sync" class="btn btn--secondary btn--md">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                            Синхронізувати
                         </button>
                         @endif
                         <button type="submit" form="form-push-settings" class="btn btn--primary btn--md">Зберегти</button>
                     </div>
                 </div>
+
+                {{-- [TEST] Failover signal simulator — видалити після інтеграції зовнішнього сервісу --}}
+                <div class="dt-card" style="margin-top:24px;border:1px dashed var(--warning);">
+                    <div class="dt-card-head" style="background:rgba(237,137,54,.06);">
+                        <span class="dt-card-head__icon" style="color:var(--warning);">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        </span>
+                        <span class="dt-card-head__title">Симуляція сигналів failover</span>
+                        <span style="font-size:10px;font-weight:600;color:var(--warning);background:rgba(237,137,54,.15);padding:2px 8px;border-radius:99px;letter-spacing:.04em;">TEMP · видалити після інтеграції</span>
+                    </div>
+                    <div style="padding:14px 16px;">
+                        <p style="font-size:12px;color:var(--text-3);margin:0 0 12px;">
+                            Імітуй сигнали що надходитимуть від зовнішнього сервісу моніторингу.<br>
+                            <strong>BLOCK</strong> → активує наступний резерв у черзі (за sort_order).<br>
+                            <strong>RESTORE</strong> → повертає оригінальний номер у пріоритет.
+                        </p>
+                        @php
+                            $simAll      = $site->phones->keyBy('id');
+                            $simFmt      = fn($p) => $p->number.($p->label ? ' · '.$p->label : '');
+                            // True primaries: is_standby=false AND no standby_for_id (original primaries only)
+                            $truePrimaries = $site->phones->filter(fn($p) => !$p->is_standby && !$p->standby_for_id)->sortBy('sort_order');
+                            // All chain members (standbys + promoted) grouped by original primary id
+                            $chainByPrimary = $site->phones->filter(fn($p) => $p->standby_for_id)->groupBy('standby_for_id');
+                            // General pool: is_standby=true with no standby_for_id
+                            $simPool = $site->phones->filter(fn($p) => $p->is_standby && !$p->standby_for_id)->sortBy('sort_order');
+                        @endphp
+                        @if($truePrimaries->isEmpty() && $simPool->isEmpty())
+                        <p style="font-size:12px;color:var(--text-3);margin:0;">Немає телефонів для симуляції.</p>
+                        @else
+                        @foreach($truePrimaries as $sp)
+                        @php
+                            // Full chain: all records with standby_for_id=this primary, sorted by sort_order
+                            $chain = $chainByPrimary->get($sp->id, collect())->sortBy('sort_order');
+                            // Currently active replacement: promoted (is_standby=false), not blocked
+                            $activeRepl = $chain->first(fn($r) => !$r->is_standby && !$r->is_blocked);
+                            // Next standby in queue: still is_standby=true, not blocked
+                            $nextWaiting = $chain->first(fn($r) => $r->is_standby && !$r->is_blocked);
+                        @endphp
+                        {{-- Primary row --}}
+                        <div style="display:flex;align-items:center;gap:8px;padding:9px 0 7px;border-bottom:1px solid var(--border-2);">
+                            <div style="flex:1;min-width:0;">
+                                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                    <span style="font-family:var(--font-mono);font-size:12.5px;font-weight:{{ $sp->is_blocked ? '400' : '600' }};">{{ $simFmt($sp) }}</span>
+                                    @if($chain->count() > 0)
+                                        <span style="font-size:10px;background:rgba(102,119,255,.12);color:var(--accent);padding:1px 6px;border-radius:99px;white-space:nowrap;">{{ $chain->count() }} резерв{{ $chain->count() > 1 ? 'и' : '' }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <span style="font-size:11px;white-space:nowrap;flex-shrink:0;{{ $sp->is_blocked ? 'color:var(--danger)' : 'color:var(--dot-ok)' }}">
+                                {{ $sp->is_blocked ? '✕ заблок.' : '✓ активний' }}
+                            </span>
+                            @if(!$sp->is_blocked)
+                            <form method="POST" action="{{ route('sites.failover.trigger',$site) }}" style="margin:0;flex-shrink:0;"
+                                  onsubmit="return confirm('BLOCK: {{ addslashes($sp->number) }}')">
+                                @csrf
+                                <input type="hidden" name="type" value="phone">
+                                <input type="hidden" name="primary_id" value="{{ $sp->id }}">
+                                @if($nextWaiting)<input type="hidden" name="standby_id" value="{{ $nextWaiting->id }}">@endif
+                                <input type="hidden" name="reason" value="[SIM] Block">
+                                <button type="submit" class="btn btn--sm" style="background:rgba(245,101,101,.1);color:var(--danger);border:1px solid rgba(245,101,101,.25);">BLOCK</button>
+                            </form>
+                            @else
+                            <form method="POST" action="{{ route('sites.failover.restore',$site) }}" style="margin:0;flex-shrink:0;">
+                                @csrf
+                                <input type="hidden" name="type" value="phone">
+                                <input type="hidden" name="primary_id" value="{{ $sp->id }}">
+                                <button type="submit" class="btn btn--sm" style="background:rgba(72,187,120,.1);color:var(--dot-ok);border:1px solid rgba(72,187,120,.25);">RESTORE ALL</button>
+                            </form>
+                            @endif
+                        </div>
+                        {{-- Chain rows (all standbys + promoted, ordered by sort_order) --}}
+                        @foreach($chain as $ssb)
+                        @php
+                            $isActive    = !$ssb->is_standby && !$ssb->is_blocked;   // currently replacing
+                            $isBlocked   = $ssb->is_blocked;                           // was active, now blocked
+                            $isWaiting   = $ssb->is_standby && !$ssb->is_blocked;     // still in queue
+                        @endphp
+                        <div style="display:flex;align-items:center;gap:8px;padding:5px 0 5px 18px;border-bottom:1px solid var(--border-2);{{ $isBlocked ? 'opacity:.55' : '' }}">
+                            <span style="color:var(--border);font-size:13px;line-height:1;flex-shrink:0;">{{ $loop->last ? '└' : '├' }}</span>
+                            <div style="flex:1;min-width:0;">
+                                <span style="font-family:var(--font-mono);font-size:12px;">{{ $simFmt($ssb) }}</span>
+                            </div>
+                            <span style="font-size:10.5px;white-space:nowrap;flex-shrink:0;
+                                @if($isBlocked) color:var(--danger);
+                                @elseif($isActive) color:var(--dot-ok);font-weight:600;
+                                @else color:var(--accent); @endif">
+                                @if($isBlocked)✕ заблок.
+                                @elseif($isActive)⟳ активний
+                                @else⟳ #{{ $loop->iteration }}@endif
+                            </span>
+                            {{-- BLOCK on currently active replacement triggers cascade --}}
+                            @if($isActive && $sp->is_blocked)
+                            <form method="POST" action="{{ route('sites.failover.cascade',$site) }}" style="margin:0;flex-shrink:0;"
+                                  onsubmit="return confirm('BLOCK активний резерв: {{ addslashes($ssb->number) }}?')">
+                                @csrf
+                                <input type="hidden" name="type" value="phone">
+                                <input type="hidden" name="active_id" value="{{ $ssb->id }}">
+                                <button type="submit" class="btn btn--sm" style="background:rgba(245,101,101,.1);color:var(--danger);border:1px solid rgba(245,101,101,.25);">BLOCK</button>
+                            </form>
+                            @endif
+                        </div>
+                        @endforeach
+                        @endforeach
+                        {{-- General pool --}}
+                        @if($simPool->isNotEmpty())
+                        <div style="padding:8px 0 3px;font-size:10px;color:var(--text-3);font-weight:600;letter-spacing:.05em;text-transform:uppercase;">Загальний пул</div>
+                        @foreach($simPool as $sp)
+                        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border-2);opacity:.65;">
+                            <div style="flex:1;font-family:var(--font-mono);font-size:12px;">{{ $simFmt($sp) }}</div>
+                            <span style="font-size:10.5px;color:var(--text-3);">не закріплений</span>
+                        </div>
+                        @endforeach
+                        @endif
+                        @endif
+                    </div>
+                </div>
+                {{-- [/TEST] --}}
 
             </div>
         @endif
@@ -2123,6 +2790,7 @@
 
 @endif
 
+
 @endsection
 
 @push('scripts')
@@ -2200,6 +2868,29 @@ function ruleChipToggle(prefix, iso, checkbox) {
     lbl.style.borderColor = checkbox.checked ? 'var(--accent-2)'   : 'var(--border)';
 }
 
+// ── Data sub-tabs (Contacts / Details) ────────────────────────
+function dtSubTab(group) {
+    ['contacts','details'].forEach(function(g) {
+        var el  = document.getElementById('dt-group-' + g);
+        var btn = document.getElementById('dst-' + g);
+        if (!el || !btn) return;
+        var active = g === group;
+        el.style.display  = active ? '' : 'none';
+        btn.classList.toggle('is-active', active);
+    });
+    try { sessionStorage.setItem('dtSubTab', group); } catch(e){}
+}
+
+(function() {
+    // Update badge counts
+    var c = (document.getElementById('dt-group-contacts')?.querySelectorAll('.dt-item').length || 0);
+    var d = (document.getElementById('dt-group-details')?.querySelectorAll('.dt-item').length || 0);
+    var cc = document.getElementById('dst-contacts-count');
+    var dc = document.getElementById('dst-details-count');
+    if (cc && c > 0) cc.textContent = c;
+    if (dc && d > 0) dc.textContent = d;
+})();
+
 // ── Data tab inline CRM controls ──────────────────────────────
 function dtToggleAdd(type) {
     var panel = document.getElementById('dt-add-' + type);
@@ -2218,15 +2909,15 @@ function dtExpandItem(id) {
     panel.style.display = open ? 'none' : '';
     if (chevron) chevron.style.transform = open ? '' : 'rotate(90deg)';
 
-    var item  = panel.closest ? panel.closest('.dt-item') : null;
-    var items = panel.closest ? panel.closest('.dt-items') : null;
+    var item  = panel.closest ? (panel.closest('.dt-nav-child') || panel.closest('.dt-nav-group') || panel.closest('.dt-item')) : null;
+    var items = panel.closest ? (panel.closest('.dt-nav-list') || panel.closest('.dt-items')) : null;
     if (item && items) {
         if (!open) {
             item.classList.add('is-editing');
             items.classList.add('has-edit');
         } else {
             item.classList.remove('is-editing');
-            if (!items.querySelector('.dt-item.is-editing')) {
+            if (!items.querySelector('.is-editing')) {
                 items.classList.remove('has-edit');
             }
         }
@@ -2261,7 +2952,7 @@ window.addEventListener('DOMContentLoaded', function() {
     // Open via dtExpandItem so dimming + chevron are handled correctly
     dtExpandItem(id);
     // Flash highlight so user sees where they landed
-    var item = panel.closest ? panel.closest('.dt-item') : null;
+    var item = panel.closest ? (panel.closest('.dt-nav-child') || panel.closest('.dt-nav-group') || panel.closest('.dt-item')) : null;
     if (item) {
         item.classList.add('hash-opened');
         setTimeout(function() { item.classList.remove('hash-opened'); }, 2000);
@@ -2283,6 +2974,7 @@ function showVisitorPanel(iso) {
     if (panel) panel.style.display = '';
     var tab = document.getElementById('vis-tab-' + iso);
     if (tab) tab.className = tab.className.replace('btn--ghost', 'btn--primary');
+    try { sessionStorage.setItem('visPanel_{{ $site->id }}', iso); } catch(e){}
 }
 
 // ── Activity diff toggle ───────────────────────────────────────────────────
@@ -2292,6 +2984,23 @@ function actToggle(row) {
     if (!diff) return;
     var open = row.classList.toggle('is-open');
     if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+// ── Favorite toggle ──────────────────────────────────────────────────────
+var _isFav = {{ $isFavorite ? 'true' : 'false' }};
+function toggleFavorite() {
+    var btn  = document.getElementById('fav-btn');
+    var icon = document.getElementById('fav-icon');
+    fetch('{{ route('sites.favorite', $site) }}', {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' }
+    }).then(function(r){ return r.json(); }).then(function(data){
+        _isFav = data.favorite;
+        icon.setAttribute('fill', _isFav ? '#f6ad55' : 'none');
+        icon.setAttribute('stroke', _isFav ? '#f6ad55' : 'currentColor');
+        btn.style.color = _isFav ? '#f6ad55' : 'var(--text-3)';
+        btn.title = _isFav ? 'Прибрати з улюблених' : 'Додати до улюблених';
+    });
 }
 
 // ── Site presence heartbeat ───────────────────────────────────────────────
@@ -2324,5 +3033,325 @@ function actToggle(row) {
     ping();
     setInterval(ping, 60000);
 })();
+
+
+// ── Pointer-based gesture: swipe ←→ = standby toggle, drag ↕ = reorder ──
+(function () {
+    var CSRF        = '{{ csrf_token() }}';
+    var URL_REORDER = {
+        phone:  '{{ route('phones.reorder', $site) }}',
+        social: '{{ route('socials.reorder', $site) }}',
+    };
+    var URL_STANDBY = '{{ route('sites.failover.standby', $site) }}';
+    var URL_LINK    = '{{ route('sites.failover.link', $site) }}';
+    var SWIPE_THRESHOLD = 60;
+
+    function postJSON(url, data) {
+        return fetch(url, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+            body: JSON.stringify(data),
+        });
+    }
+
+    function refreshPrimaryBadge(list, primaryId, delta) {
+        if (!primaryId) return;
+        var primaryEl = list.querySelector('.dt-item[data-id="' + primaryId + '"]');
+        if (!primaryEl) return;
+        var count = Math.max(0, (parseInt(primaryEl.dataset.sbCount) || 0) + delta);
+        primaryEl.dataset.sbCount = count;
+        var badge = primaryEl.querySelector('.dt-nav-sb-badge');
+        if (count > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'dt-nav-sb-badge';
+                var vis = primaryEl.querySelector('.dt-item-row .dt-vis');
+                if (vis) vis.before(badge); else primaryEl.querySelector('.dt-item-row').appendChild(badge);
+            }
+            badge.textContent = count + ' ⟳';
+            primaryEl.dataset.hasStandbys = '1';
+            var grip = primaryEl.querySelector('.dt-nav-grip');
+            if (grip) grip.title = 'Має резервних — не можна зробити резервним';
+        } else {
+            if (badge) badge.remove();
+            primaryEl.dataset.hasStandbys = '0';
+            var grip = primaryEl.querySelector('.dt-nav-grip');
+            if (grip) grip.title = 'Потягни вправо = резерв, вліво = основний';
+        }
+    }
+
+    function applyStandbyToggle(item, isNowStandby) {
+        // Close edit panel if open
+        var panel = item.querySelector('.dt-panel');
+        if (panel) panel.style.display = 'none';
+        var chevronBtn = item.querySelector('[id^="dt-expand-"]');
+        if (chevronBtn) { var cSvg = chevronBtn.querySelector('svg'); if (cSvg) cSvg.style.transform = ''; item.classList.remove('is-editing'); }
+        var list2 = item.closest('.dt-nav-list');
+        if (list2 && !list2.querySelector('.dt-item.is-editing')) list2.classList.remove('has-edit');
+
+        // Update parent primary's badge before changing isStandby state
+        if (isNowStandby) {
+            // Becoming standby — find nearest primary above in DOM
+            var nearestPrimary = null;
+            var el2 = item.previousElementSibling;
+            while (el2) {
+                if (el2.classList.contains('dt-item') && el2.dataset.isStandby === '0') { nearestPrimary = el2; break; }
+                el2 = el2.previousElementSibling;
+            }
+            if (nearestPrimary) {
+                refreshPrimaryBadge(list2, parseInt(nearestPrimary.dataset.id), +1);
+                item.dataset.parentId = nearestPrimary.dataset.id;
+                // Persist standby_for_id immediately after swipe (drag saves it via updateStandbyParent, swipe must do it here)
+                postJSON(URL_LINK, { type: item.dataset.type, id: parseInt(item.dataset.id), standby_for_id: parseInt(nearestPrimary.dataset.id) });
+            }
+        } else {
+            // Leaving standby — toggleStandby already clears standby_for_id in DB
+            var oldParentId2 = item.dataset.parentId ? parseInt(item.dataset.parentId) : null;
+            if (oldParentId2) refreshPrimaryBadge(list2, oldParentId2, -1);
+            item.dataset.parentId = '';
+        }
+
+        item.dataset.isStandby = isNowStandby ? '1' : '0';
+        item.classList.toggle('dt-item--root', !isNowStandby);
+        item.classList.toggle('dt-item--child', isNowStandby);
+
+        var row = item.querySelector('.dt-item-row');
+        if (row) row.classList.toggle('dt-nav-primary', !isNowStandby);
+
+        // Standby badge
+        var main = item.querySelector('.dt-item-main');
+        if (main) {
+            if (isNowStandby) {
+                var sub = main.querySelector('.dt-item-sub');
+                if (!sub) { sub = document.createElement('div'); sub.className = 'dt-item-sub'; main.appendChild(sub); }
+                if (!sub.querySelector('.dt-badge--standby')) {
+                    var b = document.createElement('span');
+                    b.className = 'dt-badge dt-badge--standby'; b.textContent = '⟳ резерв';
+                    sub.insertBefore(b, sub.firstChild);
+                }
+            } else {
+                var sbadge = main.querySelector('.dt-badge--standby');
+                if (sbadge) sbadge.remove();
+            }
+        }
+
+        // Standby toggle button
+        var actions = item.querySelector('.dt-item-actions');
+        if (actions) {
+            var standbyBtn = actions.querySelector('button[title="Зробити резервним"], button[title="Зняти з резерву"]');
+            if (standbyBtn) {
+                standbyBtn.title = isNowStandby ? 'Зняти з резерву' : 'Зробити резервним';
+                standbyBtn.style.color = isNowStandby ? 'var(--accent)' : 'var(--text-3)';
+            }
+        }
+
+    }
+
+    function sendReorder(list, type) {
+        var items = Array.from(list.querySelectorAll(':scope > .dt-item'))
+            .filter(function (el) { return !el.classList.contains('dnd-placeholder'); })
+            .map(function (el, i) { return { id: parseInt(el.dataset.id), sort_order: i }; });
+        postJSON(URL_REORDER[type], { items: items });
+    }
+
+    function updateStandbyParent(item, type) {
+        var newParentId = null;
+        var el = item.previousElementSibling;
+        while (el) {
+            if (el.classList.contains('dt-item') && el.dataset.isStandby === '0') {
+                newParentId = parseInt(el.dataset.id);
+                break;
+            }
+            el = el.previousElementSibling;
+        }
+        var currentParentId = item.dataset.parentId ? parseInt(item.dataset.parentId) : null;
+        if (newParentId === currentParentId) return;
+        var list = item.closest('.dt-nav-list');
+        if (currentParentId) refreshPrimaryBadge(list, currentParentId, -1);
+        if (newParentId)     refreshPrimaryBadge(list, newParentId,     +1);
+        item.dataset.parentId = newParentId || '';
+        postJSON(URL_LINK, { type: type, id: parseInt(item.dataset.id), standby_for_id: newParentId });
+    }
+
+    document.querySelectorAll('.dt-nav-list').forEach(function (list) {
+        var type = list.dataset.type;
+        var s = { active: false, item: null, ph: null, mode: null, sx: 0, sy: 0, pid: null, fired: false };
+
+        function cleanup() {
+            if (s.item) {
+                if (!s.fired) {
+                    // Not yet triggered — reset visual state fully
+                    s.item.style.transform = '';
+                    s.item.style.transition = '';
+                    s.item.classList.remove('swipe-right', 'swipe-left');
+                    var cleanRow = s.item.querySelector('.dt-item-row');
+                    if (cleanRow) cleanRow.style.background = '';
+                }
+                s.item.classList.remove('is-dragging');
+            }
+            if (s.ph) { s.ph.remove(); s.ph = null; }
+            if (s.pid !== null) { try { list.releasePointerCapture(s.pid); } catch (e) {} }
+            s.active = false; s.item = null; s.mode = null; s.pid = null; s.fired = false;
+        }
+
+        list.addEventListener('pointerdown', function (e) {
+            if (!e.target.closest('.dt-nav-grip')) return;
+            var item = e.target.closest('.dt-item[data-id]');
+            if (!item || !list.contains(item)) return;
+            e.preventDefault();
+            list.setPointerCapture(e.pointerId);
+            s.active = true; s.item = item; s.mode = null;
+            s.sx = e.clientX; s.sy = e.clientY; s.pid = e.pointerId;
+            item.style.transition = 'none';
+        });
+
+        list.addEventListener('pointermove', function (e) {
+            if (!s.active || !s.item) return;
+            var dx = e.clientX - s.sx, dy = e.clientY - s.sy;
+            var adx = Math.abs(dx), ady = Math.abs(dy);
+
+            if (!s.mode) {
+                if (adx > 10 && adx > ady * 1.2) {
+                    s.mode = 'swipe';
+                    // Close expanded panel immediately so color feedback is visible
+                    var openPanel = s.item.querySelector('.dt-panel');
+                    if (openPanel && openPanel.style.display !== 'none') {
+                        openPanel.style.display = 'none';
+                        var chBtn = s.item.querySelector('[id^="dt-expand-"]');
+                        if (chBtn) { var chSvg = chBtn.querySelector('svg'); if (chSvg) chSvg.style.transform = ''; }
+                        s.item.classList.remove('is-editing');
+                        if (!list.querySelector('.dt-item.is-editing')) list.classList.remove('has-edit');
+                    }
+                } else if (ady > 10 && ady > adx * 1.2) {
+                    s.mode = 'reorder';
+                    s.item.classList.add('is-dragging');
+                }
+            }
+
+            if (s.mode === 'swipe' && !s.fired) {
+                var clamped = Math.max(-130, Math.min(130, dx));
+                s.item.style.transform = 'translateX(' + clamped + 'px)';
+                var isNowSb = s.item.dataset.isStandby === '1';
+                var hasSbs  = s.item.dataset.hasStandbys === '1';
+                var goRight = dx > 40 && !isNowSb && !hasSbs;
+                var goLeft  = dx < -40 && isNowSb;
+                s.item.classList.toggle('swipe-right', goRight);
+                s.item.classList.toggle('swipe-left',  goLeft);
+                var swRow = s.item.querySelector('.dt-item-row');
+                if (swRow) swRow.style.background = goRight ? 'rgba(72,187,120,.30)' : (goLeft ? 'rgba(245,101,101,.30)' : '');
+
+                if (goRight || goLeft) {
+                    // Fire immediately when color threshold is crossed — don't wait for pointerup
+                    s.fired = true;
+                    var trigItem = s.item, trigType = type;
+                    trigItem.style.transition = 'transform .25s cubic-bezier(.4,0,.2,1)';
+                    trigItem.style.transform  = '';
+                    trigItem.style.opacity    = '.45';
+                    setTimeout(function () { trigItem.style.transition = ''; }, 260);
+                    postJSON(URL_STANDBY, { type: trigType, id: parseInt(trigItem.dataset.id) })
+                        .then(function (r) { return r.ok ? r.json() : null; })
+                        .then(function (data) {
+                            trigItem.style.opacity = '';
+                            trigItem.classList.remove('swipe-right', 'swipe-left');
+                            var trigRow = trigItem.querySelector('.dt-item-row');
+                            if (trigRow) trigRow.style.background = '';
+                            if (data) applyStandbyToggle(trigItem, !!data.is_standby);
+                        })
+                        .catch(function () { location.reload(); });
+                }
+            }
+
+            if (s.mode === 'reorder') {
+                if (s.ph) s.ph.remove();
+                s.ph = document.createElement('div');
+                s.ph.className = 'dnd-placeholder' + (s.item.classList.contains('dt-item--child') ? ' dnd-placeholder--child' : '');
+                var items = Array.from(list.querySelectorAll(':scope > .dt-item')).filter(function (el) { return el !== s.item; });
+                var before = null;
+                for (var i = 0; i < items.length; i++) {
+                    var r = items[i].getBoundingClientRect();
+                    if (e.clientY < r.top + r.height / 2) { before = items[i]; break; }
+                }
+                if (before) list.insertBefore(s.ph, before); else list.appendChild(s.ph);
+            }
+        });
+
+        list.addEventListener('pointerup', function (e) {
+            if (!s.active || !s.item) return;
+            var dx = e.clientX - s.sx;
+            var item = s.item, mode = s.mode;
+            var isStandby = item.dataset.isStandby === '1';
+
+            if (mode === 'swipe' && !s.fired) {
+                // Threshold not reached on release — bounce back
+                item.style.transition = 'transform .2s cubic-bezier(.4,0,.2,1)';
+                item.style.transform  = '';
+                setTimeout(function () { item.style.transition = ''; }, 220);
+            }
+            // If s.fired: action already in flight from pointermove — cleanup handles the rest
+
+            if (mode === 'reorder' && s.ph) {
+                list.insertBefore(item, s.ph);
+                s.ph.remove(); s.ph = null;
+                sendReorder(list, type);
+                if (item.dataset.isStandby === '1') {
+                    updateStandbyParent(item, type);
+                }
+            }
+
+            cleanup();
+        });
+
+        list.addEventListener('pointercancel', cleanup);
+    });
+}());
+
+// Custom messenger platform support
+var _showMsCustomPlatforms = {!! json_encode(\App\Models\CustomPlatform::messengerOptions()) !!};
+
+function onShowMsPlatformChange(sel) {
+    var wrap = sel.parentElement;
+    var inp  = wrap.querySelector('.show-ms-custom-inp');
+    var isNew = sel.value === '__new__';
+    if (inp) { inp.style.display = isNew ? '' : 'none'; inp.required = isNew; }
+}
+
+function _showMsCreatePlatform(form, callback) {
+    var sel = form.querySelector('.show-ms-platform-sel');
+    if (!sel || sel.value !== '__new__') { callback(); return; }
+    var inp  = form.querySelector('.show-ms-custom-inp');
+    var label = inp ? inp.value.trim() : '';
+    if (!label) { inp && inp.focus(); return; }
+    var csrf = document.querySelector('meta[name="csrf-token"]').content;
+    fetch('{{ route("custom-platforms.store") }}', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+        body: JSON.stringify({label: label, category: 'messenger'})
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+        document.querySelectorAll('.show-ms-platform-sel').forEach(function(s) {
+            if (!s.querySelector('option[value="'+data.slug+'"]')) {
+                var opt = document.createElement('option');
+                opt.value = data.slug; opt.textContent = data.label;
+                s.insertBefore(opt, s.querySelector('option[value="__new__"]'));
+            }
+        });
+        sel.value = data.slug;
+        inp.style.display = 'none'; inp.required = false;
+        callback();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('form[data-ms-form]').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            var sel = form.querySelector('.show-ms-platform-sel');
+            if (sel && sel.value === '__new__') {
+                e.preventDefault();
+                _showMsCreatePlatform(form, function(){ form.submit(); });
+            }
+        });
+    });
+});
 </script>
 @endpush

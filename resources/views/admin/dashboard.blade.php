@@ -27,7 +27,7 @@
     </div>
 
     {{-- ========= 4 STAT CARDS ========= --}}
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+    <div class="stat-grid-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
         <div class="stat-card">
             <div class="stat-card__label">Сайти</div>
             <div class="stat-card__row">

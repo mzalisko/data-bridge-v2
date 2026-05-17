@@ -16,6 +16,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('logo', 512)->nullable();
             $table->boolean('is_active')->default(true);
+            $table->string('plugin_webhook_url', 512)->nullable();
             $table->timestamps();
 
             $table->index('is_active');

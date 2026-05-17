@@ -15,9 +15,11 @@ use App\Http\Controllers\Admin\SiteSocialController;
 use App\Http\Controllers\Admin\SiteGeoController;
 use App\Http\Controllers\Admin\SiteCustomFieldController;
 use App\Http\Controllers\Admin\BulkDataController;
+use App\Http\Controllers\Admin\SiteFailoverController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\BatchController;
 use App\Http\Controllers\Admin\DataBrowserController;
+use App\Http\Controllers\Admin\CustomPlatformController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 
@@ -52,6 +54,7 @@ Route::middleware('auth')->group(function () {
 
     // Site data CRUD
     Route::post(  'sites/{site}/phones',              [SitePhoneController::class,   'store']  )->name('phones.store');
+    Route::post(  'sites/{site}/phones/reorder',      [SitePhoneController::class,   'reorder'])->name('phones.reorder');
     Route::put(   'sites/{site}/phones/{phone}',      [SitePhoneController::class,   'update'] )->name('phones.update');
     Route::delete('sites/{site}/phones/{phone}',      [SitePhoneController::class,   'destroy'])->name('phones.destroy');
 
@@ -64,6 +67,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('sites/{site}/addresses/{address}', [SiteAddressController::class, 'destroy'])->name('addresses.destroy');
 
     Route::post(  'sites/{site}/socials',             [SiteSocialController::class,  'store']  )->name('socials.store');
+    Route::post(  'sites/{site}/socials/reorder',     [SiteSocialController::class,  'reorder'])->name('socials.reorder');
     Route::put(   'sites/{site}/socials/{social}',    [SiteSocialController::class,  'update'] )->name('socials.update');
     Route::delete('sites/{site}/socials/{social}',    [SiteSocialController::class,  'destroy'])->name('socials.destroy');
 
@@ -79,32 +83,52 @@ Route::middleware('auth')->group(function () {
     Route::post(  'sites/{site}/geo-rules',         [SiteGeoController::class, 'saveRules'])->name('sites.geo-rules.save');
     Route::post(  'sites/{site}/visibility/{type}/{id}', [SiteGeoController::class, 'toggleVisibility'])->name('sites.visibility.toggle');
     Route::post(  'sites/{site}/activity/{log}/restore', [SiteController::class, 'restoreActivity'])->name('sites.activity.restore');
-    Route::put(   'sites/{site}/push-settings',         [SiteController::class, 'updatePushSettings'])->name('sites.push-settings.update');
-    Route::post(  'sites/{site}/push-settings/test',    [SiteController::class, 'testPush'])->name('sites.push-settings.test');
+    Route::put(   'sites/{site}/push-settings',  [SiteController::class, 'updatePushSettings'])->name('sites.push-settings.update');
+    Route::post(  'sites/{site}/sync',           [SiteController::class, 'syncPush'])->name('sites.sync');
 
-    // Bulk data operations (multi-site) — UI planned, controller scaffolded
-    Route::post('bulk/phones',  [BulkDataController::class, 'addPhone'])->name('bulk.phones');
-    Route::post('bulk/prices',  [BulkDataController::class, 'addPrice'])->name('bulk.prices');
-    Route::post('bulk/socials', [BulkDataController::class, 'addSocial'])->name('bulk.socials');
-    Route::post('bulk/geos',    [BulkDataController::class, 'addGeo'])->name('bulk.geos');
-    Route::post('bulk/delete',  [BulkDataController::class, 'deleteMatching'])->name('bulk.delete');
+    // Failover management
+    Route::post(  'sites/{site}/failover/standby',        [SiteFailoverController::class, 'toggleStandby'])->name('sites.failover.standby');
+    Route::post(  'sites/{site}/failover/link',           [SiteFailoverController::class, 'linkStandby'])->name('sites.failover.link');
+    Route::post(  'sites/{site}/failover/trigger',        [SiteFailoverController::class, 'trigger'])->name('sites.failover.trigger');
+    Route::post(  'sites/{site}/failover/cascade',        [SiteFailoverController::class, 'cascade'])->name('sites.failover.cascade');
+    Route::post(  'sites/{site}/failover/restore',        [SiteFailoverController::class, 'restoreManual'])->name('sites.failover.restore');
+    Route::post(  'sites/{site}/failover/{log}/rollback', [SiteFailoverController::class, 'rollback'])->name('sites.failover.rollback');
+    Route::delete('sites/{site}/failover/history',        [SiteFailoverController::class, 'clearHistory'])->name('sites.failover.history.clear');
 
-    Route::resource('users', UserController::class)
-        ->only(['index', 'store', 'update', 'destroy']);
+    // Bulk data operations (multi-site) — admin-only (writes across many sites,
+    // no per-site Policy layer yet; destructive on the plugin side via push).
+    Route::middleware('admin')->group(function () {
+        Route::post('bulk/phones',     [BulkDataController::class, 'addPhone'])->name('bulk.phones');
+        Route::post('bulk/prices',     [BulkDataController::class, 'addPrice'])->name('bulk.prices');
+        Route::post('bulk/addresses',  [BulkDataController::class, 'addAddress'])->name('bulk.addresses');
+        Route::post('bulk/socials',    [BulkDataController::class, 'addSocial'])->name('bulk.socials');
+        Route::post('bulk/geos',       [BulkDataController::class, 'addGeo'])->name('bulk.geos');
+        Route::post('bulk/delete',     [BulkDataController::class, 'deleteMatching'])->name('bulk.delete');
+    });
 
-    Route::get('users/{user}/permissions', [PermissionController::class, 'show'])->name('users.permissions.show');
-    Route::get('users/{user}/permissions/form', [PermissionController::class, 'fragment'])->name('users.permissions.fragment');
-    Route::post('users/{user}/permissions', [PermissionController::class, 'update'])->name('users.permissions.update');
+    // User & permission management — admin-only (account creation + RBAC grants
+    // = privilege escalation surface; no per-action Policy layer yet).
+    Route::middleware('admin')->group(function () {
+        Route::resource('users', UserController::class)
+            ->only(['index', 'store', 'update', 'destroy']);
+
+        Route::get('users/{user}/permissions', [PermissionController::class, 'show'])->name('users.permissions.show');
+        Route::get('users/{user}/permissions/form', [PermissionController::class, 'fragment'])->name('users.permissions.fragment');
+        Route::post('users/{user}/permissions', [PermissionController::class, 'update'])->name('users.permissions.update');
+    });
 
     Route::get('/logs/system',   [LogController::class, 'system'])->name('logs.system');
     Route::get('/logs/sync',     [LogController::class, 'sync'])->name('logs.sync');
     Route::get('/logs/activity', [LogController::class, 'activity'])->name('logs.activity');
 
-    // Data Browser
+    // Data Browser — read for everyone, destructive ops admin-only
+    Route::post('custom-platforms',  [CustomPlatformController::class, 'store'])->name('custom-platforms.store');
     Route::get( 'data',             [DataBrowserController::class, 'index'])->name('data.index');
-    Route::post('data/bulk-delete', [DataBrowserController::class, 'bulkDelete'])->name('data.bulk-delete');
-    Route::post('data/bulk-edit',   [DataBrowserController::class, 'bulkEdit'])->name('data.bulk-edit');
-    Route::post('data/bulk-copy',   [DataBrowserController::class, 'bulkCopy'])->name('data.bulk-copy');
+    Route::middleware('admin')->group(function () {
+        Route::post('data/bulk-delete', [DataBrowserController::class, 'bulkDelete'])->name('data.bulk-delete');
+        Route::post('data/bulk-edit',   [DataBrowserController::class, 'bulkEdit'])->name('data.bulk-edit');
+        Route::post('data/bulk-copy',   [DataBrowserController::class, 'bulkCopy'])->name('data.bulk-copy');
+    });
 
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');

@@ -23,14 +23,17 @@ class Site extends Model
         'geo_rules',
         'push_url',
         'push_key',
+        'allow_plugin_edit',
+        'plugin_edit_token',
     ];
 
     protected function casts(): array
     {
         return [
-            'is_active'   => 'boolean',
-            'active_geos' => 'array',
-            'geo_rules'   => 'array',
+            'is_active'        => 'boolean',
+            'active_geos'      => 'array',
+            'geo_rules'        => 'array',
+            'allow_plugin_edit'=> 'boolean',
         ];
     }
 
