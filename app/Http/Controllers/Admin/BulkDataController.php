@@ -253,6 +253,20 @@ class BulkDataController extends Controller
         $type       = $request->type;
         $field      = $request->match_field;
         $value      = $request->match_value;
+
+        // Whitelist matchable columns per type — $field is used as a query
+        // column, so an arbitrary value would allow unintended-criteria mass
+        // deletes (e.g. matching on id / is_visible / is_active).
+        $matchable = [
+            'phones'    => ['number', 'label'],
+            'prices'    => ['label', 'currency', 'amount'],
+            'socials'   => ['platform', 'handle', 'url'],
+            'addresses' => ['city', 'street', 'label'],
+        ];
+        if (! in_array($field, $matchable[$type] ?? [], true)) {
+            return response()->json(['message' => 'Неприпустиме поле для збігу'], 422);
+        }
+
         $typeMap    = ['phones' => 'phone', 'prices' => 'price', 'socials' => 'social', 'addresses' => 'address'];
         $entityType = $typeMap[$type];
 

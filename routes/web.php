@@ -106,12 +106,16 @@ Route::middleware('auth')->group(function () {
         Route::post('bulk/delete',     [BulkDataController::class, 'deleteMatching'])->name('bulk.delete');
     });
 
-    Route::resource('users', UserController::class)
-        ->only(['index', 'store', 'update', 'destroy']);
+    // User & permission management — admin-only (account creation + RBAC grants
+    // = privilege escalation surface; no per-action Policy layer yet).
+    Route::middleware('admin')->group(function () {
+        Route::resource('users', UserController::class)
+            ->only(['index', 'store', 'update', 'destroy']);
 
-    Route::get('users/{user}/permissions', [PermissionController::class, 'show'])->name('users.permissions.show');
-    Route::get('users/{user}/permissions/form', [PermissionController::class, 'fragment'])->name('users.permissions.fragment');
-    Route::post('users/{user}/permissions', [PermissionController::class, 'update'])->name('users.permissions.update');
+        Route::get('users/{user}/permissions', [PermissionController::class, 'show'])->name('users.permissions.show');
+        Route::get('users/{user}/permissions/form', [PermissionController::class, 'fragment'])->name('users.permissions.fragment');
+        Route::post('users/{user}/permissions', [PermissionController::class, 'update'])->name('users.permissions.update');
+    });
 
     Route::get('/logs/system',   [LogController::class, 'system'])->name('logs.system');
     Route::get('/logs/sync',     [LogController::class, 'sync'])->name('logs.sync');

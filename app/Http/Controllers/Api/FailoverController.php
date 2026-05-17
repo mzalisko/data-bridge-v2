@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Site;
 use App\Models\SiteFailoverLog;
 use App\Services\FailoverService;
 use Illuminate\Http\JsonResponse;
@@ -35,7 +34,12 @@ class FailoverController extends Controller
             'trigger_identifier' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $site = Site::findOrFail($data['site_id']);
+        // Scope to the site the API key resolves to — never trust body site_id
+        // alone (any valid key could otherwise act on any other site).
+        $site = $request->attributes->get('site');
+        if (! $site || $site->id !== (int) $data['site_id']) {
+            return response()->json(['ok' => false, 'error' => 'site_id does not match API key'], 403);
+        }
 
         try {
             $log = FailoverService::trigger(
@@ -78,7 +82,12 @@ class FailoverController extends Controller
             'primary_id' => ['required', 'integer'],
         ]);
 
-        $site = Site::findOrFail($data['site_id']);
+        // Scope to the site the API key resolves to — never trust body site_id
+        // alone (any valid key could otherwise act on any other site).
+        $site = $request->attributes->get('site');
+        if (! $site || $site->id !== (int) $data['site_id']) {
+            return response()->json(['ok' => false, 'error' => 'site_id does not match API key'], 403);
+        }
 
         try {
             $log = FailoverService::restore($site, $data['type'], $data['primary_id']);
