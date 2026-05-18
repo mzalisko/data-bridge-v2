@@ -21,13 +21,17 @@ class ApiKeyAuth
             ], 401);
         }
 
-        // Find candidate key by prefix (first 12 chars)
+        // Find candidate keys by prefix (first 12 chars). The prefix is NOT
+        // unique — collisions are realistic at scale — so verify() every
+        // candidate instead of trusting first() (DB-C1: prevents
+        // nondeterministic auth failure when two keys share a prefix).
         $prefix = substr($bearerToken, 0, 12);
         $apiKey = ApiKey::where('key_prefix', $prefix)
             ->whereNull('revoked_at')
-            ->first();
+            ->get()
+            ->first(fn (ApiKey $k) => $k->verify($bearerToken));
 
-        if (! $apiKey || ! $apiKey->verify($bearerToken)) {
+        if (! $apiKey) {
             return response()->json([
                 'status'  => 'error',
                 'code'    => 401,
