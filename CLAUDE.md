@@ -19,7 +19,7 @@
 | `design` | UI/UX, CSS-токени, компоненти |
 | `git` | Версійний контроль, коміти, гілки |
 | `obsidian` | Документація у vault (українською) |
-| `sec` | Безпека, аутентифікація, RBAC, Policies |
+| `sec` | Безпека, аутентифікація, RBAC (middleware-based), Policies |
 | `analyst` | Бізнес-логіка, валідація, вимоги |
 
 ---
@@ -37,11 +37,11 @@ data-bridge-v2/                    ← ТИ ТУТ (Laravel проект)
 │   │   │   │                          SiteGroupController, UserController, LogController
 │   │   │   ├── Auth/              ← LoginController, LogoutController
 │   │   │   └── Api/               ← SyncController (REST для WP-плагінів)
-│   │   ├── Middleware/            ← ApiKeyAuth, RoleCheck, ...
+│   │   ├── Middleware/            ← ApiKeyAuth, AdminOnly, EnforcePermission, CheckUserActive
 │   │   └── Requests/              ← Form Request validators
-│   ├── Models/                    ← Site, SiteGroup, User, Log, ApiKey
-│   ├── Services/                  ← SyncService, BatchService, ApiKeyService
-│   └── Policies/                  ← SitePolicy, UserPolicy (RBAC)
+│   ├── Models/                    ← Site, SiteGroup, User, ApiKey, UserPermission, ...
+│   └── Services/                  ← ActivityService, FailoverService, SyncPushService
+│   # RBAC: middleware 'perm:{view|edit|delete|api_key}' + UserPermission (NO app/Policies/)
 ├── database/
 │   ├── migrations/                ← php artisan make:migration
 │   └── seeders/                   ← AdminSeeder (default admin user)

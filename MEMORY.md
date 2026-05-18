@@ -83,13 +83,20 @@
 | data/index: pool bar + action bar overlap fix (updateActionBarBottom динамічно) | feature/per-item-geo-visibility | ✅ |
 | data/index: прибрати поле "Країна ISO" з edit drawer для phones | feature/per-item-geo-visibility | ✅ |
 
+## 🔴 Аудит 2026-05-18 — БЛОКЕРИ production (vault: `10-Оптимізація/audit_2026-05-18.md`)
+
+1. **SEC-C1** — RBAC зламаний: НЕМАЄ `app/Policies/`, всі `FormRequest::authorize()` = `true`, `UserPermission` мертва. Будь-який auth-user (навіть viewer) видаляє сайти / редагує всі дані. Web-маршрути лише `auth` (admin тільки на users/permissions/bulk).
+2. **SEC-C2** — Cross-tenant IDOR: `Api/FailoverController::rollback()` (routes/api.php:52) без site-scope (на відміну від trigger/restore). Будь-який API-ключ відкочує чужий failover.
+3. **DB-C1/C2** — `key_prefix` неунікальний (auth hot-path, колізії); `push_key`/`plugin_edit_token` без unique/index.
+4. **BatchController** — мовчки обходить ActivityService::log І SyncPushService::push (batch не пушиться у WP) — дублює BulkDataController, видалити.
+5. Спрощення: Site*-контролери/views/requests дубль 8× (~500-2000 рядків); `show.blade.php` 3357 рядків; `src/`+`resources/css|js` мертві.
+
 ## 🔲 Залишилось (Sprint 04)
 
-1. **Мерж** `feature/per-item-geo-visibility` → main
-2. **Plugin git remote** — GitHub repo (поки локальний)
-3. **Перевірка WP плагіна** — `dbp_wordpress` Docker вже є, перевірити shortcodes
-4. **Conflict resolution** — логіка пріоритету CRM (гео-правила для плагіна)
-5. **/bulk/addresses** endpoint — поки відсутній, показує alert
+1. **Plugin git remote** — GitHub repo (поки локальний)
+2. **Перевірка WP плагіна** — `dbp_wordpress` Docker вже є, перевірити shortcodes
+3. **Conflict resolution** — логіка пріоритету CRM (гео-правила для плагіна)
+4. **/bulk/addresses** endpoint — поки відсутній, показує alert
 
 ---
 
@@ -153,4 +160,4 @@
 
 ---
 
-*Оновлено: 2026-05-04 | Сесія: crm-redesign-i18n-complete*
+*Оновлено: 2026-05-18 | Сесія: full-project-audit (vault: audit_2026-05-18.md)*
