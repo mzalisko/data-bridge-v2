@@ -1,47 +1,63 @@
 <?php
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\ManagesSiteData;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\StoreAddressRequest;
-use App\Http\Requests\Admin\UpdateAddressRequest;
+use App\Http\Requests\Admin\AddressRequest;
 use App\Models\Site;
 use App\Models\SiteAddress;
-use App\Services\ActivityService;
-use App\Services\SyncPushService;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class SiteAddressController extends Controller
 {
-    public function store(StoreAddressRequest $request, Site $site): RedirectResponse
+    use ManagesSiteData;
+
+    protected function entityType(): string
     {
-        $data = $request->validated();
-        $data['is_primary']    = $request->boolean('is_primary');
-        $data['geo_mode']      = $data['geo_mode'] ?? 'all';
-        $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
-        $address = $site->addresses()->create($data);
-        ActivityService::log('address', 'create', $address, "Адресу {$address->city} додано", $site);
-        SyncPushService::push($site);
-        return back()->with('success', 'Адресу додано');
+        return 'address';
     }
 
-    public function update(UpdateAddressRequest $request, Site $site, SiteAddress $address): RedirectResponse
+    protected function flashMessage(string $action): string
     {
-        $data = $request->validated();
-        $data['is_primary']    = $request->boolean('is_primary');
-        $data['geo_mode']      = $data['geo_mode'] ?? 'all';
-        $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
-        $before = $address->toArray();
-        $address->update($data);
-        ActivityService::log('address', 'update', $address, "Адресу {$address->city} оновлено", $site, $before);
-        SyncPushService::push($site);
-        return back()->with('success', 'Адресу оновлено');
+        return match ($action) {
+            'create' => 'Адресу додано',
+            'update' => 'Адресу оновлено',
+            'delete' => 'Адресу видалено',
+        };
+    }
+
+    protected function logSummary(Model $record, string $action): string
+    {
+        $verb = match ($action) {
+            'create' => 'додано',
+            'update' => 'оновлено',
+            'delete' => 'видалено',
+        };
+
+        return "Адресу {$record->city} {$verb}";
+    }
+
+    protected function preprocess(Request $request, array $data): array
+    {
+        $data['is_primary'] = $request->boolean('is_primary');
+
+        return $data;
+    }
+
+    public function store(AddressRequest $request, Site $site): RedirectResponse
+    {
+        return $this->createSiteRecord($site, $request, $request->validated());
+    }
+
+    public function update(AddressRequest $request, Site $site, SiteAddress $address): RedirectResponse
+    {
+        return $this->updateSiteRecord($site, $request, $address, $request->validated());
     }
 
     public function destroy(Site $site, SiteAddress $address): RedirectResponse
     {
-        ActivityService::log('address', 'delete', $address, "Адресу {$address->city} видалено", $site);
-        $address->delete();
-        SyncPushService::push($site);
-        return back()->with('success', 'Адресу видалено');
+        return $this->deleteSiteRecord($site, $address);
     }
 }

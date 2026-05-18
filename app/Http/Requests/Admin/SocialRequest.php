@@ -1,8 +1,9 @@
 <?php
 namespace App\Http\Requests\Admin;
+
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateSocialRequest extends FormRequest
+class SocialRequest extends FormRequest
 {
     public function authorize(): bool { return true; }
 
