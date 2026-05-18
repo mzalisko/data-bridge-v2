@@ -3,8 +3,6 @@
 namespace App\Services;
 
 use App\Models\Site;
-use App\Models\SitePhone;
-use App\Models\SiteSocial;
 use App\Models\SiteFailoverLog;
 use Illuminate\Support\Facades\DB;
 
@@ -289,10 +287,6 @@ class FailoverService
 
     private static function resolve(string $type): array
     {
-        return match ($type) {
-            'phone'  => [SitePhone::class,  'phones'],
-            'social' => [SiteSocial::class, 'socials'],
-            default  => throw new \InvalidArgumentException("Unknown failover type: {$type}"),
-        };
+        return \App\Support\EntityTypeRegistry::resolveOrFail($type);
     }
 }
