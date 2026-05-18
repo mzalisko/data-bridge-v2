@@ -17,7 +17,6 @@ use App\Http\Controllers\Admin\SiteCustomFieldController;
 use App\Http\Controllers\Admin\BulkDataController;
 use App\Http\Controllers\Admin\SiteFailoverController;
 use App\Http\Controllers\Admin\SettingsController;
-use App\Http\Controllers\Admin\BatchController;
 use App\Http\Controllers\Admin\DataBrowserController;
 use App\Http\Controllers\Admin\CustomPlatformController;
 use App\Http\Controllers\Auth\LoginController;
@@ -37,63 +36,70 @@ Route::post('/logout', [LoginController::class, 'logout'])
 Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::resource('site-groups', SiteGroupController::class)
-        ->only(['index', 'store', 'update', 'destroy', 'show']);
+    // Reads — any authenticated user.
+    Route::resource('site-groups', SiteGroupController::class)->only(['index', 'show']);
+    Route::resource('sites', SiteController::class)->only(['index', 'show']);
 
-    // Batch routes must be before resource to avoid {site}='batch' conflict
-    Route::get( 'sites/batch', [BatchController::class, 'show'])->name('sites.batch.show');
-    Route::post('sites/batch', [BatchController::class, 'apply'])->name('sites.batch');
+    // Writes — require 'edit' permission (admin/manager bypass).
+    Route::middleware('perm:edit')->group(function () {
+        Route::resource('site-groups', SiteGroupController::class)->only(['store', 'update']);
+        Route::resource('sites', SiteController::class)->only(['store', 'update']);
 
-    Route::resource('sites', SiteController::class)
-        ->only(['index', 'store', 'update', 'destroy', 'show']);
+        Route::post('sites/{site}/favorite', [FavoriteController::class, 'toggle'])->name('sites.favorite');
 
-    Route::post('sites/{site}/favorite', [FavoriteController::class, 'toggle'])->name('sites.favorite');
+        Route::post(  'sites/{site}/phones',              [SitePhoneController::class,   'store']  )->name('phones.store');
+        Route::post(  'sites/{site}/phones/reorder',      [SitePhoneController::class,   'reorder'])->name('phones.reorder');
+        Route::put(   'sites/{site}/phones/{phone}',      [SitePhoneController::class,   'update'] )->name('phones.update');
 
-    Route::post('sites/{site}/api-key/generate', [ApiKeyController::class, 'generate'])->name('sites.api-key.generate');
-    Route::post('sites/{site}/api-key/revoke',   [ApiKeyController::class, 'revoke'])->name('sites.api-key.revoke');
+        Route::post(  'sites/{site}/prices',              [SitePriceController::class,   'store']  )->name('prices.store');
+        Route::put(   'sites/{site}/prices/{price}',      [SitePriceController::class,   'update'] )->name('prices.update');
 
-    // Site data CRUD
-    Route::post(  'sites/{site}/phones',              [SitePhoneController::class,   'store']  )->name('phones.store');
-    Route::post(  'sites/{site}/phones/reorder',      [SitePhoneController::class,   'reorder'])->name('phones.reorder');
-    Route::put(   'sites/{site}/phones/{phone}',      [SitePhoneController::class,   'update'] )->name('phones.update');
-    Route::delete('sites/{site}/phones/{phone}',      [SitePhoneController::class,   'destroy'])->name('phones.destroy');
+        Route::post(  'sites/{site}/addresses',           [SiteAddressController::class, 'store']  )->name('addresses.store');
+        Route::put(   'sites/{site}/addresses/{address}', [SiteAddressController::class, 'update'] )->name('addresses.update');
 
-    Route::post(  'sites/{site}/prices',              [SitePriceController::class,   'store']  )->name('prices.store');
-    Route::put(   'sites/{site}/prices/{price}',      [SitePriceController::class,   'update'] )->name('prices.update');
-    Route::delete('sites/{site}/prices/{price}',      [SitePriceController::class,   'destroy'])->name('prices.destroy');
+        Route::post(  'sites/{site}/socials',             [SiteSocialController::class,  'store']  )->name('socials.store');
+        Route::post(  'sites/{site}/socials/reorder',     [SiteSocialController::class,  'reorder'])->name('socials.reorder');
+        Route::put(   'sites/{site}/socials/{social}',    [SiteSocialController::class,  'update'] )->name('socials.update');
 
-    Route::post(  'sites/{site}/addresses',           [SiteAddressController::class, 'store']  )->name('addresses.store');
-    Route::put(   'sites/{site}/addresses/{address}', [SiteAddressController::class, 'update'] )->name('addresses.update');
-    Route::delete('sites/{site}/addresses/{address}', [SiteAddressController::class, 'destroy'])->name('addresses.destroy');
+        Route::post(  'sites/{site}/presence',           [SiteController::class,            'presence'])->name('sites.presence');
 
-    Route::post(  'sites/{site}/socials',             [SiteSocialController::class,  'store']  )->name('socials.store');
-    Route::post(  'sites/{site}/socials/reorder',     [SiteSocialController::class,  'reorder'])->name('socials.reorder');
-    Route::put(   'sites/{site}/socials/{social}',    [SiteSocialController::class,  'update'] )->name('socials.update');
-    Route::delete('sites/{site}/socials/{social}',    [SiteSocialController::class,  'destroy'])->name('socials.destroy');
+        Route::post(  'sites/{site}/fields',             [SiteCustomFieldController::class, 'store']  )->name('fields.store');
+        Route::put(   'sites/{site}/fields/{field}',     [SiteCustomFieldController::class, 'update'] )->name('fields.update');
 
-    Route::post(  'sites/{site}/presence',           [SiteController::class,            'presence'])->name('sites.presence');
+        // Geo management (site config — treated as edit, incl. geo removal).
+        Route::post(  'sites/{site}/geos',                   [SiteGeoController::class, 'addGeo'])->name('sites.geos.add');
+        Route::delete('sites/{site}/geos/{iso}',             [SiteGeoController::class, 'removeGeo'])->name('sites.geos.remove');
+        Route::post(  'sites/{site}/geo-rules',              [SiteGeoController::class, 'saveRules'])->name('sites.geo-rules.save');
+        Route::post(  'sites/{site}/visibility/{type}/{id}', [SiteGeoController::class, 'toggleVisibility'])->name('sites.visibility.toggle');
+        Route::post(  'sites/{site}/activity/{log}/restore', [SiteController::class, 'restoreActivity'])->name('sites.activity.restore');
+        Route::put(   'sites/{site}/push-settings',          [SiteController::class, 'updatePushSettings'])->name('sites.push-settings.update');
+        Route::post(  'sites/{site}/sync',                   [SiteController::class, 'syncPush'])->name('sites.sync');
 
-    Route::post(  'sites/{site}/fields',             [SiteCustomFieldController::class, 'store']  )->name('fields.store');
-    Route::put(   'sites/{site}/fields/{field}',     [SiteCustomFieldController::class, 'update'] )->name('fields.update');
-    Route::delete('sites/{site}/fields/{field}',     [SiteCustomFieldController::class, 'destroy'])->name('fields.destroy');
+        Route::post(  'sites/{site}/failover/standby',        [SiteFailoverController::class, 'toggleStandby'])->name('sites.failover.standby');
+        Route::post(  'sites/{site}/failover/link',           [SiteFailoverController::class, 'linkStandby'])->name('sites.failover.link');
+        Route::post(  'sites/{site}/failover/trigger',        [SiteFailoverController::class, 'trigger'])->name('sites.failover.trigger');
+        Route::post(  'sites/{site}/failover/cascade',        [SiteFailoverController::class, 'cascade'])->name('sites.failover.cascade');
+        Route::post(  'sites/{site}/failover/restore',        [SiteFailoverController::class, 'restoreManual'])->name('sites.failover.restore');
+        Route::post(  'sites/{site}/failover/{log}/rollback', [SiteFailoverController::class, 'rollback'])->name('sites.failover.rollback');
+    });
 
-    // Geo management (active geos + rules + visibility toggle)
-    Route::post(  'sites/{site}/geos',              [SiteGeoController::class, 'addGeo'])->name('sites.geos.add');
-    Route::delete('sites/{site}/geos/{iso}',        [SiteGeoController::class, 'removeGeo'])->name('sites.geos.remove');
-    Route::post(  'sites/{site}/geo-rules',         [SiteGeoController::class, 'saveRules'])->name('sites.geo-rules.save');
-    Route::post(  'sites/{site}/visibility/{type}/{id}', [SiteGeoController::class, 'toggleVisibility'])->name('sites.visibility.toggle');
-    Route::post(  'sites/{site}/activity/{log}/restore', [SiteController::class, 'restoreActivity'])->name('sites.activity.restore');
-    Route::put(   'sites/{site}/push-settings',  [SiteController::class, 'updatePushSettings'])->name('sites.push-settings.update');
-    Route::post(  'sites/{site}/sync',           [SiteController::class, 'syncPush'])->name('sites.sync');
+    // Record deletion — require 'delete' permission.
+    Route::middleware('perm:delete')->group(function () {
+        Route::resource('site-groups', SiteGroupController::class)->only(['destroy']);
+        Route::resource('sites', SiteController::class)->only(['destroy']);
+        Route::delete('sites/{site}/phones/{phone}',      [SitePhoneController::class,   'destroy'])->name('phones.destroy');
+        Route::delete('sites/{site}/prices/{price}',      [SitePriceController::class,   'destroy'])->name('prices.destroy');
+        Route::delete('sites/{site}/addresses/{address}', [SiteAddressController::class, 'destroy'])->name('addresses.destroy');
+        Route::delete('sites/{site}/socials/{social}',    [SiteSocialController::class,  'destroy'])->name('socials.destroy');
+        Route::delete('sites/{site}/fields/{field}',      [SiteCustomFieldController::class, 'destroy'])->name('fields.destroy');
+        Route::delete('sites/{site}/failover/history',    [SiteFailoverController::class, 'clearHistory'])->name('sites.failover.history.clear');
+    });
 
-    // Failover management
-    Route::post(  'sites/{site}/failover/standby',        [SiteFailoverController::class, 'toggleStandby'])->name('sites.failover.standby');
-    Route::post(  'sites/{site}/failover/link',           [SiteFailoverController::class, 'linkStandby'])->name('sites.failover.link');
-    Route::post(  'sites/{site}/failover/trigger',        [SiteFailoverController::class, 'trigger'])->name('sites.failover.trigger');
-    Route::post(  'sites/{site}/failover/cascade',        [SiteFailoverController::class, 'cascade'])->name('sites.failover.cascade');
-    Route::post(  'sites/{site}/failover/restore',        [SiteFailoverController::class, 'restoreManual'])->name('sites.failover.restore');
-    Route::post(  'sites/{site}/failover/{log}/rollback', [SiteFailoverController::class, 'rollback'])->name('sites.failover.rollback');
-    Route::delete('sites/{site}/failover/history',        [SiteFailoverController::class, 'clearHistory'])->name('sites.failover.history.clear');
+    // API key issuance — require 'api_key' permission.
+    Route::middleware('perm:api_key')->group(function () {
+        Route::post('sites/{site}/api-key/generate', [ApiKeyController::class, 'generate'])->name('sites.api-key.generate');
+        Route::post('sites/{site}/api-key/revoke',   [ApiKeyController::class, 'revoke'])->name('sites.api-key.revoke');
+    });
 
     // Bulk data operations (multi-site) — admin-only (writes across many sites,
     // no per-site Policy layer yet; destructive on the plugin side via push).
@@ -122,7 +128,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/logs/activity', [LogController::class, 'activity'])->name('logs.activity');
 
     // Data Browser — read for everyone, destructive ops admin-only
-    Route::post('custom-platforms',  [CustomPlatformController::class, 'store'])->name('custom-platforms.store');
+    Route::post('custom-platforms', [CustomPlatformController::class, 'store'])
+        ->middleware('perm:edit')->name('custom-platforms.store');
     Route::get( 'data',             [DataBrowserController::class, 'index'])->name('data.index');
     Route::middleware('admin')->group(function () {
         Route::post('data/bulk-delete', [DataBrowserController::class, 'bulkDelete'])->name('data.bulk-delete');
