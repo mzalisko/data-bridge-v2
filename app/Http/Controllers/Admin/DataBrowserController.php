@@ -181,13 +181,7 @@ class DataBrowserController extends Controller
 
     private function modelForType(string $type): string
     {
-        return match($type) {
-            'phones'     => SitePhone::class,
-            'messengers' => SiteSocial::class,
-            'prices'     => SitePrice::class,
-            'addresses'  => SiteAddress::class,
-            'socials'    => SiteSocial::class,
-        };
+        return \App\Support\EntityTypeRegistry::modelOrFail($type);
     }
 
     private function editableFields(string $type): array

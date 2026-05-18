@@ -131,15 +131,7 @@ class SiteController extends Controller
             return back()->with('error', 'Відновлення неможливе');
         }
 
-        $modelMap = [
-            'phone'   => \App\Models\SitePhone::class,
-            'price'   => \App\Models\SitePrice::class,
-            'address' => \App\Models\SiteAddress::class,
-            'social'  => \App\Models\SiteSocial::class,
-            'field'   => \App\Models\SiteCustomField::class,
-        ];
-
-        $modelClass = $modelMap[$log->entity_type] ?? null;
+        $modelClass = \App\Support\EntityTypeRegistry::model($log->entity_type);
         if (! $modelClass) {
             return back()->with('error', 'Невідомий тип запису');
         }
