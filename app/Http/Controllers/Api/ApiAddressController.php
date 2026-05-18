@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SiteAddress;
 use App\Services\ActivityService;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,7 @@ class ApiAddressController extends Controller
         $apiKey = $request->attributes->get('api_key');
 
         if (! $apiKey->hasPermission('addresses.write')) {
-            return $this->forbidden('addresses.write');
+            return ApiResponse::forbidden('addresses.write');
         }
 
         $validated = $request->validate([
@@ -35,11 +36,7 @@ class ApiAddressController extends Controller
         $address = $site->addresses()->create($validated);
         ActivityService::log('address', 'create', $address, "API: адресу {$address->city} додано", $site, source: 'api');
 
-        return response()->json([
-            'status'    => 'ok',
-            'id'        => $address->id,
-            'synced_at' => now()->toIso8601String(),
-        ], 201);
+        return ApiResponse::ok(['id' => $address->id, 'synced_at' => now()->toIso8601String()], 201);
     }
 
     public function update(Request $request, int $id): JsonResponse
@@ -48,13 +45,13 @@ class ApiAddressController extends Controller
         $apiKey = $request->attributes->get('api_key');
 
         if (! $apiKey->hasPermission('addresses.write')) {
-            return $this->forbidden('addresses.write');
+            return ApiResponse::forbidden('addresses.write');
         }
 
         $address = SiteAddress::where('id', $id)->where('site_id', $site->id)->first();
 
         if (! $address) {
-            return response()->json(['status' => 'error', 'code' => 404, 'message' => 'Address not found'], 404);
+            return ApiResponse::notFound('Address');
         }
 
         $validated = $request->validate([
@@ -74,11 +71,7 @@ class ApiAddressController extends Controller
         $address->update($validated);
         ActivityService::log('address', 'update', $address, "API: адресу {$address->city} оновлено", $site, $before, 'api');
 
-        return response()->json([
-            'status'    => 'ok',
-            'id'        => $address->id,
-            'synced_at' => now()->toIso8601String(),
-        ]);
+        return ApiResponse::ok(['id' => $address->id, 'synced_at' => now()->toIso8601String()]);
     }
 
     public function destroy(Request $request, int $id): JsonResponse
@@ -87,27 +80,18 @@ class ApiAddressController extends Controller
         $apiKey = $request->attributes->get('api_key');
 
         if (! $apiKey->hasPermission('addresses.write')) {
-            return $this->forbidden('addresses.write');
+            return ApiResponse::forbidden('addresses.write');
         }
 
         $address = SiteAddress::where('id', $id)->where('site_id', $site->id)->first();
 
         if (! $address) {
-            return response()->json(['status' => 'error', 'code' => 404, 'message' => 'Address not found'], 404);
+            return ApiResponse::notFound('Address');
         }
 
         ActivityService::log('address', 'delete', $address, "API: адресу {$address->city} видалено", $site, source: 'api');
         $address->delete();
 
-        return response()->json(['status' => 'ok', 'deleted_id' => $id]);
-    }
-
-    private function forbidden(string $permission): JsonResponse
-    {
-        return response()->json([
-            'status'  => 'error',
-            'code'    => 403,
-            'message' => "Permission denied: {$permission}",
-        ], 403);
+        return ApiResponse::ok(['deleted_id' => $id]);
     }
 }

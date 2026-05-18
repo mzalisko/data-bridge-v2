@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SiteSocial;
 use App\Services\ActivityService;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -21,7 +22,7 @@ class ApiSocialController extends Controller
         $apiKey = $request->attributes->get('api_key');
 
         if (! $apiKey->hasPermission('socials.write')) {
-            return $this->forbidden('socials.write');
+            return ApiResponse::forbidden('socials.write');
         }
 
         $validated = $request->validate([
@@ -34,11 +35,7 @@ class ApiSocialController extends Controller
         $social = $site->socials()->create($validated);
         ActivityService::log('social', 'create', $social, "API: {$social->platform} {$social->handle} додано", $site, source: 'api');
 
-        return response()->json([
-            'status'    => 'ok',
-            'id'        => $social->id,
-            'synced_at' => now()->toIso8601String(),
-        ], 201);
+        return ApiResponse::ok(['id' => $social->id, 'synced_at' => now()->toIso8601String()], 201);
     }
 
     public function update(Request $request, int $id): JsonResponse
@@ -47,13 +44,13 @@ class ApiSocialController extends Controller
         $apiKey = $request->attributes->get('api_key');
 
         if (! $apiKey->hasPermission('socials.write')) {
-            return $this->forbidden('socials.write');
+            return ApiResponse::forbidden('socials.write');
         }
 
         $social = SiteSocial::where('id', $id)->where('site_id', $site->id)->first();
 
         if (! $social) {
-            return response()->json(['status' => 'error', 'code' => 404, 'message' => 'Social not found'], 404);
+            return ApiResponse::notFound('Social');
         }
 
         $validated = $request->validate([
@@ -67,11 +64,7 @@ class ApiSocialController extends Controller
         $social->update($validated);
         ActivityService::log('social', 'update', $social, "API: {$social->platform} {$social->handle} оновлено", $site, $before, 'api');
 
-        return response()->json([
-            'status'    => 'ok',
-            'id'        => $social->id,
-            'synced_at' => now()->toIso8601String(),
-        ]);
+        return ApiResponse::ok(['id' => $social->id, 'synced_at' => now()->toIso8601String()]);
     }
 
     public function destroy(Request $request, int $id): JsonResponse
@@ -80,27 +73,18 @@ class ApiSocialController extends Controller
         $apiKey = $request->attributes->get('api_key');
 
         if (! $apiKey->hasPermission('socials.write')) {
-            return $this->forbidden('socials.write');
+            return ApiResponse::forbidden('socials.write');
         }
 
         $social = SiteSocial::where('id', $id)->where('site_id', $site->id)->first();
 
         if (! $social) {
-            return response()->json(['status' => 'error', 'code' => 404, 'message' => 'Social not found'], 404);
+            return ApiResponse::notFound('Social');
         }
 
         ActivityService::log('social', 'delete', $social, "API: {$social->platform} видалено", $site, source: 'api');
         $social->delete();
 
-        return response()->json(['status' => 'ok', 'deleted_id' => $id]);
-    }
-
-    private function forbidden(string $permission): JsonResponse
-    {
-        return response()->json([
-            'status'  => 'error',
-            'code'    => 403,
-            'message' => "Permission denied: {$permission}",
-        ], 403);
+        return ApiResponse::ok(['deleted_id' => $id]);
     }
 }

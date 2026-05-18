@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SitePrice;
 use App\Services\ActivityService;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,7 @@ class ApiPriceController extends Controller
         $apiKey = $request->attributes->get('api_key');
 
         if (! $apiKey->hasPermission('prices.write')) {
-            return $this->forbidden('prices.write');
+            return ApiResponse::forbidden('prices.write');
         }
 
         $validated = $request->validate([
@@ -31,11 +32,7 @@ class ApiPriceController extends Controller
         $price = $site->prices()->create($validated);
         ActivityService::log('price', 'create', $price, "API: ціна «{$price->label}» додана", $site, source: 'api');
 
-        return response()->json([
-            'status'    => 'ok',
-            'id'        => $price->id,
-            'synced_at' => now()->toIso8601String(),
-        ], 201);
+        return ApiResponse::ok(['id' => $price->id, 'synced_at' => now()->toIso8601String()], 201);
     }
 
     public function update(Request $request, int $id): JsonResponse
@@ -44,13 +41,13 @@ class ApiPriceController extends Controller
         $apiKey = $request->attributes->get('api_key');
 
         if (! $apiKey->hasPermission('prices.write')) {
-            return $this->forbidden('prices.write');
+            return ApiResponse::forbidden('prices.write');
         }
 
         $price = SitePrice::where('id', $id)->where('site_id', $site->id)->first();
 
         if (! $price) {
-            return response()->json(['status' => 'error', 'code' => 404, 'message' => 'Price not found'], 404);
+            return ApiResponse::notFound('Price');
         }
 
         $validated = $request->validate([
@@ -66,11 +63,7 @@ class ApiPriceController extends Controller
         $price->update($validated);
         ActivityService::log('price', 'update', $price, "API: ціна «{$price->label}» оновлена", $site, $before, 'api');
 
-        return response()->json([
-            'status'    => 'ok',
-            'id'        => $price->id,
-            'synced_at' => now()->toIso8601String(),
-        ]);
+        return ApiResponse::ok(['id' => $price->id, 'synced_at' => now()->toIso8601String()]);
     }
 
     public function destroy(Request $request, int $id): JsonResponse
@@ -79,27 +72,18 @@ class ApiPriceController extends Controller
         $apiKey = $request->attributes->get('api_key');
 
         if (! $apiKey->hasPermission('prices.write')) {
-            return $this->forbidden('prices.write');
+            return ApiResponse::forbidden('prices.write');
         }
 
         $price = SitePrice::where('id', $id)->where('site_id', $site->id)->first();
 
         if (! $price) {
-            return response()->json(['status' => 'error', 'code' => 404, 'message' => 'Price not found'], 404);
+            return ApiResponse::notFound('Price');
         }
 
         ActivityService::log('price', 'delete', $price, "API: ціна «{$price->label}» видалена", $site, source: 'api');
         $price->delete();
 
-        return response()->json(['status' => 'ok', 'deleted_id' => $id]);
-    }
-
-    private function forbidden(string $permission): JsonResponse
-    {
-        return response()->json([
-            'status'  => 'error',
-            'code'    => 403,
-            'message' => "Permission denied: {$permission}",
-        ], 403);
+        return ApiResponse::ok(['deleted_id' => $id]);
     }
 }
