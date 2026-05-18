@@ -50,27 +50,20 @@ data-bridge-v2/                    ← ТИ ТУТ (Laravel проект)
 │   │   ├── layouts/               ← app.blade.php, auth.blade.php
 │   │   ├── components/            ← crm-rail.blade.php, stat-card.blade.php, ...
 │   │   └── pages/                 ← dashboard, sites/, site-groups/, users/, logs/
-│   └── css/ js/                   ← наш custom CSS (без Tailwind), vanilla JS
 ├── public/
-│   └── assets/css/ js/ img/       ← скомпільований / статичний фронт
+│   └── assets/css/ js/ img/       ← наш custom CSS (без Tailwind) + vanilla JS (єдиний фронт)
 ├── routes/
 │   ├── web.php                    ← всі web маршрути
 │   └── api.php                    ← /api/v1/* маршрути
 ├── config/
 ├── docker-compose.yml
-├── composer.json
-├── CRM.html                           ← standalone CRM design tool (React CDN)
-└── src/                               ← standalone CRM frontend (vibeB, НЕ чіпати з Laravel)
-    ├── styles/crm-theme.css
-    ├── components/crm-ui.jsx          ← Btn, Card, Pill, Avatar, I (icons)
-    ├── components/layout/             ← Sidebar, Topbar, CRMLayout (App root)
-    ├── components/screens/            ← Dashboard, Sites, Groups, SitePage, Activity
-    ├── components/shared/shared.jsx   ← PageHead, SiteFavicon, ActivityRow, ...
-    └── data/crm-mock.js               ← mock CRM data (dev only)
+└── composer.json
 
 Obsidian Vault (документація):
 C:\Users\zalis\OneDrive\Documents\DataBridgeV2\
 ```
+> Vite/Tailwind пайплайн + standalone `src/`/`CRM.html` видалені (аудит S5,
+> 2026-05-18) — фронт лише `public/assets/`, без build-кроку.
 
 ---
 
@@ -130,7 +123,7 @@ Vault: `C:\Users\zalis\OneDrive\Documents\DataBridgeV2\`
 
 1. **Laravel як єдиний PHP фреймворк** — без Symfony, Slim або інших
 2. **Без CSS-фреймворку** — ні Tailwind, ні Bootstrap (тільки наш design system)
-3. **Без JS-фреймворку в Blade** — ні React, ні Vue, ні Alpine (тільки vanilla JS); виняток: `src/` standalone CRM design tool використовує CDN React
+3. **Без JS-фреймворку** — ні React, ні Vue, ні Alpine, ні Vite/Tailwind (тільки vanilla JS + `public/assets/`)
 4. **Без plaintext паролів** — тільки `Hash::make()` / `Hash::check()`
 5. **Без SQL-конкатенації** — тільки Eloquent або `DB::` з bindings
 6. **Без unescaped output** — Blade `{{ }}` авто-екранує; `{!! !!}` тільки для довіреного HTML

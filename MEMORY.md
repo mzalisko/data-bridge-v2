@@ -118,8 +118,7 @@ Merge `e6eda95` (origin/main). Production-блокери знято.
 |---|---|
 | PHP фреймворк | Laravel (єдиний) |
 | CSS/JS (Laravel) | Без фреймворків — Restrained Loft / TG Dark design system |
-| CRM standalone | React 18 CDN + Babel standalone + vibeB (Modern SaaS) design |
-| CRM standalone файли | `CRM.html` → `src/styles/` → `src/components/` → `src/data/` |
+| CRM standalone | ВИДАЛЕНО (аудит S5, 2026-05-18) — `src/`+`CRM.html`+Vite/Tailwind більше нема; фронт лише `public/assets/` |
 | API key | `dbapi_` + 32 hex = 38 симв; Hash::make(); prefix = перші 12 |
 | API auth | Bearer → key_prefix (12) → Hash::check() |
 | API permissions | JSON array в api_keys.permissions (nullable) |
@@ -127,7 +126,7 @@ Merge `e6eda95` (origin/main). Production-блокери знято.
 | Tab routing (Laravel) | `?tab=overview/data/activity/settings` — server-side; geo subtab `?country=XX` |
 | Site Data CRUD | Drawer-based (add/edit) для phones/prices/addresses/socials. Controller redirect via `back()` |
 | Theme cookie | Plain `theme=light/dark` (whitelisted в `encryptCookies(except)`); inline `<head>` script читає до CSS |
-| Design system V2 | Single `public/assets/css/app.css` (~530 рядків) — vibeB tokens 1:1 з `src/styles/crm-theme.css` |
+| Design system V2 | Single `public/assets/css/app.css` — vibeB tokens (єдине джерело; `src/styles/crm-theme.css` видалено) |
 | Geo system V2 | `sites.active_geos` (JSON ISO array) + `sites.geo_rules` (JSON map visitor→data). Old `geo_mode/geo_countries` збережені для backward-compat з плагіном |
 | Eye-toggle | `is_visible` BOOL DEFAULT 1 на site_phones, site_addresses, site_socials. POST /visibility/{type}/{id} |
 | Plugin sync | CRM→Plugin: one-way PUSH (SyncPushService) — автоматично після кожного CRUD та geo-зміни |
