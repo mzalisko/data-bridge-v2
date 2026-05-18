@@ -70,10 +70,93 @@ class SiteController extends Controller
 
     public function show(Request $request, Site $site): View
     {
-        $tab = $request->query('tab', 'overview');
         $site->load(['siteGroup', 'apiKey', 'phones', 'prices', 'addresses', 'socials', 'customFields']);
         $groups    = SiteGroup::orderBy('name')->get(['id', 'name', 'color']);
         $countries = Country::orderBy('sort_order')->orderBy('iso')->get(['iso', 'dial_code', 'name']);
+
+        // View-model prep (audit S3 — hoisted verbatim out of show.blade.php's
+        // 119-line header @php so the god-view holds markup, not logic).
+        $statusName = $site->is_active ? 'Online' : 'Offline';
+        $syncLog    = $site->latestSyncLog;
+        $syncWhen   = $syncLog?->synced_at?->diffForHumans() ?? '—';
+        $tab        = in_array($request->query('tab'), ['overview', 'data', 'activity', 'settings'])
+            ? $request->query('tab') : 'overview';
+        $country    = $request->query('country', 'all');
+
+        $allIsoCountries = [
+            'AL'=>'Albania','AM'=>'Armenia','AT'=>'Austria','AZ'=>'Azerbaijan',
+            'BA'=>'Bosnia and Herzegovina','BE'=>'Belgium','BG'=>'Bulgaria','BY'=>'Belarus',
+            'CH'=>'Switzerland','CY'=>'Cyprus','CZ'=>'Czech Republic',
+            'DE'=>'Germany','DK'=>'Denmark','EE'=>'Estonia','ES'=>'Spain',
+            'FI'=>'Finland','FR'=>'France','GB'=>'United Kingdom','GE'=>'Georgia',
+            'GR'=>'Greece','HR'=>'Croatia','HU'=>'Hungary','IE'=>'Ireland',
+            'IL'=>'Israel','IT'=>'Italy','KG'=>'Kyrgyzstan','KZ'=>'Kazakhstan',
+            'LT'=>'Lithuania','LU'=>'Luxembourg','LV'=>'Latvia',
+            'MD'=>'Moldova','ME'=>'Montenegro','MK'=>'North Macedonia','MT'=>'Malta',
+            'NL'=>'Netherlands','NO'=>'Norway','PL'=>'Poland','PT'=>'Portugal',
+            'RO'=>'Romania','RS'=>'Serbia','RU'=>'Russia',
+            'SE'=>'Sweden','SI'=>'Slovenia','SK'=>'Slovakia',
+            'TJ'=>'Tajikistan','TM'=>'Turkmenistan','TR'=>'Turkey',
+            'UA'=>'Ukraine','UZ'=>'Uzbekistan',
+            'AE'=>'UAE','SA'=>'Saudi Arabia','CN'=>'China','IN'=>'India',
+            'JP'=>'Japan','KR'=>'South Korea','US'=>'United States',
+            'CA'=>'Canada','AU'=>'Australia','BR'=>'Brazil','MX'=>'Mexico',
+            'ZA'=>'South Africa','NG'=>'Nigeria','EG'=>'Egypt',
+        ];
+
+        $activeGeosRaw = (array) ($site->active_geos ?? []);
+        $geoNames = array_is_list($activeGeosRaw)
+            ? array_fill_keys($activeGeosRaw, '')
+            : $activeGeosRaw;
+        $usedIso  = array_keys($geoNames);
+        sort($usedIso);
+
+        $countriesByIso = $countries->keyBy('iso');
+        $geoRules = (array) ($site->geo_rules ?? []);
+
+        $geoVis = function ($geoMode, $geoCountries, $visitorIso, $itemCountryIso = null) use ($geoRules): bool {
+            $mode   = $geoMode ?? 'all';
+            $ctries = (array) ($geoCountries ?? []);
+            $itemOk = match($mode) {
+                'include' => in_array($visitorIso, $ctries),
+                'exclude' => !in_array($visitorIso, $ctries),
+                default   => true,
+            };
+            if (!$itemOk) return false;
+            if ($itemCountryIso && isset($geoRules[$itemCountryIso])) {
+                $rule    = (array) $geoRules[$itemCountryIso];
+                $rMode   = $rule['mode'] ?? 'all';
+                $rCtries = (array) ($rule['countries'] ?? []);
+                $tabOk   = match($rMode) {
+                    'include' => in_array($visitorIso, $rCtries),
+                    'exclude' => !in_array($visitorIso, $rCtries),
+                    default   => true,
+                };
+                if (!$tabOk) return false;
+            }
+            return true;
+        };
+
+        $visRuleOptions = $usedIso;
+
+        $filterByGeo = function ($collection) use ($country) {
+            if ($country === 'all') return $collection;
+            return $collection->filter(function ($item) use ($country) {
+                $iso = $item->country_iso ?: null;
+                return $iso === null || $iso === $country;
+            })->values();
+        };
+
+        $shownPhones    = $filterByGeo($site->phones);
+        $shownPrices    = $filterByGeo($site->prices);
+        $shownAddresses = $filterByGeo($site->addresses);
+        $shownSocials   = $filterByGeo($site->socials);
+
+        $url = function ($newParams) use ($site, $request) {
+            return route('sites.show', $site) . '?' . http_build_query(array_merge($request->query(), $newParams));
+        };
+
+        $socialIcon = config('social_icons');
 
         $presenceOthers = $this->getPresence($site->id);
 
@@ -97,6 +180,10 @@ class SiteController extends Controller
         return view('admin.sites.show', compact(
             'site', 'groups', 'tab', 'countries', 'presenceOthers',
             'activityLogs', 'siteSyncs', 'failoverLogs', 'isFavorite',
+            'statusName', 'syncLog', 'syncWhen', 'country', 'allIsoCountries',
+            'geoNames', 'usedIso', 'countriesByIso', 'geoRules', 'geoVis',
+            'visRuleOptions', 'filterByGeo', 'shownPhones', 'shownPrices',
+            'shownAddresses', 'shownSocials', 'url', 'socialIcon',
         ));
     }
 
