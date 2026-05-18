@@ -3,6 +3,7 @@
 use App\Http\Middleware\AdminOnly;
 use App\Http\Middleware\ApiKeyAuth;
 use App\Http\Middleware\CheckUserActive;
+use App\Http\Middleware\EnforcePermission;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -35,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'api.key' => ApiKeyAuth::class,
             'admin'   => AdminOnly::class,
+            'perm'    => EnforcePermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

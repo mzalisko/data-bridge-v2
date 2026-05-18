@@ -108,8 +108,15 @@ class FailoverController extends Controller
      * Rollback a specific failover log by ID.
      * Use /restore when you know the primary_id but not the log ID.
      */
-    public function rollback(SiteFailoverLog $log): JsonResponse
+    public function rollback(Request $request, SiteFailoverLog $log): JsonResponse
     {
+        // Scope to the site the API key resolves to — never trust the log ID
+        // alone (any valid key could otherwise roll back any other site's log).
+        $site = $request->attributes->get('site');
+        if (! $site || $site->id !== (int) $log->site_id) {
+            return response()->json(['ok' => false, 'error' => 'log does not belong to API key site'], 403);
+        }
+
         try {
             $log = FailoverService::rollback($log);
         } catch (\RuntimeException $e) {
