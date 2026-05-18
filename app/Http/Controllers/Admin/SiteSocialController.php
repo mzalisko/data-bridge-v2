@@ -1,73 +1,74 @@
 <?php
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\ManagesSiteData;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\StoreSocialRequest;
-use App\Http\Requests\Admin\UpdateSocialRequest;
+use App\Http\Requests\Admin\SocialRequest;
 use App\Models\CustomPlatform;
 use App\Models\Site;
 use App\Models\SiteSocial;
-use App\Services\ActivityService;
-use App\Services\SyncPushService;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class SiteSocialController extends Controller
 {
-    private function resolveCustomPlatform(array &$data, string $rawPlatform, ?string $customLabel): void
+    use ManagesSiteData;
+
+    protected function entityType(): string
     {
-        if ($rawPlatform === '__new__' && $customLabel) {
-            $platform = CustomPlatform::fromLabel($customLabel, 'messenger');
+        return 'social';
+    }
+
+    protected function flashMessage(string $action): string
+    {
+        return match ($action) {
+            'create' => 'Соцмережу додано',
+            'update' => 'Соцмережу оновлено',
+            'delete' => 'Соцмережу видалено',
+        };
+    }
+
+    protected function logSummary(Model $record, string $action): string
+    {
+        $verb = match ($action) {
+            'create' => 'додано',
+            'update' => 'оновлено',
+            'delete' => 'видалено',
+        };
+
+        return "{$record->platform} {$record->handle} {$verb}";
+    }
+
+    protected function preprocess(Request $request, array $data): array
+    {
+        if ($request->input('platform') === '__new__' && $request->input('platform_custom')) {
+            $platform = CustomPlatform::fromLabel($request->input('platform_custom'), 'messenger');
             $data['platform'] = $platform->slug;
         }
         unset($data['platform_custom']);
+
+        return $data;
     }
 
-    public function store(StoreSocialRequest $request, Site $site): RedirectResponse
+    public function store(SocialRequest $request, Site $site): RedirectResponse
     {
-        $data = $request->validated();
-        $this->resolveCustomPlatform($data, $request->input('platform', ''), $request->input('platform_custom'));
-        $data['geo_mode']      = $data['geo_mode'] ?? 'all';
-        $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
-        $social = $site->socials()->create($data);
-        ActivityService::log('social', 'create', $social, "{$social->platform} {$social->handle} додано", $site);
-        SyncPushService::push($site);
-        return back()->with('success', 'Соцмережу додано');
+        return $this->createSiteRecord($site, $request, $request->validated());
     }
 
-    public function update(UpdateSocialRequest $request, Site $site, SiteSocial $social): RedirectResponse
+    public function update(SocialRequest $request, Site $site, SiteSocial $social): RedirectResponse
     {
-        $data = $request->validated();
-        $this->resolveCustomPlatform($data, $request->input('platform', ''), $request->input('platform_custom'));
-        $data['geo_mode']      = $data['geo_mode'] ?? 'all';
-        $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
-        $before = $social->toArray();
-        $social->update($data);
-        ActivityService::log('social', 'update', $social, "{$social->platform} {$social->handle} оновлено", $site, $before);
-        SyncPushService::push($site);
-        return back()->with('success', 'Соцмережу оновлено');
+        return $this->updateSiteRecord($site, $request, $social, $request->validated());
     }
 
     public function destroy(Site $site, SiteSocial $social): RedirectResponse
     {
-        ActivityService::log('social', 'delete', $social, "{$social->platform} {$social->handle} видалено", $site);
-        $social->delete();
-        SyncPushService::push($site);
-        return back()->with('success', 'Соцмережу видалено');
+        return $this->deleteSiteRecord($site, $social);
     }
 
     public function reorder(Request $request, Site $site): JsonResponse
     {
-        $data = $request->validate([
-            'items'              => ['required', 'array'],
-            'items.*.id'         => ['required', 'integer'],
-            'items.*.sort_order' => ['required', 'integer'],
-        ]);
-        foreach ($data['items'] as $item) {
-            SiteSocial::where('site_id', $site->id)->where('id', $item['id'])
-                ->update(['sort_order' => $item['sort_order']]);
-        }
-        return response()->json(['ok' => true]);
+        return $this->reorderSiteRecords($request, $site);
     }
 }

@@ -1,47 +1,63 @@
 <?php
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\ManagesSiteData;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\StorePriceRequest;
-use App\Http\Requests\Admin\UpdatePriceRequest;
+use App\Http\Requests\Admin\PriceRequest;
 use App\Models\Site;
 use App\Models\SitePrice;
-use App\Services\ActivityService;
-use App\Services\SyncPushService;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class SitePriceController extends Controller
 {
-    public function store(StorePriceRequest $request, Site $site): RedirectResponse
+    use ManagesSiteData;
+
+    protected function entityType(): string
     {
-        $data = $request->validated();
-        $data['is_visible']    = $request->boolean('is_visible', true);
-        $data['geo_mode']      = $data['geo_mode'] ?? 'all';
-        $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
-        $price = $site->prices()->create($data);
-        ActivityService::log('price', 'create', $price, "Ціна «{$price->label}» додана", $site);
-        SyncPushService::push($site);
-        return back()->with('success', 'Ціну додано');
+        return 'price';
     }
 
-    public function update(UpdatePriceRequest $request, Site $site, SitePrice $price): RedirectResponse
+    protected function flashMessage(string $action): string
     {
-        $data = $request->validated();
-        $data['is_visible']    = $request->boolean('is_visible', true);
-        $data['geo_mode']      = $data['geo_mode'] ?? 'all';
-        $data['geo_countries'] = $data['geo_mode'] !== 'all' ? ($data['geo_countries'] ?? []) : [];
-        $before = $price->toArray();
-        $price->update($data);
-        ActivityService::log('price', 'update', $price, "Ціна «{$price->label}» оновлена", $site, $before);
-        SyncPushService::push($site);
-        return back()->with('success', 'Ціну оновлено');
+        return match ($action) {
+            'create' => 'Ціну додано',
+            'update' => 'Ціну оновлено',
+            'delete' => 'Ціну видалено',
+        };
+    }
+
+    protected function logSummary(Model $record, string $action): string
+    {
+        $verb = match ($action) {
+            'create' => 'додана',
+            'update' => 'оновлена',
+            'delete' => 'видалена',
+        };
+
+        return "Ціна «{$record->label}» {$verb}";
+    }
+
+    protected function preprocess(Request $request, array $data): array
+    {
+        $data['is_visible'] = $request->boolean('is_visible', true);
+
+        return $data;
+    }
+
+    public function store(PriceRequest $request, Site $site): RedirectResponse
+    {
+        return $this->createSiteRecord($site, $request, $request->validated());
+    }
+
+    public function update(PriceRequest $request, Site $site, SitePrice $price): RedirectResponse
+    {
+        return $this->updateSiteRecord($site, $request, $price, $request->validated());
     }
 
     public function destroy(Site $site, SitePrice $price): RedirectResponse
     {
-        ActivityService::log('price', 'delete', $price, "Ціна «{$price->label}» видалена", $site);
-        $price->delete();
-        SyncPushService::push($site);
-        return back()->with('success', 'Ціну видалено');
+        return $this->deleteSiteRecord($site, $price);
     }
 }
