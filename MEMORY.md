@@ -83,13 +83,15 @@
 | data/index: pool bar + action bar overlap fix (updateActionBarBottom динамічно) | feature/per-item-geo-visibility | ✅ |
 | data/index: прибрати поле "Країна ISO" з edit drawer для phones | feature/per-item-geo-visibility | ✅ |
 
-## 🔴 Аудит 2026-05-18 — БЛОКЕРИ production (vault: `10-Оптимізація/audit_2026-05-18.md`)
+## ✅ Аудит 2026-05-18 — критичні фікси ЗЛИТО в main (vault: `10-Оптимізація/audit_2026-05-18.md`)
 
-1. **SEC-C1** — RBAC зламаний: НЕМАЄ `app/Policies/`, всі `FormRequest::authorize()` = `true`, `UserPermission` мертва. Будь-який auth-user (навіть viewer) видаляє сайти / редагує всі дані. Web-маршрути лише `auth` (admin тільки на users/permissions/bulk).
-2. **SEC-C2** — Cross-tenant IDOR: `Api/FailoverController::rollback()` (routes/api.php:52) без site-scope (на відміну від trigger/restore). Будь-який API-ключ відкочує чужий failover.
-3. **DB-C1/C2** — `key_prefix` неунікальний (auth hot-path, колізії); `push_key`/`plugin_edit_token` без unique/index.
-4. **BatchController** — мовчки обходить ActivityService::log І SyncPushService::push (batch не пушиться у WP) — дублює BulkDataController, видалити.
-5. Спрощення: Site*-контролери/views/requests дубль 8× (~500-2000 рядків); `show.blade.php` 3357 рядків; `src/`+`resources/css|js` мертві.
+Merge `e6eda95` (origin/main). Production-блокери знято.
+
+1. ✅ **SEC-C1** — `EnforcePermission` middleware (`perm:{view|edit|delete|api_key}`) на web write-маршрутах. RBAC e2e зелений: viewer→403 мутації / 200 reads; manager→bypass; viewer+UserPermission grant→200. Permissions-UI живий.
+2. ✅ **SEC-C2** — `Api/FailoverController::rollback` site-scoped (мирор trigger/restore).
+3. ✅ **DB-C2** — unique `push_key`/`plugin_edit_token` + (site_id,sort_order)/updated_at індекси (міграція `2026_05_18_000001` прогнана). *(DB-C1 `key_prefix` unique — НЕ зроблено, лишилось.)*
+4. ✅ **BatchController**+SiteGeoVisController видалено.
+5. ⏳ Спрощення (НЕ зроблені): Site* дубль 8×, `show.blade.php` 3357 р., `src/` мертвий, дві bulk-системи.
 
 ## 🔲 Залишилось (Sprint 04)
 
